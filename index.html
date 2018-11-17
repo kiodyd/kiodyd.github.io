@@ -237,6 +237,59 @@
 </nav>
       <div class="body-wrap">
   
+    <article id="post-cocos creator微信小游戏截图" class="article article-type-post" itemscope="" itemprop="blogPost">
+  
+  <div class="article-meta">
+    <a href="/2018/11/17/cocos creator微信小游戏截图/" class="article-date">
+      <time datetime="2018-11-17T10:07:14.399Z" itemprop="datePublished">2018-11-17</time>
+</a>
+
+
+  </div>
+  
+  <div class="article-inner">
+    
+    <input type="hidden" class="isFancy">
+    
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在之前，用CocosCreator制作的游戏，截图功能的实现是一个比较麻烦的地方，之前的官方文档也没有相关资料，只有论坛大神给出的一些解决方案。后来cocos更新了2.0版本，camera组件大改，截图功能也有了官方的解决方案，详情请见<a href="https://docs.cocos.com/creator/manual/zh/render/camera.html" target="_blank" rel="noopener">这里</a>。不过本文讨论的不是h5或是原生平台，以上平台可以参考上面官方文档。</p>
+<h2 id="开始"><a href="#开始" class="headerlink" title="开始"></a>开始</h2><p>微信小游戏其实已经给开发者准备了相关的截图api–<a href="https://developers.weixin.qq.com/minigame/dev/document/render/canvas/Canvas.toTempFilePath.html" target="_blank" rel="noopener">Canvas.toTempFilePath</a>，你们可以先进去看看文档关于各个参数的解释。这个函数的作用是，在当前的Canvas指定一个区域（没有参数情况下则截取整个Canvas）来截图，最后返回一个图片临时路径。根据不同的需求来使用函数返回的路径图片。</p>
+<h3 id="需求Ⅰ-预览所截的图，并保存图片"><a href="#需求Ⅰ-预览所截的图，并保存图片" class="headerlink" title="需求Ⅰ 预览所截的图，并保存图片"></a>需求Ⅰ 预览所截的图，并保存图片</h3><p>这里需要配合微信api的另一个函数<a href="https://developers.weixin.qq.com/minigame/dev/document/media/image/wx.previewImage.html" target="_blank" rel="noopener">wx.previewImage</a>，同理可先进去看看文档怎么解释的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">wechat_download() &#123;</span><br><span class="line">        let canvas = cc.game.canvas;</span><br><span class="line">        let rate = this.wechat_canvas.parent.width / canvas.width;</span><br><span class="line">        let width = this.wechat_canvas.width / rate;</span><br><span class="line">        let height = this.wechat_canvas.height / rate;</span><br><span class="line"></span><br><span class="line">        canvas.toTempFilePathSync(&#123;</span><br><span class="line">            x: canvas.width / 2 - this.wechat_canvas.width / rate / 2,</span><br><span class="line">            y: canvas.height / 2 - (this.wechat_canvas.height / 2 + this.wechat_canvas.y) / rate,</span><br><span class="line">            width: width,</span><br><span class="line">            height: height,</span><br><span class="line">            destWidth: width,</span><br><span class="line">            destHeight: height,</span><br><span class="line">            success : (res)=&gt; &#123;</span><br><span class="line">	            wx.previewImage(&#123;</span><br><span class="line">                     current: res.tempFilePath,</span><br><span class="line">                     urls: [res.tempFilePath]</span><br><span class="line">                &#125;)</span><br><span class="line">           &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;,</span><br></pre></td></tr></table></figure></p>
+<p>上面是我调用的过程，其中要注意的是，不同设备适配的时候会将canvas拉伸，所以不可以直接用我们在cocos里的尺寸，这里我先计算放缩的比例rate，再根据rate调整截图位置和截图区域大小。</p>
+<h3 id="需求-Ⅱ-根据截图分享小游戏给好友"><a href="#需求-Ⅱ-根据截图分享小游戏给好友" class="headerlink" title="需求 Ⅱ 根据截图分享小游戏给好友"></a>需求 Ⅱ 根据截图分享小游戏给好友</h3><p>相关函数<a href="https://developers.weixin.qq.com/minigame/dev/document/share/wx.shareAppMessage.html" target="_blank" rel="noopener">wx.shareAppMessage</a><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">shareFriend() &#123;</span><br><span class="line">        let canvas = cc.game.canvas;</span><br><span class="line">        let rate = this.wechat_canvas.parent.width / canvas.width;</span><br><span class="line">        let width = this.wechat_canvas.width / rate;</span><br><span class="line">        let height = this.wechat_canvas.height / rate;</span><br><span class="line"></span><br><span class="line">        canvas.toTempFilePathSync(&#123;</span><br><span class="line">            x: canvas.width / 2 - this.wechat_canvas.width / rate / 2,</span><br><span class="line">            y: canvas.height / 2 - (this.wechat_canvas.height / 2 + this.wechat_canvas.y) / rate,</span><br><span class="line">            width: width,</span><br><span class="line">            height: height,</span><br><span class="line">            destWidth: 500,</span><br><span class="line">            destHeight: 400,</span><br><span class="line">            success: (res) =&gt; &#123;</span><br><span class="line">                 wx.shareAppMessage(&#123;</span><br><span class="line">                 	 imageUrl: res.tempFilePath</span><br><span class="line">                 &#125;)</span><br><span class="line">             &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;,</span><br></pre></td></tr></table></figure></p>
+<p>使用方法其实和上面差不多，注意目标尺寸最好是5：4吧</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>调用微信api的话截图比较简单，但需要注意位置的定位和canvas的转换，还有一点，上述转发图片功能我测试的时候，用游客appid是不能用的，所以需要自己去申请一个appid才能使用shareAppMessage函数。</p>
+
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+
+      
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+
+
+
+
+  
     <article id="post-怎么把dr.com装进你的路由器里" class="article article-type-post" itemscope="" itemprop="blogPost">
   
   <div class="article-meta">
