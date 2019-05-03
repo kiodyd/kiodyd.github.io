@@ -24,7 +24,7 @@
 <meta property="og:description" content="想去🏃‍">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://kiodyd.github.io/img/2/conversion.png">
-<meta property="og:updated_time" content="2019-05-03T09:09:23.374Z">
+<meta property="og:updated_time" content="2019-05-03T14:25:48.613Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="从0.1开始的c&#x2F;c++学习（二）">
 <meta name="twitter:description" content="想去🏃‍">
@@ -266,7 +266,7 @@
       <span class="post-meta-item-icon">
         <i class="fa fa-keyboard-o"></i>
         <span class="post-meta-item-text">  字数统计: </span>
-        <span class="post-count">2.2k字</span>
+        <span class="post-count">2.4k字</span>
       </span>
     </span>
 
@@ -275,7 +275,7 @@
       <span class="post-meta-item-icon">
         <i class="fa fa-hourglass-half"></i>
         <span class="post-meta-item-text">  阅读时长: </span>
-        <span class="post-count">8分</span>
+        <span class="post-count">9分</span>
       </span>
     </span>
 </div>
@@ -347,6 +347,8 @@
 <h3 id="scanf-的返回值"><a href="#scanf-的返回值" class="headerlink" title="scanf()的返回值"></a>scanf()的返回值</h3><p>scanf()函数返回成功读取的项数。如果没有读取任何项，且需要读取一个数字而用户却输入一个非数值字符串，scanf()便返回0。当scanf()检测 到“文件结尾”时，会返回EOF（EOF是stdio.h中定义的特殊值，通常用 #define指令把EOF定义为-1）。<br>scanf()函数允许把普通字符放在格式字符串中。除空格字符外的普通字 符必须与输入字符串严格匹配。</p>
 <h3 id="scanf-读取"><a href="#scanf-读取" class="headerlink" title="scanf()读取"></a>scanf()读取</h3><p>空白字符（制表符、空格和换行符）在 scanf()处理输入时起着至关重要 的作用。除了%c 模式（读取下一个字符），scanf()在读取输入时会跳过非空白字符前的所有空白字符，然后一直读取字符，直至遇到空白字符或与正在读取字符不匹配的字符。考虑一下，如果scanf()根据不同的转换说明读取 相同的输入行，会发生什么情况。假设有如下输入行：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-13.45e12# 0</span><br></pre></td></tr></table></figure></p>
 <p>如果其对应的转换说明是%d，scanf()会读取3个字符（-13）并停在小数 点处，小数点将被留在输入中作为下一次输入的首字符。如果其对应的转换 说明是%f，scanf()会读取-13.45e12，并停在#符号处，而#将被留在输入中作 为下一次输入的首字符；然后，scanf()把读取的字符序列-13.45e12转换成相应的浮点值，并储存在float类型的目标变量中。如果其对应的转换说明是%s，scanf()会读取-13.45e12#，并停在空格处，空格将被留在输入中作为下一次输入的首字符；然后，scanf()把这 10个字符的字符码储存在目标字符 数组中，并在末尾加上一个空字符。如果其对应的转换说明是%c，scanf() 只会读取并储存第1个字符，该例中是一个空格</p>
+<hr>
+<p><strong>scanf缓冲区</strong><br>假如scanf(“%s”,name)时输入的名字包括了姓和名，如kio k，这时候由于scanf遇到空格就停止了，所以后面的k会被保存在缓冲区，下一次读取的时候会先读取这部分，假如下一次是scanf(“%f”,&amp;weight)时就会报错，一直匹配不上float。另外如果输入名字的时候填入了“kio 55”，那么后面输入体重时也会把55当成体重值。</p>
 <h3 id="printf-和scanf-的-修饰符"><a href="#printf-和scanf-的-修饰符" class="headerlink" title="printf()和scanf()的*修饰符"></a>printf()和scanf()的*修饰符</h3><h4 id="printf-的-修饰符"><a href="#printf-的-修饰符" class="headerlink" title="printf()的*修饰符"></a>printf()的*修饰符</h4><p>如果你不想预先指定字段宽度，希望通过程序来指定，那么可以用*修饰符代替字段宽度。但还是要用一个参数告诉函数，字段宽度应该是多少。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">printf(&quot;The number is :%*d:\n&quot;, width, number);</span><br><span class="line">printf(&quot;Weight = %*.*f\n&quot;, width, precision, weight);</span><br></pre></td></tr></table></figure></p>
 <h4 id="scanf-的-修饰符"><a href="#scanf-的-修饰符" class="headerlink" title="scanf()的*修饰符"></a>scanf()的*修饰符</h4><p>scanf()中用法与此不同。把*放在%和转换字符之间时，会使得 scanf()跳过相应的输出项。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">printf(&quot;Please enter three integers:\n&quot;);</span><br><span class="line">scanf(&quot;%*d %*d %d&quot;, &amp;n);</span><br><span class="line">printf(&quot;The last integer was %d\n&quot;, n);</span><br></pre></td></tr></table></figure></p>
 <p>跳过两个整数，把第3个整数拷贝给n，在程序需要读取文件中特定列的内容时，这项跳过功能很有用。</p>
@@ -361,7 +363,7 @@
         <p><span>本文标题:</span><a href="/2019/05/03/c语言学习2/">从0.1开始的c/c++学习（二）</a></p>
         <p><span>文章作者:</span><a href="/" title="回到主页">kiodyd</a></p>
         <p><span>发布时间:</span>2019-05-03, 16:53:55</p>
-        <p><span>最后更新:</span>2019-05-03, 17:09:23</p>
+        <p><span>最后更新:</span>2019-05-03, 22:25:48</p>
         <p>
             <span>原始链接:</span><a class="post-url" href="/2019/05/03/c语言学习2/" title="从0.1开始的c/c++学习（二）">http://kiodyd.github.io/2019/05/03/c语言学习2/</a>
             <span class="copy-path" data-clipboard-text="原文: http://kiodyd.github.io/2019/05/03/c语言学习2/　　作者: kiodyd" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
