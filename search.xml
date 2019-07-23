@@ -3,6 +3,29 @@
   
     
     <entry>
+      <title>使用unity来还原大雄与哆啦A梦的房间</title>
+      <link href="/2019/07/23/unity-%E5%A4%A7%E9%9B%84%E7%9A%84%E6%88%BF%E9%97%B4/"/>
+      <url>/2019/07/23/unity-%E5%A4%A7%E9%9B%84%E7%9A%84%E6%88%BF%E9%97%B4/</url>
+      
+        <content type="html"><![CDATA[<p>之前的课程作业鸭</p><p>(っ °Д °;)っ不过为什么虚拟现实的作业是做室内漫游咧</p><a id="more"></a><p>使用unity和3dmax还原的一个大雄的屋子</p><hr><p>第一次使用了下hdrp管线，好多shader用不了了。<br>任意门的实现参考unity官方达哥的教程。</p><iframe src="//player.bilibili.com/player.html?aid=60455245&cid=105240964&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>]]></content>
+      
+      
+      <categories>
+          
+          <category> 学习 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> unity学习 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    <entry>
       <title>指针与const</title>
       <link href="/2019/07/23/%E6%8C%87%E9%92%88%E5%92%8Cconst/"/>
       <url>/2019/07/23/%E6%8C%87%E9%92%88%E5%92%8Cconst/</url>
