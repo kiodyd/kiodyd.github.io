@@ -184,12 +184,15 @@
         repo: 'kiodyd.github.io',
         owner: 'kiodyd',
         admin: '"kiodyd"',
-        id: '2018-11-17T18-08-55',
+        id: md5(location.pathname),
         distractionFreeMode: false  // Facebook-like distraction free mode
     });
 
     gitalk.render('gitalk-container');
 </script>
+    <link rel="stylesheet" href="/lib/gitalk/gitalk.css">
+    <script src="/lib/gitalk/gitalk.min.js"></script>
+    <script src="/lib/gitalk/md5.min.js"></script>
     
 </div>
   
