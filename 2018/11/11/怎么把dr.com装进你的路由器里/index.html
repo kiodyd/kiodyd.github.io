@@ -1,321 +1,89 @@
 <!DOCTYPE html>
-<html lang="zh-Hans">
+<html lang="zh-CN">
+
+
+
+
+
+
+
+
+
+
 <head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
+    <meta name="author" content="kiodyd">
+    <meta name="keywords" content="">
+    <title>怎么把dr.com装进你的路由器里 ~ 发际线日渐后移的kio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/css/mdb.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://at.alicdn.com/t/font_1067060_vr10bjtg3us.css">
+    
+    <link rel="stylesheet" href="/css/Prettify/tomorrow-night-eighties.min.css">
+    
+</head>
 
-    <!--[if lt IE 9]>
-        <style>body {display: none; background: none !important} </style>
-        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
-    <![endif]-->
-
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="format-detection" content="telephone=no">
-<meta name="author" content="kiodyd">
-
-
-
-<meta name="description" content="校园网也能开WiFi？">
-<meta name="keywords" content="drcom,路由器">
-<meta property="og:type" content="article">
-<meta property="og:title" content="怎么把dr.com装进你的路由器里">
-<meta property="og:url" content="http://kiodyd.github.io/2018/11/11/怎么把dr.com装进你的路由器里/index.html">
-<meta property="og:site_name" content="发际线日渐后移的kio">
-<meta property="og:description" content="校园网也能开WiFi？">
-<meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://kiodyd.github.io/img/1/6.png">
-<meta property="og:image" content="http://kiodyd.github.io/img/1/1.png">
-<meta property="og:image" content="http://kiodyd.github.io/img/1/3.png">
-<meta property="og:image" content="http://kiodyd.github.io/img/1/4.png">
-<meta property="og:updated_time" content="2018-11-11T14:42:27.148Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="怎么把dr.com装进你的路由器里">
-<meta name="twitter:description" content="校园网也能开WiFi？">
-<meta name="twitter:image" content="http://kiodyd.github.io/img/1/6.png">
-
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-
-
-    <link rel="alternate" href="/atom.xml" title="发际线日渐后移的kio" type="application/atom+xml">
-
-
-
-    <link rel="shortcut icon" href="/img/favicon.ico">
-
-
-
-    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
-
-
-
-    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
-
-
-
-    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
-    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
-
-
-<link rel="stylesheet" href="/css/style.css">
-
-
-
-<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
-
-
-<title>怎么把dr.com装进你的路由器里 | 发际线日渐后移的kio</title>
-
-<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
-<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
-
-<script>
-    var yiliaConfig = {
-        fancybox: true,
-        animate: true,
-        isHome: false,
-        isPost: true,
-        isArchive: false,
-        isTag: false,
-        isCategory: false,
-        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
-        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
-        search: true
-    }
-</script>
-
-
-    <script>
-        yiliaConfig.jquery_ui = [true, "//cdn.bootcss.com/jqueryui/1.10.4/jquery-ui.min.js", "//cdn.bootcss.com/jqueryui/1.10.4/css/jquery-ui.min.css"];
-    </script>
-
-
-
-    <script> yiliaConfig.rootUrl = "\/";</script>
-
-
-
-
-
-
-</head></html>
 <body>
-  <div id="container">
-    <div class="left-col">
-    <div class="overlay"></div>
-<div class="intrude-less">
-    <header id="header" class="inner">
-        <a href="/" class="profilepic">
-            <img src="/img/avatar.png" class="animated zoomIn">
-        </a>
-        <hgroup>
-          <h1 class="header-author"><a href="/">kiodyd</a></h1>
-        </hgroup>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+<div class="container">
+    <a class="navbar-brand" href="/"><strong>发际线日渐后移的kio</strong></a>
 
-        
-        <p class="header-subtitle">如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
-        
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
 
-        
-            <form id="search-form">
-            <input type="text" id="local-search-input" name="q" placeholder="search..." class="search form-control" autocomplete="off" autocorrect="off" searchonload="false">
-            <i class="fa fa-times" onclick="resetSearch()"></i>
-            </form>
-            <div id="local-search-result"></div>
-            <p class="no-result">No results found <i class="fa fa-spinner fa-pulse"></i></p>
-        
-
-
-        
-            <div id="switch-btn" class="switch-btn">
-                <div class="icon">
-                    <div class="icon-ctn">
-                        <div class="icon-wrap icon-house" data-idx="0">
-                            <div class="birdhouse"></div>
-                            <div class="birdhouse_holes"></div>
-                        </div>
-                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
-                            <div class="ribbon"></div>
-                        </div>
-                        
-                        
-                    </div>
-                    
-                </div>
-                <div class="tips-box hide">
-                    <div class="tips-arrow"></div>
-                    <ul class="tips-inner">
-                        <li>菜单</li>
-                        <li>标签</li>
-                        
-                        
-                    </ul>
-                </div>
-            </div>
-        
-
-        <div id="switch-area" class="switch-area">
-            <div class="switch-wrap">
-                <section class="switch-part switch-part1">
-                    <nav class="header-menu">
-                        <ul>
-                        
-                            <li><a href="/">主页</a></li>
-                        
-                            <li><a href="/archives/">所有文章</a></li>
-                        
-                            <li><a href="/tags/">标签云</a></li>
-                        
-                        </ul>
-                    </nav>
-                    <nav class="header-nav">
-                        <ul class="social">
-                            
-                                <a class="fa GitHub" href="https://github.com/kiodyd/" title="GitHub"></a>
-                            
-                                <a class="fa Coding" href="https://dev.tencent.com/u/kiodyd" title="Coding"></a>
-                            
-                                <a class="fa 网易云音乐" href="https://music.163.com/#/user/home?id=350967617" title="网易云音乐"></a>
-                            
-                        </ul>
-                    </nav>
-                </section>
-                
-                
-                <section class="switch-part switch-part2">
-                    <div class="widget tagcloud" id="js-tagcloud">
-                        <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/c-笔记/">c++笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cocos/">cocos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/c语言笔记/">c语言笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/drcom/">drcom</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/unity学习/">unity学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/平板/">平板</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/搞机/">搞机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/游戏开发/">游戏开发</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/计划/">计划</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/路由器/">路由器</a></li></ul>
-                    </div>
-                </section>
-                
-                
-                
-
-                
-            </div>
-        </div>
-    </header>                
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ml-auto text-center">
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/archives/">Archives</a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/about/">About</a>
+            </li>
+            
+        </ul>
+    </div>
 </div>
-    </div>
-    <div class="mid-col">
-      <nav id="mobile-nav">
-      <div class="overlay">
-          <div class="slider-trigger"></div>
-          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">kiodyd</a></h1>
-      </div>
-    <div class="intrude-less">
-        <header id="header" class="inner">
-            <a href="/" class="profilepic">
-                <img src="/img/avatar.png" class="animated zoomIn">
-            </a>
-            <hgroup>
-              <h1 class="header-author"><a href="/" title="回到主页">kiodyd</a></h1>
-            </hgroup>
-            
-            <p class="header-subtitle">如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
-            
-            <nav class="header-menu">
-                <ul>
-                
-                    <li><a href="/">主页</a></li>
-                
-                    <li><a href="/archives/">所有文章</a></li>
-                
-                    <li><a href="/tags/">标签云</a></li>
-                
-                <div class="clearfix"></div>
-                </ul>
-            </nav>
-            <nav class="header-nav">
-                        <ul class="social">
-                            
-                                <a class="fa GitHub" target="_blank" href="https://github.com/kiodyd/" title="GitHub"></a>
-                            
-                                <a class="fa Coding" target="_blank" href="https://dev.tencent.com/u/kiodyd" title="Coding"></a>
-                            
-                                <a class="fa 网易云音乐" target="_blank" href="https://music.163.com/#/user/home?id=350967617" title="网易云音乐"></a>
-                            
-                        </ul>
-            </nav>
-        </header>                
-    </div>
-    <link class="menu-list" tags="标签" friends="友情链接" about="关于我">
+
+
 </nav>
-      <div class="body-wrap"><article id="post-怎么把dr.com装进你的路由器里" class="article article-type-post" itemscope="" itemprop="blogPost">
-  
-  <div class="article-meta">
-    <a href="/2018/11/11/怎么把dr.com装进你的路由器里/" class="article-date">
-      <time datetime="2018-11-11T14:04:55.000Z" itemprop="datePublished">2018-11-11</time>
-</a>
-
-
-  </div>
-  
-  <div class="article-inner">
-    
-    <input type="hidden" class="isFancy">
-    
-    
-    <header class="article-header">
-      
-  
-    <h1 class="article-title" itemprop="name">
-      怎么把dr.com装进你的路由器里
-    </h1>
-  
-
-      
-          <div style="margin-top:10px;">
-    <span class="post-time">
-      <span class="post-meta-item-icon">
-        <i class="fa fa-keyboard-o"></i>
-        <span class="post-meta-item-text">  字数统计: </span>
-        <span class="post-count">838字</span>
-      </span>
-    </span>
-
-    <span class="post-time">
-      &nbsp; | &nbsp;
-      <span class="post-meta-item-icon">
-        <i class="fa fa-hourglass-half"></i>
-        <span class="post-meta-item-text">  阅读时长: </span>
-        <span class="post-count">3分</span>
-      </span>
-    </span>
-</div>
-
-      
-    </header>
-    
-    <div class="article-info article-info-post">
-        
-          <br>
-          <br>
-        
-        
-    <div class="article-category tagcloud">
-    <a class="article-category-link" href="/categories/硬件/">硬件</a>
+    <div class="view intro-2" style='background: url("https://i.imgur.com/oADD1Ip.jpg")no-repeat center center;background-size: cover;'>
+    <div class="full-bg-img">
+        <div class="mask rgba-black-light flex-center">
+        <div class="container text-center white-text wow fadeInUp">
+            <p class="h2">怎么把dr.com装进你的路由器里</p>
+            <br>
+            
+            <p>Sunday, November 11th 2018, 10:04 pm</p>
+            
+        </div>
+        </div>
     </div>
-
-
-      
-    <div class="article-category tagcloud">
-    <a class="article-category-link" href="/categories/硬件/">硬件</a>
     </div>
+  </header>
 
-
-      
-    <div class="article-tag tagcloud">
-        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/drcom/">drcom</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/路由器/">路由器</a></li></ul>
-    </div>
-
-      <div class="clearfix"></div>
-    </div>
-    
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-      <p>校园网也能开WiFi？</p>
+  <main>
+  
+  <div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2 ">
+            <div class="post-content py-5 z-depth-3 main">
+                <p>校园网也能开WiFi？</p>
 <a id="more"></a>
 <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="330" height="86" src="//music.163.com/outchain/player?type=2&id=39324256&auto=1&height=66"></iframe>
 
@@ -365,245 +133,95 @@
 <li>\r\n转义字符的添加</li>
 </ul>
 
-      
-    </div>
-    
+                <hr>
+                <div>
+                    <p>
+                        
+                        <span class="badge badge-light">#&nbsp;drcom</span>
+                        &nbsp;
+                        
+                        <span class="badge badge-light">#&nbsp;路由器</span>
+                        &nbsp;
+                        
+                    </p>
+                </div>
+                <br>
+                
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                
+            </div>
+        </div>
+        <div class="d-none d-md-block col-md-2">
+            
+  <div id="toc" class="py-5">
+    <p class="h6"><i class="iconfont icon-toc" style="vertical-align:middle"></i> Toc:</p> 
+    <div id="tocbot"></div>
   </div>
-  
-  
-    <div class="copyright">
-        <p><span>本文标题:</span><a href="/2018/11/11/怎么把dr.com装进你的路由器里/">怎么把dr.com装进你的路由器里</a></p>
-        <p><span>文章作者:</span><a href="/" title="回到主页">kiodyd</a></p>
-        <p><span>发布时间:</span>2018-11-11, 22:04:55</p>
-        <p><span>最后更新:</span>2018-11-11, 22:42:27</p>
-        <p>
-            <span>原始链接:</span><a class="post-url" href="/2018/11/11/怎么把dr.com装进你的路由器里/" title="怎么把dr.com装进你的路由器里">http://kiodyd.github.io/2018/11/11/怎么把dr.com装进你的路由器里/</a>
-            <span class="copy-path" data-clipboard-text="原文: http://kiodyd.github.io/2018/11/11/怎么把dr.com装进你的路由器里/　　作者: kiodyd" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
-            <script> var clipboard = new Clipboard('.copy-path'); </script>
-        </p>
-        <p>
-            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target="_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
-        </p>
-    </div>
 
-
-
-    <nav id="article-nav">
-        
-            <div id="article-nav-newer" class="article-nav-title">
-                <a href="/2018/11/17/cocos creator微信小游戏截图/">
-                    cocos creator微信小游戏截图
-                </a>
-            </div>
-        
-        
-            <div id="article-nav-older" class="article-nav-title">
-                <a href="/2018/11/01/小米平板1刷los神盾系统/">
-                    小米平板1刷los神盾系统
-                </a>
-            </div>
-        
-    </nav>
-
-  
-</article>
-
-    <div id="toc" class="toc-article">
-        <strong class="toc-title">文章目录</strong>
-        
-            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#路由器环境"><span class="toc-number">2.</span> <span class="toc-text">路由器环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#准备"><span class="toc-number">3.</span> <span class="toc-text">准备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#开始"><span class="toc-number">4.</span> <span class="toc-text">开始</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#第一步，先配置我打包好的文件里的drcom-conf和drcom文件，配置方法如下："><span class="toc-number">4.1.</span> <span class="toc-text">第一步，先配置我打包好的文件里的drcom.conf和drcom文件，配置方法如下：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#第二步，上传需要的文件"><span class="toc-number">4.2.</span> <span class="toc-text">第二步，上传需要的文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#第三步，安装drcom"><span class="toc-number">4.3.</span> <span class="toc-text">第三步，安装drcom</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#第四步，设置拨号"><span class="toc-number">4.4.</span> <span class="toc-text">第四步，设置拨号</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#需要注意的地方"><span class="toc-number">5.1.</span> <span class="toc-text">需要注意的地方</span></a></li></ol></li></ol>
-        
-    </div>
-    <style>
-        .left-col .switch-btn,
-        .left-col .switch-area {
-            display: none;
-        }
-        .toc-level-3 i,
-        .toc-level-3 ol {
-            display: none !important;
-        }
-    </style>
-
-    <input type="button" id="tocButton" value="隐藏目录" title="点击按钮隐藏或者显示文章目录">
-
-    <script>
-        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
-    </script>
-
-
-
-
-<div class="share">
-    
-        <div class="bdsharebuttonbox">
-            
-            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
-            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
-            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
-            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
-            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
-            
         </div>
-        <script>
-            window._bd_share_config={
-                "common":{"bdSnsKey":{},"bdText":"怎么把dr.com装进你的路由器里　| 发际线日渐后移的kio　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
-        </script>
-    
-
-    
+    </div>
 </div>
 
+<br><br><br>
 
+<!-- Comments -->
+<div class="comments" id="comments">
+    
 
+    
+    <link rel="stylesheet" href="/lib/gitalk/gitalk.css">
 
-
-
-
-
-
-
-
-
-<!-- Gitment评论插件通用代码 -->
-<div id="git"></div>
-<link rel="stylesheet" href="https://jjeejj.github.io/css/gitment.css">
-<script src="https://jjeejj.github.io/js/gitment.js"></script>
-<script>
-var gitment = new Gitment({
-  id: decodeURI(window.location.pathname),
-  owner: "kiodyd",//github用户名
-  repo: "kiodyd.github.io",//用户存储评论的github项目名称
-  oauth: {
-    client_id: "197e8993f26f7106d0d8",//注册OAuth Application时生产的ClinetID
-    client_secret:"07457c1e86f4b11590459251151e9bbb2ab15b92",//注册OAuth Application时生成的Client Secret
-  },
-})
-gitment.render('git')
-</script>
-<!-- Gitment代码结束 -->
-
-
-
-
-
-
-
-    <div class="scroll" id="post-nav-button">
-        
-            <a href="/2018/11/17/cocos creator微信小游戏截图/" title="上一篇: cocos creator微信小游戏截图">
-                <i class="fa fa-angle-left"></i>
-            </a>
-        
-
-        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
-
-        
-            <a href="/2018/11/01/小米平板1刷los神盾系统/" title="下一篇: 小米平板1刷los神盾系统">
-                <i class="fa fa-angle-right"></i>
-            </a>
-        
-    </div>
-
-    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2019/07/23/unity-大雄的房间/">使用unity来还原大雄与哆啦A梦的房间</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/07/23/指针和const/">指针与const</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/05/03/c语言学习2/">从0.1开始的c/c++学习（二）</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/04/29/c语言学习/">从0.1开始的c/c++学习（一）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/关于最近和小米平板救砖/">关于最近和小米平板救砖</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/17/cocos creator微信小游戏截图/">cocos creator微信小游戏截图</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/11/怎么把dr.com装进你的路由器里/">怎么把dr.com装进你的路由器里</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/01/小米平板1刷los神盾系统/">小米平板1刷los神盾系统</a></li></ul>
-
-
-
-
-<script>
-        
-</script>
+<div class="card gitalk-card" data-aos="fade-up">
+    <div id="gitalk-container" class="card-content"></div>
 </div>
-      <footer id="footer">
-    <div class="outer">
-        <div id="footer-info">
-            <div class="footer-left">
-                <i class="fa fa-copyright"></i> 
-                2018-2019 kiodyd
-            </div>
-            <div class="footer-right">
-                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
-            </div>
-        </div>
-        
-            <div class="visit">
-                
-                    <span id="busuanzi_container_site_pv" style="display:none">
-                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
-                        </span>
-                    </span>
-                
-                
-                    <span>| </span>
-                
-                
-                    <span id="busuanzi_container_page_pv" style="display:none">
-                        <span id="page-visit" title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
-                        </span>
-                    </span>
-                
-            </div>
-        
-    </div>
+
+<script src="/lib/gitalk/gitalk.min.js"></script>
+<script>
+    let gitalk = new Gitalk({
+        clientID: '',
+        clientSecret: '07457c1e86f4b11590459251151e9bbb2ab15b92',
+        repo: 'kiodyd.github.io',
+        owner: 'kiodyd',
+        admin: '"kiodyd"',
+        id: '2018-11-11T22-04-55',
+        distractionFreeMode: false  // Facebook-like distraction free mode
+    });
+
+    gitalk.render('gitalk-container');
+</script>
+    
+</div>
+  
+  </main>
+
+<footer class="mt-5">
+  <div class="text-center py-3">
+    <a href="https://hexo.io" target="_blank"><b>HEXO</b></a>
+    <i class="iconfont icon-love"></i>
+    <a href="https://github.com/0x2e/Material-T" target="_blank"> <b>Material-T</b></a>
+  </div>
 </footer>
-    </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/jquery-3.3.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/mdb.min.js"></script>
+  <script src="/js/main.js"></script>
+  
     
-<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
-
-
-
-
-
-    <script type="text/x-mathjax-config">
-MathJax.Hub.Config({
-    tex2jax: {
-        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
-        processEscapes: true,
-        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-    }
-});
-
-MathJax.Hub.Queue(function() {
-    var all = MathJax.Hub.getAllJax(), i;
-    for(i=0; i < all.length; i += 1) {
-        all[i].SourceElement().parentNode.className += ' has-jax';                 
-    }       
-});
-</script>
-
-<script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
-</script>
-
-
-<div class="scroll" id="scroll">
-    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
-    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
-    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
-</div>
-<script>
-    // Open in New Window
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.4.2/tocbot.min.js"></script>
     
-        var oOpenInNew = {
-            
-            
-            
-            
-            
-            
-             archives: ".archive-article-title", 
-             miniArchives: "a.post-list-link", 
-            
-            
-             socail: ".social a" 
-        }
-        for (var x in oOpenInNew) {
-            $(oOpenInNew[x]).attr("target", "_blank");
-        }
+    <script src="/js/post.js"></script>
     
-</script>
-
-<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
-</script>
-  </div>
+      <script src="/js/plugins/prettify.js"></script>
+      <script>
+          $(document).ready(function(){
+              $('pre').addClass('prettyprint linenums');
+              prettyPrint();
+          })
+      </script>
+    
+  
 <script src="/live2dw/lib/L2Dwidget.min.js?0c58a1486de42ac6cc1c59c7d98ae887"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/assets/koharu.model.json"},"display":{"position":"left","width":100,"height":200},"mobile":{"show":true}});</script></body>
 </html>
