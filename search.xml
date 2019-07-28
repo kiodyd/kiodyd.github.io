@@ -3,6 +3,29 @@
   
     
     <entry>
+      <title>函数模板的实例化和具体化</title>
+      <link href="/2019/07/28/%E5%87%BD%E6%95%B0%E6%A8%A1%E6%9D%BF%E7%9A%84%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8C%E5%85%B7%E4%BD%93%E5%8C%96/"/>
+      <url>/2019/07/28/%E5%87%BD%E6%95%B0%E6%A8%A1%E6%9D%BF%E7%9A%84%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8C%E5%85%B7%E4%BD%93%E5%8C%96/</url>
+      
+        <content type="html"><![CDATA[<p>有点绕的两个概念，巩固下~~</p><a id="more"></a><iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="330" height="86" src="//music.163.com/outchain/player?type=2&id=432511800&auto=1&height=66"></iframe><h2 id="函数模板定义"><a href="#函数模板定义" class="headerlink" title="函数模板定义"></a>函数模板定义</h2><p>c++融合了三种编程方式：</p><ul><li>面向过程</li><li>面向对象</li><li>基于模板的泛型编程</li></ul><p>模板是c++新增的一种特性，它可以通过一次定义来告诉程序你想要什么样的算法函数，然后编译器再根据你输入的参数类型生成对应的函数定义。简单的说，它类似一个我们写英语作文时的模板，面对不同的话题，替换掉对应的关键字就行了，而在c++里，对应的关键字就是参数的类型。当我们想要同一个算法处理int、double等不同的类型，它便能帮助我们省去一些重复的工作。<br>所以模板只是一个生成函数定义的方案，当编译器使用这个方案来根据参数生成具体的定义时才会产生<strong>模板实例</strong>。</p><h2 id="模板实例化"><a href="#模板实例化" class="headerlink" title="模板实例化"></a>模板实例化</h2><h3 id="隐式实例化"><a href="#隐式实例化" class="headerlink" title="隐式实例化"></a>隐式实例化</h3><p>前面说到编译器会判断参数的类型，从而生成不同的函数定义。这个自动判断的过程，就是函数偷偷帮你做了，即隐式实例化。但有一点，编译器比较傻，当你给出的参数类型不同时，比如有两个参数，一个是int，一个是double，这时函数就傻眼了，觉得不对不能根据这个模板生成对应的定义。有些情况下可以通过下面的显式实例化来解决这个问题。</p><h3 id="显式实例化"><a href="#显式实例化" class="headerlink" title="显式实例化"></a>显式实例化</h3><p>命令编译器用某一个类型创建特定的函数定义。<br>用法：</p><pre><code>template &lt;typename T&gt;void Swap(T &amp;a, T &amp;b)//第一种方式是声明所需的种类，用&lt;&gt;符号来指示类型，并在声明前加上关键词templatetemplate void Swap&lt;int&gt;(int &amp;, int &amp;);//第二种方式是直接在程序中使用函数创建Swap&lt;int&gt;(a,b);</code></pre><p>上面是利用Swap模板来生成一个int类型的函数定义</p><pre><code>short m = 4;int x = 6;Add&lt;int&gt;(m,x);</code></pre><p>上面便是强制生成了int的实例，使用时会强制转换short为int。</p><h2 id="模板具体化"><a href="#模板具体化" class="headerlink" title="模板具体化"></a>模板具体化</h2><p>使用某个模板定义出一个更具体的模板，优先级大于原先的模板。<br>用来解决一些特殊的情况，比如还是Swap这个模板</p><pre><code>template &lt;typename T&gt;void Swap(T &amp;a, T &amp;b)</code></pre><p>对于两个结构时，由于结构允许直接赋值，所以能正常允许，结果是两个结构里所有成员都交换了。<br>假如我们有这样的需求，只交互里面特定的成员。由于操作对象还是两个结构，所以函数重载便用不上了。<br>这时候模板具体化就可以帮我们解决这个烦恼，可以使用</p><pre><code>template &lt;&gt; void Swap(job &amp;a, job &amp;b)template &lt;&gt; void Swap&lt;job&gt;(job &amp;a, job &amp;b)</code></pre><p>两种方式创建针对于job结构的模板，优先级大于普通的Swap<br>就可以定义一些特殊情况的处理函数了。</p><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>实例化是根据模板实例出来的函数定义<br>具体化则是模板的变体，还是属于模板<br>所以两者有着很大的不同，用途都是解决一些特殊的情况。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 学习 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> c++笔记 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    <entry>
       <title>使用unity来还原大雄与哆啦A梦的房间</title>
       <link href="/2019/07/23/unity-%E5%A4%A7%E9%9B%84%E7%9A%84%E6%88%BF%E9%97%B4/"/>
       <url>/2019/07/23/unity-%E5%A4%A7%E9%9B%84%E7%9A%84%E6%88%BF%E9%97%B4/</url>
