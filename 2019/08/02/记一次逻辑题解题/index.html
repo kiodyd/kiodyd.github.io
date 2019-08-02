@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+
+
+
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
+    <meta name="author" content="kiodyd">
+    <meta name="keywords" content="">
+    <title>一道蛮有趣的逻辑题 ~ 发际线日渐后移的kio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/css/mdb.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://at.alicdn.com/t/font_1067060_vr10bjtg3us.css">
+    
+    <link rel="stylesheet" href="/css/Prettify/tomorrow-night-eighties.min.css">
+    
+</head>
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+<div class="container">
+    <a class="navbar-brand" href="/"><strong>发际线日渐后移的kio</strong></a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ml-auto text-center">
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/archives/">Archives</a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/about/">About</a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+
+</nav>
+    <div class="view intro-2" style='background: url("https://i.imgur.com/oADD1Ip.jpg")no-repeat center center;background-size: cover;'>
+    <div class="full-bg-img">
+        <div class="mask rgba-black-light flex-center">
+        <div class="container text-center white-text wow fadeInUp">
+            <p class="h2">一道蛮有趣的逻辑题</p>
+            <br>
+            
+            <p>Friday, August 2nd 2019, 5:53 pm</p>
+            
+        </div>
+        </div>
+    </div>
+    </div>
+  </header>
+
+  <main>
+  
+  <div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2 ">
+            <div class="post-content py-5 z-depth-3 main">
+                <p>这道题好像去年就见过了啊喂~</p>
+<a id="more"></a>
+<p><img src="/img/4/question.jpg" alt="题目"><br>今天突然看到这份号称“2018年刑侦推理试题”的题，体内的<del>推理之魂</del>（太中二了吧）蠢蠢欲动。<br>大致看了下题，第一反应便是程序暴力解题哈哈。不过还是要考一考自己的逻辑思维的，这种题一般有个入口，找到这个入口就好办啦。<br>所以以下文章分享下我的解题思路以及程序解法。（还是很佩服出题人，听说是个社团出的题，好厉害！）</p>
+<h2 id="解题思路"><a href="#解题思路" class="headerlink" title="解题思路"></a>解题思路</h2><p>入口是解题的第一步，这里我选择了第五题作为入口。</p>
+<h3 id="1、假设第5题选A"><a href="#1、假设第5题选A" class="headerlink" title="1、假设第5题选A"></a>1、假设第5题选A</h3><p> 根据选项内容可知<strong>第8题也选A</strong>,且我们看下第2题，是和第5题有联系的，所以<strong>第2题选C</strong><br> 然后接下来看第8题的描述，我们选择了A说明BCD是错的，从而说明我们已知的第2和第5题的答案是和第1题是相邻的<br> 所以<strong>第1题只能选B</strong>，而由第8题也知道了第7题的答案是与第1题不相邻，所以<strong>第7题选D</strong>。<br> 看回第4题，由上面可知AB排除，而第七题指出十个答案里最少的是D，要想十个里有唯一一个最少个数，只能是一个或零个，所以其他选项不能是D了。<strong>第4题选C</strong><br> 1、9题答案相同，故<strong>第9题选B</strong>。根据第4题的解题思路，<strong>第6题选C</strong>，故<strong>第3题和第10题都选A</strong>。所以答案是BCACACDABA<br> 一次假设就得到答案，看来第5题作为切入点比较好。看看还有没其他可能。</p>
+<h3 id="2、假设第5题选B"><a href="#2、假设第5题选B" class="headerlink" title="2、假设第5题选B"></a>2、假设第5题选B</h3><p> 由第5可知<strong>第2选D</strong>，<strong>第4选B</strong>。再由第4得<strong>第7选D</strong>，这时候D就有两个了，所以是肯定不符合10个答案唯一一个最小的这个条件。</p>
+<h3 id="3、假设第5题选C"><a href="#3、假设第5题选C" class="headerlink" title="3、假设第5题选C"></a>3、假设第5题选C</h3><p> 同理可得<strong>第2选A</strong>，<strong>第9选C</strong>，看第9的描述，由于第2和第5是不同的答案，所以只能第1和第6的答案相同才满足了。<br> 看回第4题，假设选A，则1、5相同，由于5、9相同，所以1、9也相同，但选项C就是1、9相同，所以AC之间能互推，所以排除AC。<br> 假如选B，2、7相同，明显违背了最少那个答案只有1个的定理，所以<strong>第4选D</strong>。这样可以得出1、6、10答案相同。所以<strong>第6选B</strong>,可得<strong>1、10、8都选B</strong>。<br> 这个时候得到的结果已经和第8题的描述冲突了，所以这个假设不对。</p>
+<h3 id="4、假设第5题选D"><a href="#4、假设第5题选D" class="headerlink" title="4、假设第5题选D"></a>4、假设第5题选D</h3><p> 第2选B，第7选D此时都有两个D了，所以D不可能是最小。</p>
+<p>按这个思路好像只有一种答案BCACACDABA。让我们写个程序验证一下。</p>
+<h2 id="程序解题"><a href="#程序解题" class="headerlink" title="程序解题"></a>程序解题</h2><p>目前只想到生成所有的答案去跑一遍所有的测试条件，看看剩余的答案是哪个。<br>第一步是生成所有答案，这个方法感觉挺多的，一开始想10个for，但是那样就太不美观了。<br>最后采取了从1道题所有答案可能慢慢组合到10道题。感觉效率不是很高，以后想到更快的算法再来完善。</p>
+<pre><code>std::string * makeAnswer(int num)
+{
+    using std::string;
+    string *temp1 = new string[4]{&quot;ya&quot;,&quot;yb&quot;,&quot;yc&quot;,&quot;yd&quot;};
+    string *temp2;
+    for (int i = 2; i &lt;= num; i++)
+    {
+        temp2 = new string[int(powl(4,i))];
+        int count = 0;
+        for (int l = 0; l &lt; powl(4,i-1); l++)
+        {
+            temp2[count++] = temp1[l] +&quot;a&quot;;
+            temp2[count++] = temp1[l] +&quot;b&quot;;
+            temp2[count++] = temp1[l] +&quot;c&quot;;
+            temp2[count++] = temp1[l] +&quot;d&quot;;
+        }
+        delete [] temp1;
+        temp1 = temp2;      
+    }
+    return temp1;    
+}
+</code></pre><p>生成所有选项可能后，就是去验证是否符合所有条件了，这个比较简单(写的繁琐了点)</p>
+<pre><code>int main()
+{
+    std::string * answ = makeAnswer(10);
+    for (int i = 0; i &lt; pow(4,10); i++)
+    {
+        if (answ[i][0] == &#39;y&#39;)
+        {
+            //第二题  第5题的答案 A(C)  B(D)  C(A)   D(B)
+            if (!(answ[i][2] == &#39;a&#39;&amp;&amp;answ[i][5]==&#39;c&#39; || answ[i][2] == &#39;b&#39;&amp;&amp;answ[i][5]==&#39;d&#39; || answ[i][2] == &#39;c&#39;&amp;&amp;answ[i][5]==&#39;a&#39; || answ[i][2] == &#39;d&#39;&amp;&amp;answ[i][5]==&#39;b&#39;))
+            {
+                answ[i][0] = &#39;n&#39;;
+                continue;
+            }
+
+            //第三题  哪一题的答案与其他三项不同   A(3)  B(6)  C(2)   D(4)
+            switch (answ[i][3])
+            {
+            case &#39;a&#39;:
+                if (answ[i][2] == answ[i][3] || answ[i][4] == answ[i][3] || answ[i][6] == answ[i][3])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;b&#39;:
+                if (answ[i][2] == answ[i][6] || answ[i][4] == answ[i][6] || answ[i][3] == answ[i][6])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;c&#39;:
+                if (answ[i][6] == answ[i][2] || answ[i][4] == answ[i][2] || answ[i][3] == answ[i][2])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;d&#39;:
+                if (answ[i][2] == answ[i][4] || answ[i][6] == answ[i][4] || answ[i][3] == answ[i][4])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            }
+            if (answ[i][0] == &#39;n&#39;)
+                continue;
+
+            //第四题    哪两道题答案相同    A(1、5)  B(2、7)  C(1、9)   D(6、10)
+            switch (answ[i][4])
+            {
+            case &#39;a&#39;:
+                if (answ[i][1] != answ[i][5])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;b&#39;:
+                if (answ[i][2] != answ[i][7])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;c&#39;:
+                if (answ[i][1] != answ[i][9])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;d&#39;:
+                if (answ[i][6] != answ[i][10])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            }
+            if (answ[i][0] == &#39;n&#39;)
+                continue;
+
+            //第五题      哪道题答案与本题相同    A(8)  B(4)  C(9)   D(7)
+            switch (answ[i][5])
+            {
+            case &#39;a&#39;:
+                if (answ[i][8] != answ[i][5])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;b&#39;:
+                if (answ[i][4] != answ[i][5])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;c&#39;:
+                if (answ[i][9] != answ[i][5])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;d&#39;:
+                if (answ[i][7] != answ[i][5])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            }
+            if (answ[i][0] == &#39;n&#39;)
+                continue;
+
+            //第六题      哪两题答案与第8题相同     A(2、4)  B(1、6)  C(3、10)   D(5、9)
+            switch (answ[i][6])
+            {
+            case &#39;a&#39;:
+                if (answ[i][8] != answ[i][2] || answ[i][8] != answ[i][4])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;b&#39;:
+                if (answ[i][8] != answ[i][1] || answ[i][8] != answ[i][6])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;c&#39;:
+                if (answ[i][8] != answ[i][3] || answ[i][8] != answ[i][10])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;d&#39;:
+                if (answ[i][8] != answ[i][5] || answ[i][8] != answ[i][9])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            }
+            if (answ[i][0] == &#39;n&#39;)
+                continue;
+
+            //第七题    被选中最少的选项字母    A\B\C\D
+            int answer_num[4]{0};
+            enum abcd {a,b,c,d};
+            for (int j = 1; j &lt;= 10; j++)
+            {
+                switch (answ[i][j])
+                {
+                case &#39;a&#39;:
+                    answer_num[0]++;
+                    break;
+                case &#39;b&#39;:
+                    answer_num[1]++;
+                    break;
+                case &#39;c&#39;:
+                    answer_num[2]++;
+                    break;
+                case &#39;d&#39;:
+                    answer_num[3]++;
+                    break;
+                }
+            }
+            int min = answer_num[0],max = answer_num[0];
+            abcd minC = a,maxC = a;
+            for (int n = 1; n &lt; 4; n++)
+            {
+                if(min &gt; answer_num[n])
+                {
+                    min = answer_num[n];
+                    minC = abcd(n);
+                }
+                if (max &lt; answer_num[n])
+                {
+                    max = answer_num[n];
+                    maxC = abcd(n);
+                }   
+            }
+
+            switch (answ[i][7])
+            {
+            case &#39;a&#39;:
+                if (minC != c)
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;b&#39;:
+                if (minC != b)
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;c&#39;:
+                if (minC != a)
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;d&#39;:
+                if (minC != d)
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            }
+            if (answ[i][0] == &#39;n&#39;)
+                continue;
+
+            //第八题     下面哪题答案与第1题答案不相邻    A(7)  B(5)  C(2)   D(10)
+            switch (answ[i][8])
+            {
+            case &#39;a&#39;:
+                if (int(answ[i][7]) - int(answ[i][1]) &lt;= 1 &amp;&amp; int(answ[i][7]) - int(answ[i][1]) &gt;= -1)
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;b&#39;:
+                if (int(answ[i][5]) - int(answ[i][1]) &lt;= 1 &amp;&amp; int(answ[i][5]) - int(answ[i][1]) &gt;= -1)
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;c&#39;:
+                if (int(answ[i][2]) - int(answ[i][1]) &lt;= 1 &amp;&amp; int(answ[i][2]) - int(answ[i][1]) &gt;= -1)
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;d&#39;:
+                if (int(answ[i][10]) - int(answ[i][1]) &lt;= 1 &amp;&amp; int(answ[i][10]) - int(answ[i][1]) &gt;= -1)
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            }
+            if (answ[i][0] == &#39;n&#39;)
+                continue;
+
+            //第九题     “第1第6答案相同”  “第x第5答案相同”  两个真假性相反    A(6)  B(10)  C(2)   D(9)
+            switch (answ[i][9])
+            {
+            case &#39;a&#39;:
+                if (answ[i][1] == answ[i][6] &amp;&amp; answ[i][5] == answ[i][6] || answ[i][1] != answ[i][6] &amp;&amp; answ[i][5] != answ[i][6])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;b&#39;:
+                if (answ[i][1] == answ[i][6] &amp;&amp; answ[i][5] == answ[i][10] || answ[i][1] != answ[i][6] &amp;&amp; answ[i][5] != answ[i][10])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;c&#39;:
+                if (answ[i][1] == answ[i][6] &amp;&amp; answ[i][5] == answ[i][2] || answ[i][1] != answ[i][6] &amp;&amp; answ[i][5] != answ[i][2])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;d&#39;:
+                if (answ[i][1] == answ[i][6] &amp;&amp; answ[i][5] == answ[i][9] || answ[i][1] != answ[i][6] &amp;&amp; answ[i][5] != answ[i][9])
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            }
+            if (answ[i][0] == &#39;n&#39;)
+                continue;
+
+            //第十题    abcd出现最多与出现最少之差   A(3)  B(2)  C(4)   D(1)
+            switch (answ[i][10])
+            {
+            case &#39;a&#39;:
+                if (max - min  != 3 )
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;b&#39;:
+                if (max - min  != 2 )
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;c&#39;:
+                if (max - min  != 4 )
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            case &#39;d&#39;:
+                if (max - min  != 1 )
+                    answ[i][0] = &#39;n&#39;;
+                break;
+            }
+        }
+
+    }
+
+    for (int i = 0; i &lt; pow(4,10); i++)
+    {
+        if (answ[i][0] == &#39;y&#39;)
+        {
+            std::cout &lt;&lt; answ[i] &lt;&lt; std::endl;
+        }
+
+    }
+
+}
+</code></pre>
+                <hr>
+                <div>
+                    <p>
+                        
+                        <span class="badge badge-light">#&nbsp;解题</span>
+                        &nbsp;
+                        
+                    </p>
+                </div>
+                <br>
+                
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                
+            </div>
+        </div>
+        <div class="d-none d-md-block col-md-2">
+            
+  <div id="toc" class="py-5">
+    <p class="h6"><i class="iconfont icon-toc" style="vertical-align:middle"></i> Toc:</p> 
+    <div id="tocbot"></div>
+  </div>
+
+        </div>
+    </div>
+</div>
+
+<br><br><br>
+
+<!-- Comments -->
+<div class="comments" id="comments">
+    
+
+    
+    <link rel="stylesheet" href="/lib/gitalk/gitalk.css">
+
+<div class="card gitalk-card" data-aos="fade-up">
+    <div id="gitalk-container" class="card-content"></div>
+</div>
+
+<script src="/lib/gitalk/gitalk.min.js"></script>
+<script src="/lib/gitalk/md5.min.js"></script>
+<script>
+    let gitalk = new Gitalk({
+        clientID: '197e8993f26f7106d0d8',
+        clientSecret: '07457c1e86f4b11590459251151e9bbb2ab15b92',
+        repo: 'kiodyd.github.io',
+        owner: 'kiodyd',
+        admin: ['kiodyd'],
+        id: md5(location.pathname),
+        distractionFreeMode: false,  // Facebook-like distraction free mode
+        language: 'zh-CN'
+    });
+
+    gitalk.render('gitalk-container');
+</script>
+    
+</div>
+  
+  </main>
+
+<footer class="mt-5">
+  <div class="text-center py-3">
+    <a href="https://hexo.io" target="_blank"><b>HEXO</b></a>
+    <i class="iconfont icon-love"></i>
+    <a href="https://github.com/0x2e/Material-T" target="_blank"> <b>Material-T</b></a>
+  </div>
+</footer>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/jquery-3.3.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/mdb.min.js"></script>
+  <script src="/js/main.js"></script>
+  
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.4.2/tocbot.min.js"></script>
+    
+    <script src="/js/post.js"></script>
+    
+      <script src="/js/plugins/prettify.js"></script>
+      <script>
+          $(document).ready(function(){
+              $('pre').addClass('prettyprint linenums');
+              prettyPrint();
+          })
+      </script>
+    
+  
+<script src="/live2dw/lib/L2Dwidget.min.js?0c58a1486de42ac6cc1c59c7d98ae887"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/assets/koharu.model.json"},"display":{"position":"left","width":100,"height":200},"mobile":{"show":true}});</script></body>
+</html>
