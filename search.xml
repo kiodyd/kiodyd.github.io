@@ -3,6 +3,31 @@
   
     
     <entry>
+      <title>利用vanilla给AMD装上MAC OS X</title>
+      <link href="/2019/08/18/vanilla%E9%BB%91%E8%8B%B9%E6%9E%9C/"/>
+      <url>/2019/08/18/vanilla%E9%BB%91%E8%8B%B9%E6%9E%9C/</url>
+      
+        <content type="html"><![CDATA[<p>终于不用替换内核啦～</p><a id="more"></a><p>之前装黑苹果都是用国内大神的镜像去装，每次装完都感觉不太纯净，总会留下一些大神的痕迹～～<br>最近重新逛了下AMD OS X论坛 <a href="https://forum.amd-osx.com/" target="_blank" rel="noopener">“传送门”</a>，才发现已经有新的安装方案，也就是本文提到的VANILLA。</p><h2 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h2><p>首先需要有个u盘，我想大概16G左右应该够了。然后打开vanilla的教程文档 <a href="https://vanilla.amd-osx.com/" target="_blank" rel="noopener">“传送门”</a>,看完跟着步骤就可以了。</p><hr><p><img src="/img/5/wenhao.jpg" alt="???"></p><p><strong><em>“？？？要是这么简单还要你说嘛？？？”</em></strong></p><p>嘿嘿，这次的vanilla还真不难，不过作者的教程有几步很简单概括了，下面来讲下我遇到的几个坑。（ps，看不懂教程里英语的小伙伴可以使用谷歌浏览器或其他浏览器的翻译页面功能，大致能看懂操作。）</p><h2 id="遇到的坑以及解决"><a href="#遇到的坑以及解决" class="headerlink" title="遇到的坑以及解决"></a>遇到的坑以及解决</h2><h3 id="1"><a href="#1" class="headerlink" title="1"></a>1</h3><p><img src="/img/5/one.png" alt="坑1"></p><p>这一步，作者说要输入r来节省下载时间，其实并不需要，国内下载速度还行，直接选择你要下的版本就行了。中间有个5g的包需要等待的时间比较久一点，如果不能下载，请尝试梯子。请确保全部文件下载完毕，没有失败的项目。正常应该有11个文件要下载。</p><h3 id="2"><a href="#2" class="headerlink" title="2"></a>2</h3><p><img src="/img/5/two.jpg" alt="坑2"><br>我安装的时候，这一步直接跳过了，也就是说，我们的u盘启动器只装了clover环境，但实际但镜像并没有拷贝到u盘里面去，所以这个时候重启会发现我们但clover引导并没有macOS basesystem这个系统。后来查找一些资料才发现还需要三个额外的小工具。</p><ul><li>ddrelease64.exe </li><li>7z.exe </li><li>booticex64.exe </li></ul><p>其中ddrelease64.exe 和booticex64.exe 应该是会自动下载的，如果和我一样跳过拷贝镜像这个步骤的话请检查，gibMacOS/Scripts文件下有没有这两个工具。然后7z.exe是需要自己装在电脑上的。这个我没装结果跳过拷贝了。</p><h3 id="3"><a href="#3" class="headerlink" title="3"></a>3</h3><p>装好以后再次运行，就成功制作了U盘启动器。<br>有了这个便可以装macos了，在那之前先根据教程里把你电脑所需的驱动，也就是kext文件先找好，放在你u盘里的clover分区指定位置里。<br>一切就绪后，重启电脑，使用u盘启动系统，就可以看到我们的mac base system。进去里面，首先把你要安装的目标系统盘利用苹果的磁盘工具抹成mac所支持的格式，我选的是apfs。然后返回一开始的界面，选择第二个重新安装mac。跟着步骤走，应该是没问题的。</p><h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>总的来说，vanilla安装方案比之前的方案简单了很多，你能想象这么容易就能制作一个mac安装u盘吗。<br>最后提供另一篇文章写的很详细，<a href="https://www.misonsky.cn/117.html" target="_blank" rel="noopener">“传送门”</a>，b站上面也有制作的教程，搜索关键字vanilla即可。<br>enjoy！</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 操作系统 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AMD OS X </tag>
+            
+            <tag> Hackintosh </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    <entry>
       <title>一道蛮有趣的逻辑题</title>
       <link href="/2019/08/02/%E8%AE%B0%E4%B8%80%E6%AC%A1%E9%80%BB%E8%BE%91%E9%A2%98%E8%A7%A3%E9%A2%98/"/>
       <url>/2019/08/02/%E8%AE%B0%E4%B8%80%E6%AC%A1%E9%80%BB%E8%BE%91%E9%A2%98%E8%A7%A3%E9%A2%98/</url>
@@ -157,9 +182,9 @@
       
         <tags>
             
-            <tag> 计划 </tag>
-            
             <tag> 平板 </tag>
+            
+            <tag> 计划 </tag>
             
         </tags>
       
@@ -232,9 +257,9 @@
       
         <tags>
             
-            <tag> 平板 </tag>
-            
             <tag> 搞机 </tag>
+            
+            <tag> 平板 </tag>
             
         </tags>
       
