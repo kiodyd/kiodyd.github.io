@@ -3,6 +3,29 @@
   
     
     <entry>
+      <title>迷失方向的异常</title>
+      <link href="/2019/08/19/%E8%BF%B7%E5%A4%B1%E6%96%B9%E5%90%91%E7%9A%84%E5%BC%82%E5%B8%B8/"/>
+      <url>/2019/08/19/%E8%BF%B7%E5%A4%B1%E6%96%B9%E5%90%91%E7%9A%84%E5%BC%82%E5%B8%B8/</url>
+      
+        <content type="html"><![CDATA[<p>关键是迷失后的补救，物也好人也好~~~</p><a id="more"></a><h2 id="什么时候会迷失"><a href="#什么时候会迷失" class="headerlink" title="什么时候会迷失"></a>什么时候会迷失</h2><p>当异常被引发的时候，有两种情况会导致问题。</p><ul><li>意外异常</li><li>未捕获异常</li></ul><p>在c++98的时候，引入了一个叫<strong>异常规范</strong>的概念，指通过函数的定义来指出这个函数可能会引发什么异常，让函数的用户知道要去捕获哪些异常。下面是原型以及使用的一个例子：</p><pre><code>double Argh(double,double) throw(out_of_bounds);try{  x = Argh(a,b);}caatch(out_of_bounds &amp; ex){  ...}</code></pre><p>如果引发的异常没有和规范列表中的某种异常相匹配（继承层次结构中，类类型与这个类及派生类的对象匹配），也就是说触发异常的类型不在刚刚函数原型中throw定义的类型之中，这种情况就叫做意外异常。<br>（值得一提的是，c++11已经摒弃使用异常规范，但还保留着。主要原因是在原则上异常规范应包含函数调用的其他函数引发的异常，比如说a调用b，则a的异常规范不仅要有自己的异常也要有b的。这就使得程序员需要知道的东西更多更复杂了，如果使用的是老式商业库，并没有提供函数规范，且不是你自己写的，你也很难知道可能会引发什么异常。这使得这种异常规范机制处理起来很复杂。）</p><p>然后如果不在函数中（应该指main函数）或在没有异常规范的函数中引发了异常，且没有相应的try-catch捕获时，这时候就是未捕获异常了。但按我的理解，我觉得如果引发的异常在函数规范中，但是没有对应的catch应该也属于未捕获异常吧。</p><h2 id="迷失了以后会怎么办"><a href="#迷失了以后会怎么办" class="headerlink" title="迷失了以后会怎么办"></a>迷失了以后会怎么办</h2><h3 id="未捕获异常"><a href="#未捕获异常" class="headerlink" title="未捕获异常"></a>未捕获异常</h3><p>之前的理解以为，未捕获异常触发时，由于函数没有找到对应解决方案，所以导致程序立即异常停止了。<br>其实不然，未捕获异常触发时，首先会调用terminate()函数，然后默认情况下，terminate()调用了abort()函数，也就我们熟知的导致程序立即异常终止。那可以修改terminate()默认的行为吗，答案是可以的。通过set_terminate()函数来修改，首先先看看这个函数的定义。</p><pre><code>typedef void (*terminate_handler)();terminate_handler set_terminate(terminate_handler f) throw(); // c++98terminate_handler set_terminate(terminate_handler f) noexcept; //c++11void terminate();  //c++98void terminate() noexcept;  //c++11  </code></pre><p>其中terminate_handler是指向没有参数和返回值的函数指针，<br>下面是一个修改默认行为的例子：</p><pre><code>#include &lt;exception&gt;using namespace std;void myQuit(){  cout &lt;&lt; &quot;Terminating due to uncaught exception\n&quot;;  exit(5);}set_terminate(myQuit);</code></pre><p>这时候触发未捕获异常时，会打印一条信息，然后调用exit()函数，设置退出状态值为5.</p><h3 id="意外异常"><a href="#意外异常" class="headerlink" title="意外异常"></a>意外异常</h3><p>未捕获异常和意外异常这么相似，那触发时也是调用terminate()吗？<br>并不是，当意外异常时，函数会首先调用unexpected()，然后unexpected()默认再调用terminate()。<br>（意外异常发生-&gt;unexpected()-&gt;terminate()(默认情况下)）<br>同样也可以修改unexpected()的默认行为，通过set_unexpected()，但是比起set_terminate()，这次的set_unexpected()修改行为更加严格。惯例先看一下原型。</p><pre><code>typedef void (*unexpected_handler)();unexpected_handler set_unexpected(unexpected_handler f) throw(); // c++98unexpected_handler set_unexpected(unexpected_handler f) noexcept; //c++11void unexpected();  //c++98void unexpected() noexcept;  //c++11  </code></pre><p>其中unexpected_handler可以是以下的函数：</p><ul><li>通过调用terminate()（默认行为）、abort()或exit()来终止程序；</li><li>引发异常。</li></ul><p>而引发异常的结果取决于 unexpected_handler函数中我们<strong>重新引发</strong>的异常 与 <strong>原来引发</strong>意外异常的函数的异常规范：</p><ul><li>如果新引发的异常与原来的异常规范匹配，则程序将寻找与新引发的异常匹配的catch块。这种方法将用预期的异常取代意外异常；</li><li>如果新引发的异常与原来的异常规范不匹配，且异常规范中<strong>没有</strong>包括std::bad_exception类型，则程序将调用terminate()。其中bad_exception是从exception派生而来，声明位于exception文件中。</li><li>如果新引发的异常与原来的异常规范不匹配，且原来的异常规范中<strong>包含了</strong>std::bad_exception类型，则不匹配的异常将会被std::bad_exception异常所取代。</li></ul><p>如果要捕获所有的异常，可以这样做：</p><pre><code>#include &lt;exception&gt;using namespace std;void myUnexpected(){  throw std::bad_exception(); //or just throw}//仅使用throw时，不指定异常将导致重新引发原来的异常。set_unexpected(myUnexpected);double Argh(double,double) throw(out_of_bounds, bad_exception);...try{  x = Argh(a,b);}catch(out_of_bounds &amp;ex){}catch(bad_exception &amp;ex){}</code></pre><p>总而言之，在异常规范那里添加bad_exception类型，即使重新引发的异常不匹配，也会引发bad_exception异常。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 学习 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> c++笔记 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    <entry>
       <title>利用vanilla给AMD装上MAC OS X</title>
       <link href="/2019/08/18/vanilla%E9%BB%91%E8%8B%B9%E6%9E%9C/"/>
       <url>/2019/08/18/vanilla%E9%BB%91%E8%8B%B9%E6%9E%9C/</url>
