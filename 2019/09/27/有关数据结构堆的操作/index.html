@@ -105,8 +105,7 @@
     Max_Heapify_core(a,i);
   }
 }
-</code></pre><p>###堆排序</p>
-<pre><code>void Heapify_Sort(vector&lt;int&gt; &amp;a) {
+</code></pre><h3 id="堆排序"><a href="#堆排序" class="headerlink" title="堆排序"></a>堆排序</h3><pre><code>void Heapify_Sort(vector&lt;int&gt; &amp;a) {
   Build_Max_Heapify(a);
   for(int i = a.size()-1; i &gt;= 1; --i) {
     swap(a,0,i);
