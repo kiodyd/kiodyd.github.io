@@ -3,6 +3,29 @@
   
     
     <entry>
+      <title>堆排序以及无序数组构建堆</title>
+      <link href="/2019/09/27/%E6%9C%89%E5%85%B3%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%A0%86%E7%9A%84%E6%93%8D%E4%BD%9C/"/>
+      <url>/2019/09/27/%E6%9C%89%E5%85%B3%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%A0%86%E7%9A%84%E6%93%8D%E4%BD%9C/</url>
+      
+        <content type="html"><![CDATA[<p>最近一次面试被问到的题，太紧张了没答出来，重新巩固下~~</p><a id="more"></a><h2 id="堆的基本知识和应用"><a href="#堆的基本知识和应用" class="headerlink" title="堆的基本知识和应用"></a>堆的基本知识和应用</h2><p>说起堆，更多能联想到的是堆排序，那个时间复杂度为nlogn的排序算法，以及topK问题的应用。<br>而堆的实现最关键的操作是怎么上浮或者下陷，有关堆的知识可以参考这里（<a href="https://www.imooc.com/article/25118" target="_blank" rel="noopener">链接</a>）</p><h3 id="堆的上浮和下陷"><a href="#堆的上浮和下陷" class="headerlink" title="堆的上浮和下陷"></a>堆的上浮和下陷</h3><p>下面我们以最大堆为例，先来实现一下核心的下陷操作（上浮也同理）：</p><pre><code>void Max_Heapify_core(vector&lt;int&gt; &amp;a, int i) {  int largest = i;  int left = 2*i;  int right = 2*i + 1; //堆由于是完全二叉树，可以放在一个数组里面表示  if(left &lt; heapsize &amp;&amp; a[left] &gt; a[i]) largest = left;  if(right &lt; heapsize &amp;&amp; a[right] &gt; a[i]) largest = right;  if(largest != i) {    swap(a,largest,i); //交换两个值    Max_Heapify_core(a,largest);  }}</code></pre><h3 id="将无序数组构建为堆"><a href="#将无序数组构建为堆" class="headerlink" title="将无序数组构建为堆"></a>将无序数组构建为堆</h3><p>有了上面那个核心的操作，便可以将一个无序数组变为一个最大堆（吐槽下我自己，面试的时候居然想要排序整个数组~~还是太容易紧张了）</p><pre><code>void Build_Max_Heapify(vector&lt;int&gt; &amp;a) {  for(int i = Parent(a.size()-1); i &gt;=0; --i) { //求得最后一个叶子节点的父节点    Max_Heapify_core(a,i);  }}</code></pre><p>###堆排序</p><pre><code>void Heapify_Sort(vector&lt;int&gt; &amp;a) {  Build_Max_Heapify(a);  for(int i = a.size()-1; i &gt;= 1; --i) {    swap(a,0,i);    heapsize -= 1;   //将最大值放在末尾，再将前面的数组生成最大堆，持续这个过程    Max_Heapify_core(a,0);  }}</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> 学习 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 数据结构 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    <entry>
       <title>两个有趣的unity插件</title>
       <link href="/2019/08/27/%E5%88%86%E4%BA%AB%E4%B8%A4%E4%B8%AA%E6%9C%89%E8%B6%A3%E7%9A%84unity%E6%8F%92%E4%BB%B6/"/>
       <url>/2019/08/27/%E5%88%86%E4%BA%AB%E4%B8%A4%E4%B8%AA%E6%9C%89%E8%B6%A3%E7%9A%84unity%E6%8F%92%E4%BB%B6/</url>
@@ -228,9 +251,9 @@
       
         <tags>
             
-            <tag> 计划 </tag>
-            
             <tag> 平板 </tag>
+            
+            <tag> 计划 </tag>
             
         </tags>
       
@@ -303,9 +326,9 @@
       
         <tags>
             
-            <tag> 平板 </tag>
-            
             <tag> 搞机 </tag>
+            
+            <tag> 平板 </tag>
             
         </tags>
       

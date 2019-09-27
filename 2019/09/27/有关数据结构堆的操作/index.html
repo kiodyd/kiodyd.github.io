@@ -19,7 +19,7 @@
     <meta name="description" content>
     <meta name="author" content="kiodyd">
     <meta name="keywords" content>
-    <title>小米平板1刷los神盾系统 ~ 发际线日渐后移的kio</title>
+    <title>堆排序以及无序数组构建堆 ~ 发际线日渐后移的kio</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/css/mdb.min.css">
@@ -67,10 +67,10 @@
     <div class="full-bg-img">
         <div class="mask rgba-black-light flex-center">
         <div class="container text-center white-text wow fadeInUp">
-            <p class="h2">小米平板1刷los神盾系统</p>
+            <p class="h2">堆排序以及无序数组构建堆</p>
             <br>
             
-            <p>Thursday, November 1st 2018, 3:53 pm</p>
+            <p>Friday, September 27th 2019, 8:44 pm</p>
             
         </div>
         </div>
@@ -84,21 +84,42 @@
     <div class="row">
         <div class="col-md-8 offset-md-2 ">
             <div class="post-content py-5 z-depth-3 main">
-                <p>听说小米平板1刷上神盾内核能让它重获新生，really？here we go。</p>
+                <p>最近一次面试被问到的题，太紧张了没答出来，重新巩固下~~</p>
 <a id="more"></a>
-<h2 id="刷机前的准备"><a href="#刷机前的准备" class="headerlink" title="刷机前的准备"></a>刷机前的准备</h2><p>在小米论坛有一篇很详细的<a href="http://www.miui.com/thread-10947082-1-1.html" target="_blank" rel="noopener">刷机教程</a>，这里我就不细讲刷机的过程了，不过要注意的是刷机前看清楚每一步的步骤，并想一下为什么这么做，一般是不会刷成砖的。下面我讲几点我觉得需要注意的，然后我也看到论坛小伙伴没仔细思考遇到了这些坑。</p>
-<h2 id="需要注意的地方"><a href="#需要注意的地方" class="headerlink" title="需要注意的地方"></a>需要注意的地方</h2><h3 id="四清后找不到刷机包"><a href="#四清后找不到刷机包" class="headerlink" title="四清后找不到刷机包"></a>四清后找不到刷机包</h3><p>这里我看到论坛有人在反馈四清后那些刷机包没放进去要怎么刷，首先四清是会清掉内存里的东西的，所以提前放进平板是没用的，不过熟悉rec的小伙伴应该知道，TWRP提供了挂载内存卡到电脑的功能，用数据线连接电脑再点击那个挂载功能就可以在电脑看到我们平板的内存管理了，这时候把我们要用的刷机包放进去就行了。</p>
-<h3 id="为什么要刷入两次TWRP"><a href="#为什么要刷入两次TWRP" class="headerlink" title="为什么要刷入两次TWRP"></a>为什么要刷入两次TWRP</h3><p>这个问题跟两个TWRP支持的内核有关我觉得，一个是基于神盾内核的（后面刷入的那个），帖主的顺序是刷入v2.8.4的rec，然后刷神盾内核，刷完后再刷入3.2.1的rec。那么可以一开始就刷入3.21版本吗，我觉得应该是不行的，因为那个是这个rom的专用rec，可能会出错，不过这只是我的猜想，还有待验证。不过不想出问题还是严格按照顺序吧。</p>
-<h3 id="刷完开机后设置的时候提示没网络"><a href="#刷完开机后设置的时候提示没网络" class="headerlink" title="刷完开机后设置的时候提示没网络"></a>刷完开机后设置的时候提示没网络</h3><p>这里应该是跟谷歌被墙了有关，先跳过就好了，如果后面想要设置账户，就需要tizi了。至于wifi感叹号，root后有感叹号消除的插件，具体可百度。</p>
-
+<h2 id="堆的基本知识和应用"><a href="#堆的基本知识和应用" class="headerlink" title="堆的基本知识和应用"></a>堆的基本知识和应用</h2><p>说起堆，更多能联想到的是堆排序，那个时间复杂度为nlogn的排序算法，以及topK问题的应用。<br>而堆的实现最关键的操作是怎么上浮或者下陷，有关堆的知识可以参考这里（<a href="https://www.imooc.com/article/25118" target="_blank" rel="noopener">链接</a>）</p>
+<h3 id="堆的上浮和下陷"><a href="#堆的上浮和下陷" class="headerlink" title="堆的上浮和下陷"></a>堆的上浮和下陷</h3><p>下面我们以最大堆为例，先来实现一下核心的下陷操作（上浮也同理）：</p>
+<pre><code>void Max_Heapify_core(vector&lt;int&gt; &amp;a, int i) {
+  int largest = i;
+  int left = 2*i;
+  int right = 2*i + 1; //堆由于是完全二叉树，可以放在一个数组里面表示
+  if(left &lt; heapsize &amp;&amp; a[left] &gt; a[i]) largest = left;
+  if(right &lt; heapsize &amp;&amp; a[right] &gt; a[i]) largest = right;
+  if(largest != i) {
+    swap(a,largest,i); //交换两个值
+    Max_Heapify_core(a,largest);
+  }
+}
+</code></pre><h3 id="将无序数组构建为堆"><a href="#将无序数组构建为堆" class="headerlink" title="将无序数组构建为堆"></a>将无序数组构建为堆</h3><p>有了上面那个核心的操作，便可以将一个无序数组变为一个最大堆（吐槽下我自己，面试的时候居然想要排序整个数组~~还是太容易紧张了）</p>
+<pre><code>void Build_Max_Heapify(vector&lt;int&gt; &amp;a) {
+  for(int i = Parent(a.size()-1); i &gt;=0; --i) { //求得最后一个叶子节点的父节点
+    Max_Heapify_core(a,i);
+  }
+}
+</code></pre><p>###堆排序</p>
+<pre><code>void Heapify_Sort(vector&lt;int&gt; &amp;a) {
+  Build_Max_Heapify(a);
+  for(int i = a.size()-1; i &gt;= 1; --i) {
+    swap(a,0,i);
+    heapsize -= 1;   //将最大值放在末尾，再将前面的数组生成最大堆，持续这个过程
+    Max_Heapify_core(a,0);
+  }
+}
+</code></pre>
                 <hr>
                 <div>
                     <p>
                         
-                        <span class="badge badge-light">#&nbsp;搞机</span>
-                        &nbsp;
-                        
-                        <span class="badge badge-light">#&nbsp;平板</span>
+                        <span class="badge badge-light">#&nbsp;数据结构</span>
                         &nbsp;
                         
                     </p>
