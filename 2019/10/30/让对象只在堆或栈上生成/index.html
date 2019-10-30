@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+
+
+
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+    <meta charset="utf-8">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/img/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content>
+    <meta name="author" content="kiodyd">
+    <meta name="keywords" content>
+    <title>只在堆上或栈上生成的对象 ~ 发际线日渐后移的kio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/css/mdb.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://at.alicdn.com/t/font_1067060_vr10bjtg3us.css">
+    
+    <link rel="stylesheet" href="/css/Prettify/tomorrow-night-eighties.min.css">
+    
+</head>
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+<div class="container">
+    <a class="navbar-brand" href="/"><strong>发际线日渐后移的kio</strong></a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ml-auto text-center">
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/archives/">Archives</a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/about/">About</a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+
+</nav>
+    <div class="view intro-2" style='background: url("https://i.imgur.com/oADD1Ip.jpg")no-repeat center center;background-size: cover;'>
+    <div class="full-bg-img">
+        <div class="mask rgba-black-light flex-center">
+        <div class="container text-center white-text wow fadeInUp">
+            <p class="h2">只在堆上或栈上生成的对象</p>
+            <br>
+            
+            <p>Wednesday, October 30th 2019, 5:57 pm</p>
+            
+        </div>
+        </div>
+    </div>
+    </div>
+  </header>
+
+  <main>
+  
+  <div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2 ">
+            <div class="post-content py-5 z-depth-3 main">
+                <p>c++的内存管理真的是博大精深呀~</p>
+<a id="more"></a>
+<h2 id="生成对象"><a href="#生成对象" class="headerlink" title="生成对象"></a>生成对象</h2><p>我们一般生成对象有两种方式，直接生成和通过new（先不考虑使用new在栈生成的情况）生成，分别对应静态和动态的生成。</p>
+<pre><code>  MyClass mc1; //栈
+  MyClass mc2 = new MyClass; //堆
+</code></pre><p>两个都需要用到构造函数（这不废话嘛~），所以我们不能通过私有构造函数的方式来达到我们的目的。</p>
+<h2 id="只在堆上生成的对象"><a href="#只在堆上生成的对象" class="headerlink" title="只在堆上生成的对象"></a>只在堆上生成的对象</h2><p>换句话说就是禁用掉直接生成的方式，我们回忆一下栈的特点，栈上的内存会自动分配和 <strong>自动销毁</strong>，那对象的销毁会调用什么呢？析构函数！</p>
+<p>假如析构函数失效了，那栈不就不能达到它的目的了吗。<br>实际上，栈有这样的特点：<strong>编译器在为类对象分配栈空间时，会先检查类的析构函数的访问性，其实不光是析构函数，只要是非静态的函数，编译器都会进行检查。如果类的析构函数是私有的，则编译器不会在栈空间上为类对象分配内存。</strong></p>
+<p>所以我们把析构函数定义为私有不就实现了不能在栈上生成了。<br>等等，析构函数没了，那你堆不也不能销毁了。嘿嘿，堆上怎么销毁主要还是靠我们说嘛，那定义多一个销毁函数，让他和析构做一样的事不就行了。所以对于堆，不要这个对象时，调用一下自己定义的销毁函数就行了。</p>
+<h2 id="只在栈上生成的对象"><a href="#只在栈上生成的对象" class="headerlink" title="只在栈上生成的对象"></a>只在栈上生成的对象</h2><p>在堆生成需要用到new关键字，如果new关键字失效了不就达到目的了。而且new相比malloc一个主要的特点就是能重载new和delete，所以说我们可以把new设为私有的函数，这样就能避免在堆上生成了。</p>
+
+                <hr>
+                <div>
+                    <p>
+                        
+                        <span class="badge badge-light">#&nbsp;c++笔记</span>
+                        &nbsp;
+                        
+                    </p>
+                </div>
+                <br>
+                
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                
+            </div>
+        </div>
+        <div class="d-none d-md-block col-md-2">
+            
+  <div id="toc" class="py-5">
+    <p class="h6"><i class="iconfont icon-toc" style="vertical-align:middle"></i> Toc:</p> 
+    <div id="tocbot"></div>
+  </div>
+
+        </div>
+    </div>
+</div>
+
+<br><br><br>
+
+<!-- Comments -->
+<div class="comments" id="comments">
+    
+
+    
+    <link rel="stylesheet" href="/lib/gitalk/gitalk.css">
+
+<div class="card gitalk-card" data-aos="fade-up">
+    <div id="gitalk-container" class="card-content"></div>
+</div>
+
+<script src="/lib/gitalk/gitalk.min.js"></script>
+<script src="/lib/gitalk/md5.min.js"></script>
+<script>
+    let gitalk = new Gitalk({
+        clientID: '197e8993f26f7106d0d8',
+        clientSecret: '07457c1e86f4b11590459251151e9bbb2ab15b92',
+        repo: 'kiodyd.github.io',
+        owner: 'kiodyd',
+        admin: ['kiodyd'],
+        id: md5(location.pathname),
+        distractionFreeMode: false,  // Facebook-like distraction free mode
+        language: 'zh-CN'
+    });
+
+    gitalk.render('gitalk-container');
+</script>
+    
+</div>
+  
+  </main>
+
+<footer class="mt-5">
+  <div class="text-center py-3">
+    <a href="https://hexo.io" target="_blank"><b>HEXO</b></a>
+    <i class="iconfont icon-love"></i>
+    <a href="https://github.com/0x2e/Material-T" target="_blank"> <b>Material-T</b></a>
+  </div>
+</footer>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/jquery-3.3.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/mdb.min.js"></script>
+  <script src="/js/main.js"></script>
+  
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.4.2/tocbot.min.js"></script>
+    
+    <script src="/js/post.js"></script>
+    
+      <script src="/js/plugins/prettify.js"></script>
+      <script>
+          $(document).ready(function(){
+              $('pre').addClass('prettyprint linenums');
+              prettyPrint();
+          })
+      </script>
+    
+  
+<script src="/live2dw/lib/L2Dwidget.min.js?0c58a1486de42ac6cc1c59c7d98ae887"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/assets/koharu.model.json"},"display":{"position":"left","width":100,"height":200},"mobile":{"show":true}});</script></body>
+</html>
