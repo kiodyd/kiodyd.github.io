@@ -107,6 +107,11 @@
             <time  class="article-date" datetime="2023-01-17T12:00:00.000Z" itemprop="datePublished">2023-01-17</time>
           </h2>
           
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2023-01-18T06:41:50.000Z" itemprop="dateUpdated">2023-01-18</time>
+            </h2>
+          
           
           <ul class="wrap-list dark">
   
@@ -157,6 +162,7 @@
 <h3 id="函数介绍">函数介绍</h3>
 <blockquote>
 <p>IQ大佬的可以查看函数图像的网站：<a target="_blank" rel="noopener" href="https://graphtoy.com">https://graphtoy.com</a></p>
+<p>mac os 自带的Grapher也挺好用的</p>
 </blockquote>
 <h5 id="基本数学运算">基本数学运算</h5>
 <table>
@@ -250,7 +256,7 @@
 </tr>
 <tr>
 <td>frexp(x, out exp)</td>
-<td>把浮点数 x 分解成尾数和指数返回值是尾数，exp参数返回的值是指数 <br>(如果x参数为0，则此函数的尾数和指数均返回0)，<br>公式为<img src="https://math.now.sh?inline=x%3Dret*2%5E%7Bexp%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/>，返回值为ret，并给exp赋值。<br>  是按照计算机存储浮点数的方式分解的，例如1.2这个数，是分为两部分的，尾数为12，指数为0.1</td>
+<td>把浮点数 x 分解成尾数和指数返回值是尾数，exp参数返回的值是指数<br>(如果x参数为0，则此函数的尾数和指数均返回0)，<br>公式为<img src="https://math.now.sh?inline=x%3Dret*2%5E%7Bexp%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/>，返回值为ret，并给exp赋值。<br>  是按照计算机存储浮点数的方式分解的，例如1.2这个数，是分为两部分的，尾数为12，指数为0.1</td>
 </tr>
 </tbody>
 </table>
@@ -371,7 +377,7 @@
 <tbody>
 <tr>
 <td>all(x)</td>
-<td>确定指定量的所有分量是否均为非零，均非零则返回true，否则返回false <br> （处理由浮点型、整型、布尔型数据定义的标量、向量或者矩阵）</td>
+<td>确定指定量的所有分量是否均为非零，均非零则返回true，否则返回false<br> （处理由浮点型、整型、布尔型数据定义的标量、向量或者矩阵）</td>
 </tr>
 <tr>
 <td>clip(x)</td>
@@ -457,7 +463,7 @@
 </tr>
 <tr>
 <td>faceforward(n, i, ng)</td>
-<td>-n * sign(dot(i, ng)) <br> 函数接受一个输入向量和两个面的法线<br>如果数据向量与第二个法线的点积是负数，那么它会返回第一个法线<br>否则返回第一个法线取反的结果向量。<br>你可能已经猜到了，这个函数可以去判断一个面在某个视角下 是正面还是反面</td>
+<td>-n * sign(dot(i, ng))<br> 函数接受一个输入向量和两个面的法线<br>如果数据向量与第二个法线的点积是负数，那么它会返回第一个法线<br>否则返回第一个法线取反的结果向量。<br>你可能已经猜到了，这个函数可以去判断一个面在某个视角下 是正面还是反面</td>
 </tr>
 </tbody>
 </table>
