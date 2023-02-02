@@ -337,37 +337,27 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">//======================fs着色器部分代码========================</span><br><span class="line">                fixed3 tangentLightDir = normalize(i.lightDir);</span><br><span class="line">                fixed3 tangentViewDir = normalize(i.viewDir);</span><br><span class="line"></span><br><span class="line">                fixed4 packedNormal = tex2D(_BumpMap, i.uv.zw);</span><br><span class="line">                fixed3 tangentNormal;</span><br><span class="line">                // 自动将纹理范围转换为法线范围，且还能读取unity优化后的正确值（在贴图属性面板标记为Normal Map）</span><br><span class="line">                // tangentNormal.xy = packedNormal.xy * 2 - 1;</span><br><span class="line">                tangentNormal = UnpackNormal(packedNormal);</span><br><span class="line">                // 使用_BumpScale控制凹凸程度</span><br><span class="line">                tangentNormal.xy *= _BumpScale;</span><br><span class="line">                // 由于是单位矢量，且z方向确定，所以可以这样计算z</span><br><span class="line">                tangentNormal.z = sqrt(1.0 - saturate(dot(tangentNormal.xy, tangentNormal.xy)));</span><br><span class="line"></span><br><span class="line">                fixed3 albedo = tex2D(_MainTex, i.uv.xy).rgb * _Color.rgb;</span><br><span class="line">                float3 albedo_linear = GammaToLinearSpace(albedo);</span><br><span class="line">                fixed3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz * albedo_linear;</span><br><span class="line">                fixed3 diffuse = _LightColor0.rgb * albedo_linear * saturate(dot(tangentNormal, tangentLightDir));</span><br><span class="line"></span><br><span class="line">                fixed3 halfDir = normalize(tangentLightDir + tangentViewDir);</span><br><span class="line">                fixed3 specular = _LightColor0.rgb * _Specular.rgb * pow(saturate(dot(tangentNormal, halfDir)), _Gloss);</span><br><span class="line"></span><br><span class="line">                float3 col = ambient + diffuse + specular;</span><br><span class="line">                col = LinearToGammaSpace(col.rgb * unity_ColorSpaceDouble);</span><br><span class="line">                return fixed4(col, 1.0);</span><br></pre></td></tr></table></figure>
 <p>UnityCG.cginc</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">inline float GammaToLinearSpaceExact (float value)</span><br><span class="line">&#123;</span><br><span class="line">    if (value &lt;= 0.04045F)</span><br><span class="line">        return value / 12.92F;</span><br><span class="line">    else if (value &lt; 1.0F)</span><br><span class="line">        return pow((value + 0.055F)/1.055F, 2.4F);</span><br><span class="line">    else</span><br><span class="line">        return pow(value, 2.2F);//看灰色的return，调用的GammaToLinearSpaceExact ，rgb大于1时，pow 2.2曲线下压变暗</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">inline half3 GammaToLinearSpace (half3 sRGB)</span><br><span class="line">&#123;</span><br><span class="line">  </span><br><span class="line">    return sRGB * (sRGB * (sRGB * 0.305306011h + 0.682171111h) + 0.012522878h);</span><br><span class="line"></span><br><span class="line">    // Precise version, useful for debugging.</span><br><span class="line">    //return half3(GammaToLinearSpaceExact(sRGB.r), GammaToLinearSpaceExact(sRGB.g), GammaToLinearSpaceExact(sRGB.b));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">inline float LinearToGammaSpaceExact (float value)</span><br><span class="line">&#123;</span><br><span class="line">    if (value &lt;= 0.0F)</span><br><span class="line">        return 0.0F;</span><br><span class="line">    else if (value &lt;= 0.0031308F)</span><br><span class="line">        return 12.92F * value;</span><br><span class="line">    else if (value &lt; 1.0F)</span><br><span class="line">        return 1.055F * pow(value, 0.4166667F) - 0.055F;</span><br><span class="line">    else</span><br><span class="line">        return pow(value, 0.45454545F); //pow 1/2.2,曲线上突变亮</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">inline half3 LinearToGammaSpace (half3 linRGB)</span><br><span class="line">&#123;</span><br><span class="line">    linRGB = max(linRGB, half3(0.h, 0.h, 0.h));</span><br><span class="line">    return max(1.055h * pow(linRGB, 0.416666667h) - 0.055h, 0.h);</span><br><span class="line"></span><br><span class="line">    // Exact version, useful for debugging.</span><br><span class="line">    //return half3(LinearToGammaSpaceExact(linRGB.r), LinearToGammaSpaceExact(linRGB.g), LinearToGammaSpaceExact(linRGB.b));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="补充">补充</h5>
+<ul>
+<li>金属度官方PBR实现中，加了[Gamma]标记，会进行Gamma Correction Removed。这和底层的光照计算中考虑能量守恒的部分有关，Metallic代表了物体的“金属度”，如果值越大则反射(高光)越强，漫反射会越弱。在实际的计算中，这个强弱的计算和Color Space有关，所以需要加上[Gamma]项。</li>
+<li>在计算纹理的Mipmap时也需要注意。如果纹理存储在非线性空间中，那么在计算mipmap时就会在非线性空间里计算。由于mipmap的计算是种线性计算——即降采样的过程，需要对某个方形区域内的像素去平均值，这样就会得到错误的结果。正确的做法是，把非线性的纹理转换到线性空间后再计算Mipmap</li>
+<li>sRGB是Gamma0.45，显示器是2.2（可能更高，需要补偿亮度）</li>
+</ul>
 <h3 id="参考资料">参考资料</h3>
 <ol>
-<li>
-<p><a target="_blank" rel="noopener" href="https://chrisbrejon.com/cg-cinematography/chapter-1-color-management/">https://chrisbrejon.com/cg-cinematography/chapter-1-color-management/</a></p>
-</li>
-<li>
-<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV15t411Y7cf">https://www.bilibili.com/video/BV15t411Y7cf</a></p>
-</li>
-<li>
-<p><a target="_blank" rel="noopener" href="https://edu.uwa4d.com/lesson-detail/116/365/0?isPreview=0">https://edu.uwa4d.com/lesson-detail/116/365/0?isPreview=0</a></p>
-</li>
-<li>
-<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/candycat1992/article/details/46228771">https://blog.csdn.net/candycat1992/article/details/46228771</a></p>
-</li>
-<li>
-<p><a target="_blank" rel="noopener" href="https://www.gameres.com/811214.html">https://www.gameres.com/811214.html</a></p>
-</li>
-<li>
-<p>关于Gamma校正讲的很好的一个视频：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV15t411Y7cf">https://www.bilibili.com/video/BV15t411Y7cf</a></p>
-</li>
-<li>
-<p>大佬笔记：</p>
+<li><a target="_blank" rel="noopener" href="https://chrisbrejon.com/cg-cinematography/chapter-1-color-management/">https://chrisbrejon.com/cg-cinematography/chapter-1-color-management/</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV15t411Y7cf">https://www.bilibili.com/video/BV15t411Y7cf</a></li>
+<li><a target="_blank" rel="noopener" href="https://edu.uwa4d.com/lesson-detail/116/365/0?isPreview=0">https://edu.uwa4d.com/lesson-detail/116/365/0?isPreview=0</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/candycat1992/article/details/46228771">https://blog.csdn.net/candycat1992/article/details/46228771</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.gameres.com/811214.html">https://www.gameres.com/811214.html</a></li>
+<li>大佬笔记：
 <ul>
 <li><a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/hmdldi">https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/hmdldi</a></li>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43066332/article/details/118463724">https://blog.csdn.net/qq_43066332/article/details/118463724</a></li>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/whitebreeze/article/details/117234596">https://blog.csdn.net/whitebreeze/article/details/117234596</a></li>
 </ul>
 </li>
-<li>
-<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/66558476">https://zhuanlan.zhihu.com/p/66558476</a></p>
-</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/66558476">https://zhuanlan.zhihu.com/p/66558476</a></li>
 </ol>
 
       </section>
@@ -488,14 +478,14 @@
     <ul class="categorys-list">
       
         <li class="categorys-list-item">
-          <a href="/categories/%E6%9D%82%E8%B0%88/">
-            杂谈 (1)
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
           </a>
         </li>
       
         <li class="categorys-list-item">
-          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
-            工作 (1)
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
           </a>
         </li>
       
@@ -506,8 +496,8 @@
         </li>
       
         <li class="categorys-list-item">
-          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
-            硬件 (2)
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
           </a>
         </li>
       
