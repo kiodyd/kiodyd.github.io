@@ -26,7 +26,7 @@
 
   
 
-  <title>C#本质论-章节01&amp;22 | 不特别周のBlog</title>
+  <title>百人计划-美术-2.1 DCC工具链与引擎工具链 | 不特别周のBlog</title>
 
   
 
@@ -100,17 +100,12 @@
     <div class="header-content">
       <div class="post-text layout-block">
         <div class="layout-margin">
-          <h1 class="title-wrap">C#本质论-章节01&amp;22</h1>
+          <h1 class="title-wrap">百人计划-美术-2.1 DCC工具链与引擎工具链</h1>
           <h2 class="title-sub-wrap">
             <strong>kio0o0</strong>
             <span>发布于</span>
-            <time  class="article-date" datetime="2022-09-07T14:33:00.000Z" itemprop="datePublished">2022-09-07</time>
+            <time  class="article-date" datetime="2023-02-03T12:47:53.000Z" itemprop="datePublished">2023-02-03</time>
           </h2>
-          
-            <h2 class="title-sub-wrap new-date">
-              <span>最后更新于</span>
-              <time  class="article-updated" datetime="2023-01-04T14:58:05.620Z" itemprop="dateUpdated">2023-01-04</time>
-            </h2>
           
           
           <ul class="wrap-list dark">
@@ -120,7 +115,9 @@
 </ul>
           <ul class="wrap-list dark">
   
-    <li><a href="/tags/C-%E7%AC%94%E8%AE%B0/">🏷️ C#笔记</a></li>
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
   
 </ul>
         </div>
@@ -144,61 +141,85 @@
       
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
-        <p>求知若饥，虚心若愚</p>
-<span id="more"></span>
-<h3 id="使用Dontnet-CLI编译运行">使用Dontnet CLI编译运行</h3>
-<blockquote>
-<p>注意：CLI在这里指命令行接口（Command Line Inrterface）而不是公共语言基础框架（Common Language Infrastructure）</p>
-</blockquote>
+        <span id="more"></span>
+<h3 id="DCC软件的定义">DCC软件的定义</h3>
 <ul>
-<li>dotnet new console来创建程序机架</li>
-<li>dotnet run 会自动编译并执行</li>
-<li>dotnet build 将生成程序集（assembly），一般是dll结尾的动态链接库，需要CLI寄宿代码</li>
-<li>dotnet test 可运行单元测试</li>
+<li>Digital Content Creation，数字内容创作</li>
+<li>DCC的范围包括二维/三维、音频/视频编辑合成、动态/互动内容创作、图像编辑等。</li>
 </ul>
-<h3 id="命名规范">命名规范</h3>
+<h3 id="常用建模软件">常用建模软件</h3>
+<h5 id="关于软件的梯队问题">关于软件的梯队问题</h5>
+<p>大伙都是T0，用什么软件取决于个人用途/喜好、所在工作环境/公司等。学会一款可以快速上手另一款。</p>
+<h5 id="3dsmax">3dsmax</h5>
+<p>对于硬表面建模、静态物体建模，推荐使用（在国内使用最广）</p>
+<h5 id="MAYA">MAYA</h5>
 <ul>
-<li>不要使用匈牙利命名法（不要为变量名称附加类型前缀，避免后续类型变更）</li>
-<li>一般不要用双下划线的变量名，有极小可能会变微软使用为新关键字</li>
-<li>老生常态的有不要随便用非通用的缩写，尽量命名准确</li>
+<li>是影视、特效行业的首选，有强大的动画功能</li>
+<li>推荐动作向、特效向TA学习</li>
 </ul>
-<h3 id="公共中间语言">公共中间语言</h3>
+<h5 id="Houdini">Houdini</h5>
 <ul>
-<li>c#编译器将代码转为中间语言CIL（IL），即Common Intermediate Language</li>
-<li>即时编译（JIT），虚拟执行系统即运行时编译CIL的过程</li>
-<li>托管代码，代码在&quot;代理&quot;的上下文中执行，执行的流程则称为托管执行</li>
-<li>托管数据，执行的控制转向数据，数据所需的内存是运行时自动分配和回收的</li>
-<li>不仅仅是c#能转成CIL（当然要接入CLI还要符合其规范，比如CTS和CLS），实现了语言之间的互操作性以及平台可移植性</li>
+<li>Houdini的使用，是建立在传统工具之上的，锦上添花的作用</li>
+<li>程序化</li>
 </ul>
-<blockquote>
-<p>之所以叫托管，是因为运行时管理着诸如内存分配，安全性和JIT编译等方面，从而控制了主要的程序行为。执行不需要运行时的代码称为本机代码（native code）或非托管代码（unmanaged code）</p>
-</blockquote>
-<h3 id="公共语言基础框架">公共语言基础框架</h3>
-<blockquote>
-<p>CLI是理解C#程序的执行环境以及C#如何与其他程序和库（甚至是用其他语言编写）进行无缝交互的一个重要规范</p>
-</blockquote>
-<h5 id="规范">规范</h5>
+<h5 id="Blender">Blender</h5>
 <ul>
-<li>虚拟执行系统（VES即常说的运行时，现在比较常用的是CLR公共语言进行时，ps：非程序运行中那个运行时）</li>
-<li>公共中间语言，Common Intermediate Language-CIL</li>
-<li>公共类型系统，Common Type System-CTS</li>
-<li>公共语言规范，Common Language Specification-CLS</li>
-<li>元数据，Metadata</li>
-<li>框架，Framework</li>
+<li>开源软件、功能齐全</li>
+<li>潜在问题：
+<ul>
+<li>因为历史原因，各个公司的工作流已经固定，随意更改使用软件代价比较大，目前国内blender的比较少</li>
+<li>max和maya都有着商业技术支持，但blender作为开源软件，有的问题需要自己解决</li>
 </ul>
-<h5 id="垃圾回收">垃圾回收</h5>
-<ul>
-<li>不是CLI语言规范的一部分，但能让程序员更专注于程序功能上</li>
-<li>一般是分代、支持压缩、基于mark-and-sweep（标记清除）的算法</li>
+</li>
 </ul>
-<h5 id="元数据">元数据</h5>
-<blockquote>
-<p>描述 类型和程序中包含的文件，可供反射功能使用</p>
-</blockquote>
+<h3 id="常用贴图软件">常用贴图软件</h3>
+<h5 id="三剑客">三剑客</h5>
 <ul>
-<li>程序或类库中每一个类型的描述</li>
-<li>清单信息，包括与程序本身有关的数据，以及他依赖的库</li>
-<li>在代码中嵌入的自定义特性，提供与特性所修饰的构造有关的额外信息</li>
+<li>
+<p>SubstancePainter</p>
+<ul>
+<li>拥有着和PS一样的操作逻辑，美术上手较快，行业内主流</li>
+<li>美术必须要学的工具</li>
+</ul>
+</li>
+<li>
+<p>SubstanceDesigner</p>
+<ul>
+<li>最为人熟知的：程序化贴图，基于节点</li>
+<li>Substance三件套中功能最强大，学习难度也最大</li>
+<li>推荐的一位A站大佬：Daniel Thiger</li>
+</ul>
+</li>
+<li>
+<p>SubstanceAlchemist</p>
+<ul>
+<li>可以比较方便的修改程序化资源</li>
+<li>上手难度不是特别高</li>
+</ul>
+</li>
+</ul>
+<h5 id="对于贴图工具的一些建议">对于贴图工具的一些建议</h5>
+<ul>
+<li>如果公司使用的是pbr流程，上述工具没有太大的区别（pbr参数限制）</li>
+<li>对于贴图的制作，更重要还是审美、美术功底</li>
+</ul>
+<h3 id="美术常用工具">美术常用工具</h3>
+<h5 id="RizomUV-Bridge">RizomUV Bridge</h5>
+<ul>
+<li>一个拆UV的方便工具</li>
+<li>3Dmax的插件</li>
+</ul>
+<h5 id="BANJIAJIA渲梦工厂">BANJIAJIA渲梦工厂</h5>
+<ul>
+<li>集建模、场景、材质、灯光，动画、构图、渲染等功能于一身的插件。</li>
+<li><a target="_blank" rel="noopener" href="http://rdf.banjiajia.com/intro">http://rdf.banjiajia.com/intro</a></li>
+<li>工具向TA可以模仿学习</li>
+</ul>
+<h3 id="总结">总结</h3>
+<ul>
+<li>不断提升美术功底才是关键，软件只是辅助实现的工具</li>
+<li>从需求出发选择软件</li>
+<li>无限进步！</li>
 </ul>
 
       </section>
@@ -207,28 +228,14 @@
       
         <nav class="article-nav">
           
-            <div class="article-nav-item layout-padding">
-  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
-    
-    <div class="card-text">
-      
-        <a href="/2022/09/09/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/CSharp/%E6%9C%AC%E8%B4%A8%E8%AE%BA%E7%AC%94%E8%AE%B0/%E7%AB%A0%E8%8A%8202&03/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">C#本质论-章节02&amp;03</h2>
-        </a>
-      
-      <div class="card-text--row">Newer</div>
-    </div>
-  </article>
-</div>
-          
           
             <div class="article-nav-item layout-padding">
   <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
     
     <div class="card-text">
       
-        <a href="/2021/11/04/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/Lua/LuaClass%E7%9A%84%E5%AE%9E%E7%8E%B0/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">LuaClass的实现</h2>
+        <a href="/2023/02/03/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/%E5%9B%BE%E5%BD%A2%E5%AD%A6/%E6%8A%80%E6%9C%AF%E7%BE%8E%E6%9C%AF%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A2/2.5%20Bump%20Map%20%E5%87%B9%E5%87%B8%E6%98%A0%E5%B0%84/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-2.5 Bump Map 凹凸映射</h2>
         </a>
       
       <div class="card-text--row">Older</div>
