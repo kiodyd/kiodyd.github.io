@@ -315,6 +315,7 @@
 <p>左侧HDR，右侧LDR</p>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_33a15ab8666f081a2f318676292ce7a5.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_33a15ab8666f081a2f318676292ce7a5.png"></p>
 <p>可以明显看出星体和行星带部分HDR会比LDR效果更亮一些，符合我们现实观察天体的效果，也增强了画面表现力、宽容度。</p>
+<p>使用不同的mipmap层级，HDR保留的细节会多一点，毕竟精度更高。目前用的是和先行版_Gloss计算层级，下面是PBR中用粗糙度控制</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">float3 reflectDirWS = reflect(-viewWS,normalWS);</span><br><span class="line">roughness = roughness * (1.7 - 0.7 * roughness); </span><br><span class="line">float MidLevel = roughness * 6;</span><br><span class="line">//不同等级mipmap采样</span><br><span class="line">float4 specColor = SAMPLE_TEXTURECUBE_LOD(_CubeMap,sampler_CubeMap,reflectDirWS,MidLevel);</span><br></pre></td></tr></table></figure>
 <h5 id="补充下各个ToneMapping实现">补充下各个ToneMapping实现</h5>
 <ul>
