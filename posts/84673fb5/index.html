@@ -426,6 +426,9 @@
 </li>
 </ul>
 <h3 id="第二个Defer：不同GPU-的-Early-Depth-Test">第二个Defer：不同GPU 的 Early-Depth-Test</h3>
+<blockquote>
+<p>和EarlyZ的本质区别：<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/425740956">https://www.zhihu.com/question/425740956</a></p>
+</blockquote>
 <h4 id="Adreno的LRZ模块">Adreno的LRZ模块</h4>
 <ul>
 <li>采用外置模块LRZ</li>
@@ -435,15 +438,23 @@
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6fb21c789be5fe69cf01553a6df81c56.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6fb21c789be5fe69cf01553a6df81c56.png"></p>
 <h4 id="Mail的FPK">Mail的FPK</h4>
 <ul>
-<li>采用Forward Pixel Kill技术</li>
-<li>位于管线的位置：发生在Early-z之后</li>
-<li>数据模型：先进先出的队列</li>
-<li>简单概括一下：
+<li>
+<p>采用Forward Pixel Kill技术</p>
+</li>
+<li>
+<p>位于管线的位置：发生在Early-z之后</p>
+</li>
+<li>
+<p>数据模型：先进先出的队列</p>
+</li>
+<li>
+<p>简单概括一下：</p>
 <ul>
 <li>队列中有4个Quad（可以理解为2×2像素的平面），每个Quad有屏幕上位置的数据和Z数据</li>
 <li>Z越大代表离摄像机越远</li>
 <li>根据屏幕上相同位置（pos）的不同z，对不透明的像素进行替换（有近的就不渲染远的），这个过程叫作killed</li>
 </ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302191100702.png" alt=""></p>
 </li>
 </ul>
 <h4 id="PVR的HSR">PVR的HSR</h4>
@@ -737,14 +748,8 @@
     <ul class="categorys-list">
       
         <li class="categorys-list-item">
-          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
-            硬件 (2)
-          </a>
-        </li>
-      
-        <li class="categorys-list-item">
-          <a href="/categories/%E6%9D%82%E8%B0%88/">
-            杂谈 (1)
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
           </a>
         </li>
       
@@ -755,8 +760,14 @@
         </li>
       
         <li class="categorys-list-item">
-          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
-            软件 (2)
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
           </a>
         </li>
       
