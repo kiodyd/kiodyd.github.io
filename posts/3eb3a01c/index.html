@@ -443,7 +443,7 @@ _CameraNormalsTexture采样，同样Unity也提供了采样接口</p>
 <p>需要注意的是，这里存储的是世界空间的法线，而原builtin方法获取的是观察空间，所以如果要用课上的算法的话，要转换一下法线</p>
 </li>
 <li>
-<p>关于课上算法的疑问，采样获得随机屏幕位置后，再去获取深度，此时是非线性的深度，而ao比较是和当前像素的线性深度去对比，感觉不太对劲，改成统一线性后效果好一点。、</p>
+<p>关于课上算法的疑问，采样获得随机屏幕位置后，再去获取深度，此时是非线性的深度，而ao比较是和当前像素的线性深度去对比，感觉不太对劲，改成统一线性后效果好一点。</p>
 </li>
 </ul>
 <p>参考的文章</p>
@@ -453,7 +453,15 @@ _CameraNormalsTexture采样，同样Unity也提供了采样接口</p>
 <li>大佬分析UnityUrp实现方案：<a target="_blank" rel="noopener" href="https://github.com/HHHHHHHHHHHHHHHHHHHHHCS/MyStudyNote/blob/main/MyNote/URP%E7%9A%84SSAO.md">https://github.com/HHHHHHHHHHHHHHHHHHHHHCS/MyStudyNote/blob/main/MyNote/URP的SSAO.md</a></li>
 </ul>
 <h4 id="其他AO方案">其他AO方案</h4>
-<p>todo：HBAO、GTAO</p>
+<p>todo：HBAO、GTAO<br>
+参考文章：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/HHHHHHHHHHHHHHHHHHHHHCS/MyStudyNote/blob/main/MyNote/%E5%86%99%E5%86%99%E7%AE%80%E5%8D%95%E7%9A%84HBAO.md">URP HBAO实现</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/103683536">HBAO原理</a></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_5ef211cebcad7644dd0ea673a6aa5942.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_5ef211cebcad7644dd0ea673a6aa5942.png"></p>
+<p>各个AO技术性能分析<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_130dcae562f505454a2b390eef7e68f1.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_130dcae562f505454a2b390eef7e68f1.png"></p>
 
       </section>
 
@@ -585,14 +593,14 @@ _CameraNormalsTexture采样，同样Unity也提供了采样接口</p>
         </li>
       
         <li class="categorys-list-item">
-          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
-            硬件 (2)
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
           </a>
         </li>
       
         <li class="categorys-list-item">
-          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
-            软件 (2)
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
           </a>
         </li>
       
