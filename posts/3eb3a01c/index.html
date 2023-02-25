@@ -109,7 +109,7 @@
           
             <h2 class="title-sub-wrap new-date">
               <span>最后更新于</span>
-              <time  class="article-updated" datetime="2023-02-23T03:42:26.000Z" itemprop="dateUpdated">2023-02-23</time>
+              <time  class="article-updated" datetime="2023-02-25T03:24:56.000Z" itemprop="dateUpdated">2023-02-25</time>
             </h2>
           
           
@@ -195,7 +195,7 @@
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_045af19e9a54227ba1e54ef6b2df7507.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_045af19e9a54227ba1e54ef6b2df7507.png"></p>
 <h4 id="补充：从渲染方程看">补充：从渲染方程看</h4>
 <blockquote>
-<p>参考GAMES202 L8​</p>
+<p>参考GAMES202 L8</p>
 </blockquote>
 <p>将Visible项从积分中拆出来，后面那部分积分都可看做常数</p>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/Snipaste_2023-02-22_18-01-44_3fdef0fd5ebe179747393e7a32b101f3.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/Snipaste_2023-02-22_18-01-44_3fdef0fd5ebe179747393e7a32b101f3.png"></p>
@@ -226,7 +226,7 @@
 <p>下面使用从NDC空间中重建的方法（计算量和复杂度偏高），入门精要13.1有详细过程</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">//第一步：获得相机空间下的像素方向</span><br><span class="line">v2f vert_Ao(appdata v)&#123;</span><br><span class="line">    v2f o;</span><br><span class="line">    UNITY_INITIALIZE_OUTPUT(v2f,o);</span><br><span class="line"></span><br><span class="line">    o.vertex = UnityObjectToClipPos(v.vertex);//顶点位置：转换到裁剪空间</span><br><span class="line">    o.uv = v.uv;</span><br><span class="line"></span><br><span class="line">    float4 screenPos = ComputeScreenPos(o.vertex);//顶点位置：转换到屏幕空间</span><br><span class="line">    float4 ndcPos = (screenPos / screenPos.w) * 2 - 1;//归一化</span><br><span class="line"></span><br><span class="line">    float3 clipVec = float3(ndcPos.x, ndcPos.y, 1.0)* _ProjectionParams.z;//像素方向：倒推回裁剪空间</span><br><span class="line">    //内置变量_ProjectionParams.z 存放相机远平面值far</span><br><span class="line">    o.viewVec = mul(unity_CameraInvProjection, clipVec.xyzz).xyz;//像素方向：倒推回相机空间</span><br><span class="line"></span><br><span class="line">    return o;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//第二步：获得深度信息，相乘得到向量</span><br><span class="line">fixed4 frag_Ao(v2f i) : SV_Target&#123;</span><br><span class="line">    fixed4 col tex2D(_MainTex, i.uv);//屏幕纹理</span><br><span class="line"></span><br><span class="line">    float3 viewNormal;//相机空间下法线方向</span><br><span class="line">    float linear01Depth;//深度值0-1</span><br><span class="line"></span><br><span class="line">    float4 depthnormal = tex2D(_CameraDepthNormalsTexture, i.uv);//获得纹理信息并解码</span><br><span class="line">    DecodeDepthNormal(depthnormal, linear01Depthm viewNormal);</span><br><span class="line"></span><br><span class="line">    float3 viewPos = linear01Depth * i.viewVec;//相机空间下像素向量</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h4 id="构建法向量正交基（TBN）">构建法向量正交基（TBN）</h4>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">fixed4 frag_Ao(v2f i) : SV_Target&#123;</span><br><span class="line">    //重建向量正交基</span><br><span class="line">    //获取像素相机屏幕法线，法线z方向相对于相机为负（需要乘以-1置反），并处理成单位向量</span><br><span class="line">    viewNormal = normalize(viewNormal) * float3(1, 1, -1);//N</span><br><span class="line">    </span><br><span class="line">    // 生成随机向量（用于构建的正交基随机，而非所有样本计算得到的正交基一致）</span><br><span class="line">    float2 noiseScale = _ScreenParams.xy / 4.0;//噪声纹理的缩放</span><br><span class="line">    float2 noiseUV = i.uv * noiseScale;</span><br><span class="line"></span><br><span class="line">    float3 randvec = tex2D(_NoiseTex, noiseUV).xyz;//采样得到随机向量</span><br><span class="line"></span><br><span class="line">    // 求出切向量，再利用函数cross叉积求副切线向量</span><br><span class="line">    float3 tangent = normalize(randvec - viewNormal * dot(randvec, viewNormal));//T</span><br><span class="line">    float3 bitangent = cross(viewNormal, tangent);//B</span><br><span class="line"></span><br><span class="line">    float3x3 TBN = float3x3(tangent, bitangent, viewNormal);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">fixed4 frag_Ao(v2f i) : SV_Target&#123;</span><br><span class="line">    //重建向量正交基</span><br><span class="line">    //获取像素相机屏幕法线，法线z方向相对于相机为负（需要乘以-1置反），并处理成单位向量</span><br><span class="line">    viewNormal = normalize(viewNormal) * float3(1, 1, -1);//N</span><br><span class="line">  </span><br><span class="line">    // 生成随机向量（用于构建的正交基随机，而非所有样本计算得到的正交基一致）</span><br><span class="line">    float2 noiseScale = _ScreenParams.xy / 4.0;//噪声纹理的缩放</span><br><span class="line">    float2 noiseUV = i.uv * noiseScale;</span><br><span class="line"></span><br><span class="line">    float3 randvec = tex2D(_NoiseTex, noiseUV).xyz;//采样得到随机向量</span><br><span class="line"></span><br><span class="line">    // 求出切向量，再利用函数cross叉积求副切线向量</span><br><span class="line">    float3 tangent = normalize(randvec - viewNormal * dot(randvec, viewNormal));//T</span><br><span class="line">    float3 bitangent = cross(viewNormal, tangent);//B</span><br><span class="line"></span><br><span class="line">    float3x3 TBN = float3x3(tangent, bitangent, viewNormal);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_77aa566a411e142fc186ad3c8eaee3ce.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_77aa566a411e142fc186ad3c8eaee3ce.png"></p>
 <p>怎么求切线和副切线：</p>
 <ul>
@@ -417,6 +417,43 @@
 </li>
 </ul>
 <h3 id="作业">作业</h3>
+<h4 id="实现SSAO效果">实现SSAO效果</h4>
+<p>跟着工程在urp实现了一遍（抄× ( Ĭ ^ Ĭ )</p>
+<p>没有加SSAO之前</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6b4fae8a91c5221c860301c9a12d4048.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6b4fae8a91c5221c860301c9a12d4048.png"></p>
+<p>加上了SSAO</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_cd5ec620451f23deb0ec0702b6d156eb.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_cd5ec620451f23deb0ec0702b6d156eb.png"></p>
+<p>可以看到直角旮旯的地方多了阴影，使画面更有立体感，下面是生成的AO图</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_1d09214aa9a120c16298c931f9199baa.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_1d09214aa9a120c16298c931f9199baa.png"></p>
+<p>和Unity的方案对比下，显然Unity的算法好一点，对于地上那些小物件的AO效果非常显著（尝试调参好久也没调到这种效果）</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_0f20090d64e6b2b6ce9d39a2c274492d.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_0f20090d64e6b2b6ce9d39a2c274492d.png"></p>
+<p>在URP实现遇到的问题：</p>
+<ul>
+<li>
+<p>深度图的获取，在URP Assets文件勾选Depth Texture即可用<br>
+_CameraDepthTexture采样，同时Unity也提供相关代码帮助我们采样，具体位置在</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;Packages/com.unity.render-   pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl&quot;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>法线图的获取，需要在自定义的Pass中开启法线图的输入，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ConfigureInput(ScriptableRenderPassInput.Normal);</span><br></pre></td></tr></table></figure>
+<p>开启后可以用<br>
+_CameraNormalsTexture采样，同样Unity也提供了采样接口</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl&quot;</span><br></pre></td></tr></table></figure>
+<p>需要注意的是，这里存储的是世界空间的法线，而原builtin方法获取的是观察空间，所以如果要用课上的算法的话，要转换一下法线</p>
+</li>
+<li>
+<p>关于课上算法的疑问，采样获得随机屏幕位置后，再去获取深度，此时是非线性的深度，而ao比较是和当前像素的线性深度去对比，感觉不太对劲，改成统一线性后效果好一点。、</p>
+</li>
+</ul>
+<p>参考的文章</p>
+<ul>
+<li>官方关于世界坐标的重建：<a target="_blank" rel="noopener" href="https://docs.unity3d.com/cn/Packages/com.unity.render-pipelines.universal@12.1/manual/writing-shaders-urp-reconstruct-world-position.html">https://docs.unity3d.com/cn/Packages/com.unity.render-pipelines.universal@12.1/manual/writing-shaders-urp-reconstruct-world-position.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_30100043/article/details/126991243">unity urp 获取屏幕深度法向颜色纹理以及从深度纹理重构世界空间坐标</a></li>
+<li>大佬分析UnityUrp实现方案：<a target="_blank" rel="noopener" href="https://github.com/HHHHHHHHHHHHHHHHHHHHHCS/MyStudyNote/blob/main/MyNote/URP%E7%9A%84SSAO.md">https://github.com/HHHHHHHHHHHHHHHHHHHHHCS/MyStudyNote/blob/main/MyNote/URP的SSAO.md</a></li>
+</ul>
+<h4 id="其他AO方案">其他AO方案</h4>
+<p>todo：HBAO、GTAO</p>
 
       </section>
 
