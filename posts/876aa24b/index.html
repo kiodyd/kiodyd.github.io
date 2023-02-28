@@ -146,7 +146,7 @@
 <p><em>下列问题回答建立在目前对图形学的浅薄理解，以及阅读完参考文章与课程的基础上，不一定正确，如有错误👏🏻欢迎指出</em></p>
 <h4 id="GPU是如何与CPU协调工作的？">GPU是如何与CPU协调工作的？</h4>
 <p>大体流程如下图：<br>
-<img src="https://img2018.cnblogs.com/blog/1617944/201909/1617944-20190906001916357-1658595620.webp" alt=""></p>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302281835320.png" alt=""></p>
 <ol>
 <li>
 <p>将主存的处理数据复制到显存中。</p>
@@ -180,7 +180,7 @@
 <h4 id="GPU也有缓存机制吗？有几层？它们的速度差异多少？">GPU也有缓存机制吗？有几层？它们的速度差异多少？</h4>
 <p>和CPU类似，也有多级缓存机构，同理也有Cache Miss的问题</p>
 <p>课上提到Mipmap一方面是为了解决纹理下采样闪烁问题（即远处由于近大远小的关系一个像素可能匹配纹理多个纹素，导致像素与像素直接差距巨大），另一方面纹理读取时会多读取周围部分，如果差距过大，容易cache miss，需要重新去读取纹理，从而增加带宽消耗。</p>
-<p><img src="https://img2018.cnblogs.com/blog/1617944/201909/1617944-20190906001709237-945454718.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001709237-945454718.png" alt=""></p>
 <p>一般为这几层缓存：寄存器、L1缓存、L2缓存、GPU显存、系统显存。</p>
 <table>
 <thead>
@@ -210,27 +210,27 @@
 <p>从渲染流水线看（具体作用看之前笔记）：<br>
 应用阶段-几何阶段-图元装配阶段-光栅化阶段-逐片元操作-后处理阶段</p>
 <p>从GPU逻辑管线看（以Fermi家族为例）：<br>
-<img src="https://img2018.cnblogs.com/blog/1617944/201909/1617944-20190906001228274-379363267.png" alt=""></p>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001228274-379363267.png" alt=""></p>
 <ol>
 <li>程序通过图形API(DX、GL、WEBGL)发出drawcall指令，指令会被推送到驱动程序，驱动会检查指令的合法性，然后会把指令放到GPU可以读取的Pushbuffer中。</li>
 <li>经过一段时间或者显式调用flush指令后，驱动程序把Pushbuffer的内容发送给GPU，GPU通过主机接口（Host Interface）接受这些命令，并通过前端（Front End）处理这些命令。</li>
 <li>在图元分配器(Primitive Distributor)中开始工作分配，处理indexbuffer中的顶点产生三角形分成批次(batches)，然后发送给多个GPCs。这一步的理解就是提交上来n个三角形，分配给这几个GPC同时处理。<br>
-<img src="https://img2018.cnblogs.com/blog/1617944/201909/1617944-20190906000842367-1857714844.png" alt=""></li>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906000842367-1857714844.png" alt=""></li>
 <li>在GPC中，每个SM中的Poly Morph Engine负责通过三角形索引(triangle indices)取出三角形的数据(vertex data)，即图中的Vertex Fetch模块。</li>
 <li>在获取数据之后，在SM中以32个线程为一组的线程束(Warp)来调度，来开始处理顶点数据。Warp是典型的单指令多线程（SIMT，SIMD单指令多数据的升级）的实现，也就是32个线程同时执行的指令是一模一样的，只是线程数据不一样，这样的好处就是一个warp只需要一个套逻辑对指令进行解码和执行就可以了，芯片可以做的更小更快，之所以可以这么做是由于GPU需要处理的任务是天然并行的。</li>
 <li>SM的warp调度器会按照顺序分发指令给整个warp，单个warp中的线程会锁步(lock-step)执行各自的指令，如果线程碰到不激活执行的情况也会被遮掩(be masked out)。被遮掩的原因有很多，例如当前的指令是if(true)的分支，但是当前线程的数据的条件是false，或者循环的次数不一样（比如for循环次数n不是常量，或被break提前终止了但是别的还在走），因此在shader中的分支会显著增加时间消耗，在一个warp中的分支除非32个线程都走到if或者else里面，否则相当于所有的分支都走了一遍，线程不能独立执行指令而是以warp为单位，而这些warp之间才是独立的。</li>
 <li>warp中的指令可以被一次完成，也可能经过多次调度，例如通常SM中的LD/ST(加载存取)单元数量明显少于基础数学操作单元。</li>
 <li>由于某些指令比其他指令需要更长的时间才能完成，特别是内存加载，warp调度器可能会简单地切换到另一个没有内存等待的warp，这是GPU如何克服内存读取延迟的关键，只是简单地切换活动线程组。为了使这种切换非常快，调度器管理的所有warp在寄存器文件中都有自己的寄存器。这里就会有个矛盾产生，shader需要越多的寄存器，就会给warp留下越少的空间，就会产生越少的warp，这时候在碰到内存延迟的时候就会只是等待，而没有可以运行的warp可以切换。<br>
-<img src="https://img2018.cnblogs.com/blog/1617944/201909/1617944-20190906001241355-608845528.png" alt=""></li>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001241355-608845528.png" alt=""></li>
 <li>一旦warp完成了vertex-shader的所有指令，运算结果会被Viewport Transform模块处理，三角形会被裁剪然后准备栅格化，GPU会使用L1和L2缓存来进行vertex-shader和pixel-shader的数据通信<br>
-<img src="https://img2018.cnblogs.com/blog/1617944/201909/1617944-20190906001250059-1971914812.png" alt=""></li>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001250059-1971914812.png" alt=""></li>
 <li>接下来这些三角形将被分割，再分配给多个GPC，三角形的范围决定着它将被分配到哪个光栅引擎(raster engines)，每个raster engines覆盖了多个屏幕上的tile，这等于把三角形的渲染分配到多个tile上面。也就是像素阶段就把按三角形划分变成了按显示的像素划分了。<br>
-<img src="https://img2018.cnblogs.com/blog/1617944/201909/1617944-20190906001300961-1313843419.png" alt=""></li>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001300961-1313843419.png" alt=""></li>
 <li>SM上的Attribute Setup保证了从vertex-shader来的数据经过插值后是pixel-shade是可读的。</li>
 <li>GPC上的光栅引擎(raster engines)在它接收到的三角形上工作，来负责这些这些三角形的像素信息的生成（同时会处理裁剪Clipping、背面剔除和Early-Z剔除）。</li>
 <li>32个像素线程将被分成一组，或者说8个2x2的像素块，这是在像素着色器上面的最小工作单元，在这个像素线程内，如果没有被三角形覆盖就会被遮掩，SM中的warp调度器会管理像素着色器的任务。</li>
 <li>接下来的阶段就和vertex-shader中的逻辑步骤完全一样，但是变成了在像素着色器线程中执行。 由于不耗费任何性能可以获取一个像素内的值，导致锁步执行非常便利，所有的线程可以保证所有的指令可以在同一点。<br>
-<img src="https://img2018.cnblogs.com/blog/1617944/201909/1617944-20190906001313351-1662028341.png" alt=""></li>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001313351-1662028341.png" alt=""></li>
 <li>最后一步，现在像素着色器已经完成了颜色的计算还有深度值的计算，在这个点上，我们必须考虑三角形的原始api顺序，然后才将数据移交给ROP(render output unit，渲染输入单元)，一个ROP内部有很多ROP单元，在ROP单元中处理深度测试，和framebuffer的混合，深度和颜色的设置必须是原子操作，否则两个不同的三角形在同一个像素点就会有冲突和错误。</li>
 </ol>
 <h4 id="Early-Z技术是什么？发生在哪个阶段？这个阶段还会发生什么？">Early-Z技术是什么？发生在哪个阶段？这个阶段还会发生什么？</h4>
@@ -239,7 +239,7 @@
 <p>Early-Z剔除的最小单位不是1像素，而是​<strong>像素块</strong>​（pixel quad，2x2个像素）<br>
 像素块的好处是能方便计算mipmap层级（通过ddx、ddy），同时也能精简SM的架构、减少硬件单元数量和尺寸。<br>
 但同时像素块可能会激化OverDraw的影响，比如下图三个有效像素却需要用到12个像素来绘制。<br>
-<img src="https://img2018.cnblogs.com/blog/1617944/201909/1617944-20190906001659282-1154417522.png" alt=""></p>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001659282-1154417522.png" alt=""></p>
 <p>使Early-Z失效：</p>
 <ul>
 <li>开启了AlphaTest</li>
@@ -276,7 +276,7 @@
 <p>在像素着色器中，会将相邻的四个像素作为不可分隔的一组，送入同一个SM内4个不同的Core。</p>
 <p>像素块的好处是能方便计算mipmap层级（通过ddx、ddy），同时也能精简SM的架构、减少硬件单元数量和尺寸。</p>
 <p>但同时像素块可能会激化OverDraw的影响，比如下图三个有效像素却需要用到12个像素来绘制。<br>
-<img src="https://img2018.cnblogs.com/blog/1617944/201909/1617944-20190906001659282-1154417522.png" alt=""></p>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001659282-1154417522.png" alt=""></p>
 <h4 id="Shader中的if、for等语句会降低渲染效率吗？为什么？">Shader中的if、for等语句会降低渲染效率吗？为什么？</h4>
 <p>大多数情况会，</p>
 <p>SM的warp调度器会按照顺序分发指令给整个warp，单个warp中的线程会锁步(lock-step)执行各自的指令，如果线程碰到不激活执行的情况也会被遮掩(be masked out)。被遮掩的原因有很多，例如当前的指令是if(true)的分支，但是当前线程的数据的条件是false，或者循环的次数不一样（比如for循环次数n不是常量，或被break提前终止了但是别的还在走），因此在shader中的分支会显著增加时间消耗，在一个warp中的分支除非32个线程都走到if或者else里面，否则相当于所有的分支都走了一遍，线程不能独立执行指令而是以warp为单位，而这些warp之间才是独立的。</p>
