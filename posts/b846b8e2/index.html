@@ -263,6 +263,7 @@
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_755086bcca05eebfa420853b60a2e668.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_755086bcca05eebfa420853b60a2e668.png"></p>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7ff0e2af5f5a9e912aabd461e9b7b56a.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7ff0e2af5f5a9e912aabd461e9b7b56a.png"></p>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_cfb529fe1abecb7b4214e07db66b04e2.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_cfb529fe1abecb7b4214e07db66b04e2.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302272039531.png" alt=""></p>
 <h5 id="Unity中实现自阴影的优化">Unity中实现自阴影的优化</h5>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_d676b38f2e7efef1e65aa06202acc8d0.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_d676b38f2e7efef1e65aa06202acc8d0.png"></p>
 <ul>
@@ -307,12 +308,25 @@
 </ul>
 <h5 id="级联阴影映射：">级联阴影映射：</h5>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_734f29f46a009fd1b159b2b855474190.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_734f29f46a009fd1b159b2b855474190.png"></p>
+<p>概述：</p>
 <ul>
 <li>透视走样最有效的解决方案</li>
 <li>把视锥体分割为多个子视锥体，然后为每个子视锥体计算独立的相等大小的阴影映射</li>
 <li>能在与相机不同的距离的位置采样不同的ShadowMap来解决透视走样问题</li>
 <li>缺点：会占用更多的内存</li>
 </ul>
+<p>首先需要对视锥体划分成若干层（每一层在主摄像机观察空间下的 z值范围 分别从哪到哪），有如下方法：</p>
+<ul>
+<li>通过自定义比例来分割</li>
+<li>通过对数比例分割：这是较理想的比例公式，能够减少 Shadow Perspective Alias 问题的出现</li>
+</ul>
+<p>分割好各层视锥体后，我们需要选择对应的 Shadow Map 来恰好包围住视锥体（即各层的 Light Camera 的光锥体刚好包围住视锥体）</p>
+<p>有了若干层 Shadow Map 后，渲染某个shading poing时该如何判断点在哪个层级：</p>
+<ul>
+<li>直接通过视锥分割的z值范围来判断所在是哪个层级</li>
+<li>通过各层 Light Camera 的 View 变换和 Projection 变换，得到点在该层 Shadow Map 的 UV 坐标，当 UV 坐标在 [0,1] 范围内时则说明在该层级内</li>
+</ul>
+<p><em>前面我们在视锥分割已经确定了z值划分范围，直接简单根据shading point的z值来判断层级不是更好吗？这是因为每一层的 Shadow Map 其实多多少少包含了更远一层的部分阴影信息，但是它的精准度明显要比更远层的 Shadow Map 要好，因此通过uv坐标判断点所属层，就可以尽量命中较近层的 Shadow Map。</em></p>
 <p>Unity中级联阴影的实现：</p>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f7e6a3e8898b88de4bc582f4c8eb69f1.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f7e6a3e8898b88de4bc582f4c8eb69f1.png"></p>
 <p>位于Project Settings/Quality</p>
@@ -435,6 +449,20 @@ pcss部分噪点有点多，未做去噪处理</p>
       
         <nav class="article-nav">
           
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/876aa24b/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 2.7.2 GPU硬件架构</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
           
             <div class="article-nav-item layout-padding">
   <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
@@ -502,7 +530,7 @@ pcss部分噪点有点多，未做去噪处理</p>
         <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
   <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
 </svg>
-        <span>80</span>
+        <span>81</span>
       </div>
       <div class="count-box--item">
         <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
@@ -547,20 +575,14 @@ pcss部分噪点有点多，未做去噪处理</p>
     <ul class="categorys-list">
       
         <li class="categorys-list-item">
-          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
-            工作 (1)
-          </a>
-        </li>
-      
-        <li class="categorys-list-item">
           <a href="/categories/%E8%BD%AF%E4%BB%B6/">
             软件 (2)
           </a>
         </li>
       
         <li class="categorys-list-item">
-          <a href="/categories/%E6%9D%82%E8%B0%88/">
-            杂谈 (1)
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
           </a>
         </li>
       
@@ -571,8 +593,14 @@ pcss部分噪点有点多，未做去噪处理</p>
         </li>
       
         <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
           <a href="/categories/%E5%AD%A6%E4%B9%A0/">
-            学习 (74)
+            学习 (75)
           </a>
         </li>
       
