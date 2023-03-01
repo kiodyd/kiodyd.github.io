@@ -142,7 +142,7 @@
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
         <span id="more"></span>
-<h3 id="相关问题与回答">相关问题与回答</h3>
+<h2 id="相关问题与回答">相关问题与回答</h2>
 <p><em>下列问题回答建立在目前对图形学的浅薄理解，以及阅读完参考文章与课程的基础上，不一定正确，如有错误👏🏻欢迎指出</em></p>
 <h4 id="GPU是如何与CPU协调工作的？">GPU是如何与CPU协调工作的？</h4>
 <p>大体流程如下图：<br>
@@ -316,7 +316,7 @@
 </ul>
 </li>
 </ul>
-<h3 id="关键词">关键词</h3>
+<h2 id="关键词">关键词</h2>
 <p>GPU架构中常有以下模块（忘了就多回顾文章）</p>
 <ul>
 <li>GPC</li>
@@ -336,7 +336,7 @@
 <li>Memory</li>
 <li>Register File</li>
 </ul>
-<h3 id="优化建议：">优化建议：</h3>
+<h2 id="优化建议：">优化建议：</h2>
 <ul>
 <li><strong>尽量使用自己扩展的几何实例化代替unity提供的静态合批，动态合批，前者将合并mesh增加的vbo内存占用，后者则会增加cpu端的耗时开销。</strong></li>
 <li><strong>尽量去减少顶点数与三角形面数，前者减少顶点着色器的运算，另外减少gpu显存中frameData的内存存储，后者减少片段着色器的消耗</strong></li>
@@ -349,7 +349,7 @@
 <li><strong>避免动态的判断分支，也就是Shader计算中if true 和 false 都会走的情况</strong></li>
 <li><strong>减少复杂函数的调用，因为我们从硬件架构上就可以看出特殊函数处理单元是远远少于正常计算的单元的</strong></li>
 </ul>
-<h3 id="参考文章">参考文章</h3>
+<h2 id="参考文章">参考文章</h2>
 <ul>
 <li>课程地址：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1aM4y1g75f">https://www.bilibili.com/video/BV1aM4y1g75f</a></li>
 <li>课程PPT：<a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DUUJkRFZUbUhYeEdq">https://docs.qq.com/slide/DUUJkRFZUbUhYeEdq</a></li>
@@ -505,12 +505,6 @@
         </li>
       
         <li class="categorys-list-item">
-          <a href="/categories/%E6%9D%82%E8%B0%88/">
-            杂谈 (1)
-          </a>
-        </li>
-      
-        <li class="categorys-list-item">
           <a href="/categories/%E7%A1%AC%E4%BB%B6/">
             硬件 (2)
           </a>
@@ -519,6 +513,12 @@
         <li class="categorys-list-item">
           <a href="/categories/%E5%AD%A6%E4%B9%A0/">
             学习 (76)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
           </a>
         </li>
       

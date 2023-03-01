@@ -145,7 +145,7 @@
 <blockquote>
 <p>本节配合3.4作业参考链接使用更佳</p>
 </blockquote>
-<h3 id="移动端硬件概述">移动端硬件概述</h3>
+<h2 id="移动端硬件概述">移动端硬件概述</h2>
 <h4 id="CPU">CPU</h4>
 <p>从手机CPU(SoC)厂商来看，高通占比最大，相比于其他厂商有较大的优势</p>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_16d536530750172fc1c9cdad332e85c1.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_16d536530750172fc1c9cdad332e85c1.png"></p>
@@ -186,7 +186,7 @@
 <li>移动端相比之下就少的可怜（骁龙888的移动带宽是32）</li>
 <li><em>近几年在老黄核弹带领下，又有所突破，家用电源都1000w了（还是三星工艺这个罪魁祸首）</em></li>
 </ul>
-<h3 id="名词解释">名词解释</h3>
+<h2 id="名词解释">名词解释</h2>
 <h4 id="SOC（System-on-Chip）">SOC（System on Chip）</h4>
 <ul>
 <li>
@@ -248,7 +248,7 @@
 <li>衡量GPU性能的有效工具</li>
 <li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/470413251">补充资料</a></li>
 </ul>
-<h3 id="桌面端GPU架构：立即渲染（IMR）">桌面端GPU架构：立即渲染（IMR）</h3>
+<h2 id="桌面端GPU架构：立即渲染（IMR）">桌面端GPU架构：立即渲染（IMR）</h2>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_45e811d3e54bd8d70adb22691112ff47.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_45e811d3e54bd8d70adb22691112ff47.png"></p>
 <ul>
 <li>先经过vertex shader的处理</li>
@@ -270,7 +270,7 @@
 <li>用户数据经过：顶点处理 → 剔除，投影 → 光栅化 → Early Visibility Test → Alpha Test → Late Visibility Test → Alpha Blend 最终将结果刷到FrameBuffer里</li>
 <li>整个过程直接和系统内存进行交互</li>
 </ul>
-<h3 id="移动端GPU架构：基于块元的渲染（TBDR）">移动端GPU架构：基于块元的渲染（TBDR）</h3>
+<h2 id="移动端GPU架构：基于块元的渲染（TBDR）">移动端GPU架构：基于块元的渲染（TBDR）</h2>
 <h4 id="简述">简述</h4>
 <ul>
 <li>TB(D)R（Tile-Based（Deferred）Rendering），是目前主流移动GPU的渲染架构，对应一般PC上的GPU架构则为IMR</li>
@@ -294,7 +294,7 @@
 <li>渲染数据角度来看，Defer就是“阻塞+批处理”（GPU累积一帧的多个数据，最后一起处理）</li>
 <li>下面会介绍两个Defer做了什么</li>
 </ul>
-<h3 id="TBDR的渲染顺序">TBDR的渲染顺序</h3>
+<h2 id="TBDR的渲染顺序">TBDR的渲染顺序</h2>
 <h4 id="TBDR详细的渲染流程">TBDR详细的渲染流程</h4>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_5a060e03607c49a42ea62203a3bd0bae.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_5a060e03607c49a42ea62203a3bd0bae.png"></p>
 <ul>
@@ -369,7 +369,7 @@
 </ul>
 </li>
 </ul>
-<h3 id="IMR-和-TBR对比">IMR 和 TBR对比</h3>
+<h2 id="IMR-和-TBR对比">IMR 和 TBR对比</h2>
 <h4 id="TBR简易图">TBR简易图</h4>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f90491bd50bff8b395ba1104941a6b2b.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f90491bd50bff8b395ba1104941a6b2b.png"></p>
 <ul>
@@ -406,7 +406,7 @@
 </ul>
 </li>
 </ul>
-<h3 id="第一个Defer：Binning过程">第一个Defer：Binning过程</h3>
+<h2 id="第一个Defer：Binning过程">第一个Defer：Binning过程</h2>
 <ul>
 <li>​目的：确定哪些图元属于哪些块元渲染</li>
 <li>过程：
@@ -425,7 +425,7 @@
 </ul>
 </li>
 </ul>
-<h3 id="第二个Defer：不同GPU-的-Early-Depth-Test">第二个Defer：不同GPU 的 Early-Depth-Test</h3>
+<h2 id="第二个Defer：不同GPU-的-Early-Depth-Test">第二个Defer：不同GPU 的 Early-Depth-Test</h2>
 <blockquote>
 <p>和EarlyZ的本质区别：<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/425740956">https://www.zhihu.com/question/425740956</a></p>
 </blockquote>
@@ -467,7 +467,7 @@
 </li>
 </ul>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_55026b0375c1c1ae8ed7b1c2bd9e60c4.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_55026b0375c1c1ae8ed7b1c2bd9e60c4.png"></p>
-<h3 id="优化建议">优化建议</h3>
+<h2 id="优化建议">优化建议</h2>
 <ol>
 <li>记得在不使用FrameBuffer的时候clear或discard</li>
 </ol>
@@ -525,7 +525,7 @@
 <li>提倡使用模型LOD，（本质上减少Frame Data的压力）</li>
 <li>Unity中尽早的在应用阶段做umbra（Unity内置）遮挡剔除、gpu的occlusion cull</li>
 </ul>
-<h3 id="参考链接">参考链接</h3>
+<h2 id="参考链接">参考链接</h2>
 <ul>
 <li>[GPU性能指标 ]</li>
 </ul>
@@ -774,12 +774,6 @@
         </li>
       
         <li class="categorys-list-item">
-          <a href="/categories/%E6%9D%82%E8%B0%88/">
-            杂谈 (1)
-          </a>
-        </li>
-      
-        <li class="categorys-list-item">
           <a href="/categories/%E7%A1%AC%E4%BB%B6/">
             硬件 (2)
           </a>
@@ -788,6 +782,12 @@
         <li class="categorys-list-item">
           <a href="/categories/%E5%AD%A6%E4%B9%A0/">
             学习 (76)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
           </a>
         </li>
       

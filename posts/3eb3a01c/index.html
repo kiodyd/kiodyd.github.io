@@ -147,7 +147,7 @@
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
         <span id="more"></span>
-<h3 id="SSAO介绍">SSAO介绍</h3>
+<h2 id="SSAO介绍">SSAO介绍</h2>
 <p>日常生活中一些角落里、光线很难到达的地方会很暗（缝隙），AO就是用来模拟这些效果的。</p>
 <p>在图形学中间接光照比较耗性能，有一种简单的方案是直接假设物体四面八方接收到的环境光是一致的（粗暴的实现是直接加上一个光使画面变亮），显然是不符合我们对现实的观察，而使用AO可以模拟计算那些环境光由于被遮蔽而有所损耗的部分，使画面更加接近真实。</p>
 <h4 id="AO">AO</h4>
@@ -160,7 +160,7 @@
 <p>AO这项技术最早是在Siggraph 2002年会上由ILM（工业光魔）的技术主管Hayden Landis所展示，当时就被叫做Ambient Occlusion。</p>
 <p>2007年，Crytek公司发布了一款叫做屏幕空间环境光遮蔽(Screen-Space Ambient Occlusion, SSAO)的技术，并用在了他们的看家作孤岛危机上。</p>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_b3f9c41c986ca7d90000e910723acfd2.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_b3f9c41c986ca7d90000e910723acfd2.png"></p>
-<h3 id="SSAO原理">SSAO原理</h3>
+<h2 id="SSAO原理">SSAO原理</h2>
 <ul>
 <li>计算深度、法线缓冲</li>
 <li>深度-&gt;像素坐标</li>
@@ -203,7 +203,7 @@
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/Snipaste_2023-02-22_18-07-32_b9d41a4a481d7117cb1cc03923bcafff.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/Snipaste_2023-02-22_18-07-32_b9d41a4a481d7117cb1cc03923bcafff.png"></p>
 <p>这里对Visible项的积分其实就是求平均遮挡程度</p>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/Snipaste_2023-02-22_18-02-56_01e3d27ca8e4a95f6b19b7654e5c3ae5.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/Snipaste_2023-02-22_18-02-56_01e3d27ca8e4a95f6b19b7654e5c3ae5.png"></p>
-<h3 id="SSAO算法实现">SSAO算法实现</h3>
+<h2 id="SSAO算法实现">SSAO算法实现</h2>
 <p>下面以Unity Builtin管线为例</p>
 <h4 id="获取深度-法线缓冲数据">获取深度&amp;法线缓冲数据</h4>
 <p>Builtin 中需要对相机设置深度纹理模式来获取深度和法线缓冲数据</p>
@@ -270,7 +270,7 @@
 </tbody>
 </table>
 <p>UNITY_MATRIX_P和unity_CameraProjection有什么不一样看这篇：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/114729671">https://zhuanlan.zhihu.com/p/114729671</a></p>
-<h3 id="SSAO效果改进">SSAO效果改进</h3>
+<h2 id="SSAO效果改进">SSAO效果改进</h2>
 <h4 id="随机正交基（增加随机性）">随机正交基（增加随机性）</h4>
 <p>通过引入随机变量或者采样噪音贴图来使得法向半球的正交基不一致（原先使用float3(1,1,1)代替随机向量）</p>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_33f871573a5aa814bce92fa17c654447.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_33f871573a5aa814bce92fa17c654447.png"></p>
@@ -303,7 +303,7 @@
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bac485e26402d2514d28136888260da2.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bac485e26402d2514d28136888260da2.png"></p>
 </li>
 </ul>
-<h3 id="对比模型烘焙AO">对比模型烘焙AO</h3>
+<h2 id="对比模型烘焙AO">对比模型烘焙AO</h2>
 <h4 id="三维建模软件烘焙AO方式">三维建模软件烘焙AO方式</h4>
 <p>通过三维建模软件（如3DMax），设定好渲染参数，对模型（单一选择模型实体），烘焙AO到纹理。</p>
 <p><strong>优点</strong>：</p>
@@ -344,7 +344,7 @@
 <li>性能消耗较之上述2种方式更多，计算非常昂贵；</li>
 <li>AO质量上要比较离线式烘焙（上述2种）不佳（理论上）。</li>
 </ol>
-<h3 id="SSAO性能消耗">SSAO性能消耗</h3>
+<h2 id="SSAO性能消耗">SSAO性能消耗</h2>
 <h4 id="主要方面">主要方面</h4>
 <ul>
 <li>AO法向半球的随机采样<br>
@@ -385,7 +385,7 @@
 </ul>
 </li>
 </ul>
-<h3 id="扩展链接">扩展链接</h3>
+<h2 id="扩展链接">扩展链接</h2>
 <ul>
 <li>【环境遮罩之SSAO原理】	<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/46633896">https://zhuanlan.zhihu.com/p/46633896</a></li>
 <li>【游戏后期特效第四发 – 屏幕空间环境光遮蔽(SSAO)】	<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/25038820">https://zhuanlan.zhihu.com/p/25038820</a></li>
@@ -416,7 +416,7 @@
 </ul>
 </li>
 </ul>
-<h3 id="作业">作业</h3>
+<h2 id="作业">作业</h2>
 <h4 id="实现SSAO效果">实现SSAO效果</h4>
 <p>跟着工程在urp实现了一遍（抄× ( Ĭ ^ Ĭ )</p>
 <p>没有加SSAO之前</p>
@@ -607,12 +607,6 @@ _CameraNormalsTexture采样，同样Unity也提供了采样接口</p>
         </li>
       
         <li class="categorys-list-item">
-          <a href="/categories/%E6%9D%82%E8%B0%88/">
-            杂谈 (1)
-          </a>
-        </li>
-      
-        <li class="categorys-list-item">
           <a href="/categories/%E7%A1%AC%E4%BB%B6/">
             硬件 (2)
           </a>
@@ -621,6 +615,12 @@ _CameraNormalsTexture采样，同样Unity也提供了采样接口</p>
         <li class="categorys-list-item">
           <a href="/categories/%E5%AD%A6%E4%B9%A0/">
             学习 (76)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
           </a>
         </li>
       

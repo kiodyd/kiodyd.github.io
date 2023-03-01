@@ -142,7 +142,7 @@
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
         <span id="more"></span>
-<h3 id="Flowmap是什么">Flowmap是什么</h3>
+<h2 id="Flowmap是什么">Flowmap是什么</h2>
 <h5 id="用途">用途</h5>
 <ul>
 <li>是<a target="_blank" rel="noopener" href="https://developer.valvesoftware.com/wiki/Water_(shader)#Flowmaps">Valve在2010年GDC</a>中介绍的一种在求生之路2中用来实现水面流动效果的技术</li>
@@ -202,7 +202,7 @@
 </ul>
 </li>
 </ul>
-<h3 id="FlowMap-Shader">FlowMap Shader</h3>
+<h2 id="FlowMap-Shader">FlowMap Shader</h2>
 <h5 id="实现思路">实现思路</h5>
 <ul>
 <li>采样flowmap获取向量场信息</li>
@@ -267,7 +267,7 @@
 <li>将法线用于光照计算</li>
 </ul>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">// 使用FlowMap流动法线</span><br><span class="line">float3 flowDir = tex2D(_FlowMap, i.uv0) * 2.0 - 1.0;</span><br><span class="line">// 影响向量场速度， 越大不同位置流速差越明显</span><br><span class="line">flowDir *= -_FlowVelocity;</span><br><span class="line">// 构建周期相同，相位相差半个周期的波形函数</span><br><span class="line">float phase0 = frac(_Time.y * 0.1 * _FlowTimeSpeed + 0.5);</span><br><span class="line">float phase1 = frac(_Time.y * 0.1 * _FlowTimeSpeed + 1.0);</span><br><span class="line">// 用偏移后的uv对法线贴图（切线空间）进行采样</span><br><span class="line">half3 tnormal0 = UnpackNormal(tex2D(_BumpTex, i.uv.zw + flowDir.xy * phase0));</span><br><span class="line">half3 tnormal1 = UnpackNormal(tex2D(_BumpTex, i.uv.zw + flowDir.xy * phase1));</span><br><span class="line">// 主要是要能无缝周期采样</span><br><span class="line">float flowLerp = abs((0.5 - phase0) / 0.5);</span><br><span class="line">fixed3 bump = lerp(tnormal0, tnormal1, flowLerp);</span><br><span class="line">// 使用修改后的法线进行后续光照计算</span><br></pre></td></tr></table></figure>
-<h3 id="绘制Flowmap">绘制Flowmap</h3>
+<h2 id="绘制Flowmap">绘制Flowmap</h2>
 <h5 id="flowmap-painter中制作">flowmap painter中制作</h5>
 <p>可以直接对着贴图用笔刷进行绘制flowmap操作，软件能即时看到贴图偏移后的效果。（只能用于贴图，可查看原视频制作）</p>
 <p>下载地址：<a target="_blank" rel="noopener" href="http://teckartist.com/?page_id=107">http://teckartist.com/?page_id=107</a></p>
@@ -286,7 +286,7 @@
 <ul>
 <li><a target="_blank" rel="noopener" href="https://clemensbeute.gumroad.com/l/heZDT?fbclid=IwAR0zS-YNJt45KA6Tpc-ajqGi6nLDf1hViuu07rlQm0Xn-vDj_aL0GBLRmSI">Blender Flow Map Painter 插件</a>，可直接在模型上画flowmap</li>
 </ul>
-<h3 id="参考资料">参考资料</h3>
+<h2 id="参考资料">参考资料</h2>
 <ul>
 <li>百人计划2.8：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Zq4y157c9?p=2">https://www.bilibili.com/video/BV1Zq4y157c9?p=2</a></li>
 <li>课程PPT，有houdini操作，<a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DUXloeWVhV1hCTUFU">https://docs.qq.com/slide/DUXloeWVhV1hCTUFU</a></li>
@@ -310,7 +310,7 @@
 </ul>
 </li>
 </ul>
-<h3 id="作业">作业</h3>
+<h2 id="作业">作业</h2>
 <p>结合课程，实现一个流动的效果</p>
 <p>和shader入门精要的折射与反射部分结合，搞了个怪东西（x</p>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/movie_012.gif" alt=""></p>
@@ -469,12 +469,6 @@
         </li>
       
         <li class="categorys-list-item">
-          <a href="/categories/%E6%9D%82%E8%B0%88/">
-            杂谈 (1)
-          </a>
-        </li>
-      
-        <li class="categorys-list-item">
           <a href="/categories/%E7%A1%AC%E4%BB%B6/">
             硬件 (2)
           </a>
@@ -483,6 +477,12 @@
         <li class="categorys-list-item">
           <a href="/categories/%E5%AD%A6%E4%B9%A0/">
             学习 (76)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
           </a>
         </li>
       

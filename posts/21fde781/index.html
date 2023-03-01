@@ -142,7 +142,7 @@
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
         <span id="more"></span>
-<h3 id="深度测试：Depth-Test">深度测试：Depth Test</h3>
+<h2 id="深度测试：Depth-Test">深度测试：Depth Test</h2>
 <h4 id="渲染管线位置">渲染管线位置</h4>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_fc4c67c582300b85fefb6d8bca78fc47.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_fc4c67c582300b85fefb6d8bca78fc47.png"></p>
 <p><em>深度测试位于逐片元操作中、模板测试后、透明度混合前</em></p>
@@ -161,7 +161,7 @@
 <li>可以在CPU端对物体排序，保证离相机近的物体在前面。但物体一多排序也会造成性能损耗，需要Trade-off</li>
 <li>由于光栅化阶段已经知道深度了，所以一个简单的构想是在片元着色器前进行一个Early-Z（额外的深度测试）</li>
 </ul>
-<h3 id="提前深度测试：Early-Z">提前深度测试：Early-Z</h3>
+<h2 id="提前深度测试：Early-Z">提前深度测试：Early-Z</h2>
 <h4 id="什么是Early-Z">什么是Early-Z</h4>
 <ul>
 <li>
@@ -221,7 +221,7 @@
 <p>有没有其他方法----&gt;Pre-Z</p>
 </li>
 </ul>
-<h3 id="Z-Prepass（Pre-Z）">Z-Prepass（Pre-Z）</h3>
+<h2 id="Z-Prepass（Pre-Z）">Z-Prepass（Pre-Z）</h2>
 <h4 id="理解">理解</h4>
 <p>深度测试就是为了确认有哪些片元能显示在屏幕上，但它不管多少片元参与计算，如果能提前知道谁该显示，那就能避免那些看不见的片元做无用功了。</p>
 <p>而Pre-Z就是来做这项工作的，当然它也会需要一定的计算量。</p>
@@ -281,7 +281,7 @@
 </ul>
 </li>
 </ul>
-<h3 id="Z-Prepass的其他问题">Z-Prepass的其他问题</h3>
+<h2 id="Z-Prepass的其他问题">Z-Prepass的其他问题</h2>
 <p><strong>Z-prepass的性能消耗是否能被忽视</strong></p>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302161654325.png" alt=""></p>
 <ul>
@@ -290,7 +290,7 @@
 <li>当一个有非常多OverDraw的场景，且不能很好的将不透明物体从前往后进行排序时，可以考虑使用PreZ进行优化</li>
 <li>注意，PreZ会增加DrawCall，如果用错了可能是负优化</li>
 </ul>
-<h3 id="Early-Z-和-Z-prepass的实例应用">Early-Z 和 Z-prepass的实例应用</h3>
+<h2 id="Early-Z-和-Z-prepass的实例应用">Early-Z 和 Z-prepass的实例应用</h2>
 <h4 id="面片叠加的头发渲染">面片叠加的头发渲染</h4>
 <p>对于半透明的面片来说，需要从后往前进行排序渲染才能得到正确的透明度混合结果</p>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302161659397.png" alt=""></p>
@@ -351,14 +351,14 @@
 </li>
 </ul>
 <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/ddgf01/article/details/118725903">参考文章</a></p>
-<h3 id="参考资料">参考资料</h3>
+<h2 id="参考资料">参考资料</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/puppet_master/article/details/53900568">https://blog.csdn.net/puppet_master/article/details/53900568</a></li>
 <li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/28557283">https://zhuanlan.zhihu.com/p/28557283</a></li>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/ddgf01/article/details/118725903">https://blog.csdn.net/ddgf01/article/details/118725903</a></li>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/puppet_master/article/details/73478905?spm=1001.2014.3001.5501">https://blog.csdn.net/puppet_master/article/details/73478905?spm=1001.2014.3001.5501</a></li>
 </ul>
-<h3 id="作业">作业</h3>
+<h2 id="作业">作业</h2>
 <h4 id="做一下Pre-Z的效果测试">做一下Pre-Z的效果测试</h4>
 <p>先偏个题，实现下之前没做的X-Ray效果<br>
 <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/xray_002.gif" alt=""><br>
@@ -537,12 +537,6 @@
         </li>
       
         <li class="categorys-list-item">
-          <a href="/categories/%E6%9D%82%E8%B0%88/">
-            杂谈 (1)
-          </a>
-        </li>
-      
-        <li class="categorys-list-item">
           <a href="/categories/%E7%A1%AC%E4%BB%B6/">
             硬件 (2)
           </a>
@@ -551,6 +545,12 @@
         <li class="categorys-list-item">
           <a href="/categories/%E5%AD%A6%E4%B9%A0/">
             学习 (76)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
           </a>
         </li>
       
