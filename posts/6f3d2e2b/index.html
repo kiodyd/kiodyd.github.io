@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形 3.72 command buffer及urp概述 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形 3.72 command buffer及urp概述</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-03-01T09:28:57.000Z" itemprop="datePublished">2023-03-01</time>
+          </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="前言">前言</h2>
+<p>这节课非常干！！</p>
+<p>建议可以先过一遍，然后了解更多urp管线知识后再来回顾。</p>
+<p>up非常细心过了很多知识点。</p>
+<p>由于水平有限，现阶段先简单归类下这节课讲了哪些大内容，后续回顾下。</p>
+<p>课程地址：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV13F411e7Ai">https://www.bilibili.com/video/BV13F411e7Ai</a><br>
+PPT地址：<a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DUUxtdE5GcEtwZmNm">https://docs.qq.com/slide/DUUxtdE5GcEtwZmNm</a><br>
+项目地址：<a target="_blank" rel="noopener" href="https://github.com/Thousandyearsofwar/CommandBufferDemo">https://github.com/Thousandyearsofwar/CommandBufferDemo</a></p>
+<details>
+<summary>没有太多参考内容的笔记（可折叠展开）</summary>
+<h2 id="从自定义RenderPipeline分析ScriptableRenderContext与CommandBuffer">从自定义RenderPipeline分析ScriptableRenderContext与CommandBuffer</h2>
+<p>详细回顾下课程</p>
+<p>重点在于以下四个测试</p>
+<ol>
+<li>CullingResults+DrawingSettings+FilteringSettings</li>
+<li>Override RenderStateBlock</li>
+<li>RenderType Match Subshader</li>
+<li>TagName+TagVlaues Match Subshader or Pass</li>
+</ol>
+<p>相关代码：<a target="_blank" rel="noopener" href="https://github.com/Thousandyearsofwar/CommandBufferDemo/tree/main/Assets/Scripts/RenderFeatures/SetRenderTarget">here</a></p>
+<p>大致是使用ScriptableRenderPass做一些有意思的事情，如修改匹配物体的材质和深度模板测试规则等等</p>
+<p>这里提供其他参考资料：</p>
+<ul>
+<li>放牛的星星大佬翻译catlikecoding相关文章：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/333275514">https://zhuanlan.zhihu.com/p/333275514</a></li>
+<li>Scriptable Render Pipeline：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/leixinyue/p/11038565.html">https://www.cnblogs.com/leixinyue/p/11038565.html</a></li>
+<li>猫都能看懂的URP RenderFeature使用及自定义方法:<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/396965255">https://zhuanlan.zhihu.com/p/396965255</a></li>
+<li>猫都能看懂的CommandBuffer在URP中的使用方法:<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/400977346">https://zhuanlan.zhihu.com/p/400977346</a></li>
+</ul>
+<h2 id="command-buffer插入时机">command buffer插入时机</h2>
+<p>主要讲了新的urp和builtin有很大不同，导致原有的插入时机基本都不生效了</p>
+<h2 id="RenderTexture-Test">RenderTexture Test</h2>
+<p>完整代码：<a target="_blank" rel="noopener" href="https://github.com/logic-three-body/CommandBufferDemo/blob/main/Assets/Scripts/RenderFeatures/SetRenderTarget/Passes/RenderTextureRequestPass.cs">RenderTextureRequestPass</a></p>
+<h3 id="Test0-new-RenderTexture-cameraDescriptor">Test0 : new RenderTexture(cameraDescriptor)</h3>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_2f8d20c326ccfed4e404f8bfae752f69.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_2f8d20c326ccfed4e404f8bfae752f69.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">void RTRequestTest0_0(CommandBuffer commandBuffer, ref RenderingData renderingData)</span><br><span class="line">&#123;</span><br><span class="line">    RenderTextureDescriptor cameraDescriptor = renderingData.cameraData.cameraTargetDescriptor;</span><br><span class="line">    //1.renderTexture == null必要性 只创建一张RenderTexture</span><br><span class="line">    //2.IsCreated 防止未被创建</span><br><span class="line">    //3.CoreUtils.Destroy 安全Destory RenderTexture</span><br><span class="line">    //4.编辑器上面的bug </span><br><span class="line">    //从哪里参考:ShadowsMidtonesHighlightsEditor.cs</span><br><span class="line">    //5.renderTexture.Create();</span><br><span class="line">    if (renderTexture == null || !renderTexture.IsCreated())</span><br><span class="line">    &#123;</span><br><span class="line">        CoreUtils.Destroy(renderTexture);</span><br><span class="line">        renderTexture = new RenderTexture(cameraDescriptor);</span><br><span class="line">        renderTexture.name = &quot;RequestRT&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">    //配置RenderTarget[渲染目标]</span><br><span class="line">    ConfigureTarget(renderTexture);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个函数是在<code>OnCameraSetup</code>里面调用的，所以增加了很多判空处理，</p>
+<p>为什么不能在Pass生成的时候创建：<br>
+渲染纹理的像素内容可能会在某些事件中丢失，比如：加载新关卡，屏幕进入保护模式，全屏进出，当这种情况发生时，你的RenderTexture将再次变成“尚未创建”，遇到这种情况需要用IsCreate函数进行检测。与其他“原生引擎对象”的类型一样，需要关注RenderTexture的生命周期，并在使用完成之后使用Release函数进行释放，因为Render不会像普通托管类型那样被GC。</p>
+<h3 id="Test1-RenderTexture-GetTemporary-cameraDescriptor">Test1:RenderTexture.GetTemporary(cameraDescriptor)</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">void RTRequestTest0_1(CommandBuffer commandBuffer, ref RenderingData renderingData)</span><br><span class="line">&#123;</span><br><span class="line">    RenderTextureDescriptor cameraDescriptor = renderingData.cameraData.cameraTargetDescriptor;</span><br><span class="line">    //1.申请临时的RenderTexture 必须手动Release掉</span><br><span class="line">    //需要时刻关心生命周期！！</span><br><span class="line">    //2.释放资源的区别:RenderTexture.Release和Destroy。https://zhuanlan.zhihu.com/p/41251356 </span><br><span class="line">    //RenderTexture.Release释放显存，内存不释放</span><br><span class="line">    //Destroy会把Object销毁的同时连带显存释放掉</span><br><span class="line">    //所以出于性能考虑，频繁使用Destory会加重申请内存的负担</span><br><span class="line">    //从哪里参考:ShadowUtils.cs</span><br><span class="line">    renderTexture = RenderTexture.GetTemporary(cameraDescriptor);</span><br><span class="line">    renderTexture.name = &quot;RequestRT&quot;;</span><br><span class="line">    ConfigureTarget(renderTexture);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Test2-Shader-PropertyToID">Test2:Shader.PropertyToID</h3>
+<p>MRT shader: <a target="_blank" rel="noopener" href="https://github.com/logic-three-body/CommandBufferDemo/blob/main/Assets/Shader/SetRenderTarget/MRT.shader">here</a></p>
+<p>pass中：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">renderTextureID = Shader.PropertyToID(&quot;Request_ID&quot;);</span><br></pre></td></tr></table></figure>
+<p>shader中：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TEXTURE2D(Request_ID);	SAMPLER(sampler_Request_ID);</span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image11_6c4e31b0c1b33d771dca55e03287182d.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image11_6c4e31b0c1b33d771dca55e03287182d.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image22_5cf57b75274e2a2cb23ea8b934ce80a5.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image22_5cf57b75274e2a2cb23ea8b934ce80a5.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image33_fe922bac84553968e6b4dbf170b17b03.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image33_fe922bac84553968e6b4dbf170b17b03.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">void RTRequestTest0_2(CommandBuffer commandBuffer, ref RenderingData renderingData)</span><br><span class="line">&#123;</span><br><span class="line">  RenderTextureDescriptor cameraDescriptor = renderingData.cameraData.cameraTargetDescriptor;</span><br><span class="line">  //1.Shader.PropertyToID的作用：</span><br><span class="line">  //用字符串获取一个唯一的HashID</span><br><span class="line">  //相当于一个全局的id，需要保证其他Material着色使用这张RenderTexture时，这张RenderTexture渲染完成，没有被Release掉</span><br><span class="line">  //就不用手动setTexture了</span><br><span class="line">  renderTextureID = Shader.PropertyToID(&quot;Request_ID&quot;);</span><br><span class="line">  //2.RenderTexture.GetTemporary和commandBuffer.GetTemporaryRT[申请RenderTexture的区别]</span><br><span class="line">  //1.RenderTexture.GetTemporary需要手动释放掉</span><br><span class="line">  //2.使用CommandBuffer申请的临时的RenderTexture如果都没有显式地使用(Release)TemporaryRT，在相机完成渲染后或Graphics.ExecuteCommandBuffer完成后被移除(Remove)(Destory?)</span><br><span class="line">  commandBuffer.GetTemporaryRT(renderTextureID, cameraDescriptor, FilterMode.Bilinear);</span><br><span class="line"></span><br><span class="line">  ConfigureTarget(renderTextureID);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Test3-renderTargetHandle">Test3:renderTargetHandle</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">//使用URP的renderTargetHandle获取PropertyToID</span><br><span class="line">void RTRequestTest0_3(CommandBuffer commandBuffer, ref RenderingData renderingData)</span><br><span class="line">&#123;</span><br><span class="line">  RenderTextureDescriptor cameraDescriptor = renderingData.cameraData.cameraTargetDescriptor;</span><br><span class="line"></span><br><span class="line">  renderTargetHandle.Init(&quot;Request_Handle&quot;);</span><br><span class="line">  //commandBuffer.GetTemporaryRT(renderTargetHandle.Identifier(), cameraDescriptor, FilterMode.Bilinear);//错误示范</span><br><span class="line">  commandBuffer.GetTemporaryRT(renderTargetHandle.id, cameraDescriptor, FilterMode.Bilinear);</span><br><span class="line"></span><br><span class="line">  ConfigureTarget(renderTargetHandle.Identifier());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>RenderTargetHandle</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">using UnityEngine.Scripting.APIUpdating;</span><br><span class="line"></span><br><span class="line">namespace UnityEngine.Rendering.Universal</span><br><span class="line">&#123;</span><br><span class="line">    // RenderTargetHandle can be thought of as a kind of ShaderProperty string hash</span><br><span class="line">    [MovedFrom(&quot;UnityEngine.Rendering.LWRP&quot;)] public struct RenderTargetHandle</span><br><span class="line">    &#123;</span><br><span class="line">        public int id &#123; set; get; &#125;</span><br><span class="line">        private RenderTargetIdentifier rtid &#123; set; get; &#125;</span><br><span class="line"></span><br><span class="line">        public static readonly RenderTargetHandle CameraTarget = new RenderTargetHandle &#123;id = -1 &#125;;</span><br><span class="line"></span><br><span class="line">        public RenderTargetHandle(RenderTargetIdentifier renderTargetIdentifier)</span><br><span class="line">        &#123;</span><br><span class="line">            id = -2;</span><br><span class="line">            rtid = renderTargetIdentifier;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">			//...</span><br><span class="line"></span><br><span class="line">        public void Init(string shaderProperty)</span><br><span class="line">        &#123;</span><br><span class="line">            // Shader.PropertyToID returns what is internally referred to as a &quot;ShaderLab::FastPropertyName&quot;.</span><br><span class="line">            // It is a value coming from an internal global std::map&lt;char*,int&gt; that converts shader property strings into unique integer handles (that are faster to work with).</span><br><span class="line">            id = Shader.PropertyToID(shaderProperty);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        public void Init(RenderTargetIdentifier renderTargetIdentifier)</span><br><span class="line">        &#123;</span><br><span class="line">            id = -2;</span><br><span class="line">            rtid = renderTargetIdentifier;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        public RenderTargetIdentifier Identifier()</span><br><span class="line">        &#123;</span><br><span class="line">            if (id == -1)</span><br><span class="line">            &#123;</span><br><span class="line">                return BuiltinRenderTextureType.CameraTarget;</span><br><span class="line">            &#125;</span><br><span class="line">            if (id == -2)</span><br><span class="line">            &#123;</span><br><span class="line">                return rtid;</span><br><span class="line">            &#125;</span><br><span class="line">            return new RenderTargetIdentifier(id);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">				//...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Wrong-Test4-commandBuffer-SetRenderTarget-renderTextureID">[Wrong]Test4:commandBuffer.SetRenderTarget(renderTextureID)</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">//错误对比用放置于Excute中</span><br><span class="line">void RTRequestTest0_4(CommandBuffer commandBuffer, ScriptableRenderContext context, ref RenderingData renderingData)</span><br><span class="line">&#123;</span><br><span class="line">  RenderTextureDescriptor cameraDescriptor = renderingData.cameraData.cameraTargetDescriptor;</span><br><span class="line"></span><br><span class="line">  renderTextureID = Shader.PropertyToID(&quot;Request_ID&quot;);</span><br><span class="line">  commandBuffer.GetTemporaryRT(renderTextureID, cameraDescriptor, FilterMode.Bilinear);</span><br><span class="line">  // commandBuffer.GetTemporaryRT(renderTextureID, cameraDescriptor.width, cameraDescriptor.height, 16, FilterMode.Bilinear,</span><br><span class="line">  // UnityEngine.Experimental.Rendering.GraphicsFormat.A2B10G10R10_UNormPack32, 1, false, RenderTextureMemoryless.None, false);//Full of parameters version</span><br><span class="line"></span><br><span class="line">  commandBuffer.SetRenderTarget(renderTextureID);</span><br><span class="line"></span><br><span class="line">  context.ExecuteCommandBuffer(commandBuffer);</span><br><span class="line">  commandBuffer.Clear();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)</span><br><span class="line">&#123;</span><br><span class="line">  CommandBuffer commandBuffer = CommandBufferPool.Get();</span><br><span class="line"></span><br><span class="line">  RTRequestTest0_4(commandBuffer, context, ref renderingData);</span><br><span class="line"></span><br><span class="line">  //Do something at here...</span><br><span class="line">  using (new ProfilingScope(commandBuffer, m_ProfilingSampler))</span><br><span class="line">  &#123;</span><br><span class="line">    commandBuffer.ClearRenderTarget(true, true, Color.blue, 1);</span><br><span class="line">  &#125;</span><br><span class="line">  context.ExecuteCommandBuffer(commandBuffer);</span><br><span class="line">  commandBuffer.Clear();</span><br><span class="line">  CommandBufferPool.Release(commandBuffer);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>会导致：<strong>skybox绘制到了错误的render target。</strong></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image11_50749a80b183e784a9fea319e88579f0.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image11_50749a80b183e784a9fea319e88579f0.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image2_63274dba175a9a0bf84e6ad5bdf3e7b9.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image2_63274dba175a9a0bf84e6ad5bdf3e7b9.png"></p>
+<p>问题在于：<br>
+有些pass没有自动切回RenderTarget<br>
+部分pass缺少<strong>configure</strong>()重写的函数，比如DrawSkyboxPass</p>
+<p>最好是使用ConfigureTarget，除非你自己知道在干嘛。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">//in ScriptableRenderPass class</span><br><span class="line">public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)</span><br><span class="line">&#123;&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Draw-Mesh-Test">Draw Mesh Test</h2>
+<p>介绍了几个绘制网格的api，重点在gpu instancing部分，详见课程和参考链接</p>
+<h2 id="command-buffer常用函数">command buffer常用函数</h2>
+<p>非常干，建议结合官方api文档使用，最好是能配合案例</p>
+<h2 id="URP下渲染流程和ScriptableRenderFeature以及ScriptableRenderPass的原理">URP下渲染流程和ScriptableRenderFeature以及ScriptableRenderPass的原理</h2>
+<p>看着源码讲解了几个重要的类</p>
+<ul>
+<li>ScriptableRenderFeature</li>
+<li>ScriptableRenderPass</li>
+<li>ScriptableRenderer</li>
+<li>ForwardRenderer</li>
+</ul>
+<p>梳理了urp运行的流程，建议看完catlikecoding文章再来阅读</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/1bc9af59-d05d-4e0a-8522-fa69fbebb1df_22f59e3317ad5f4bed5172d95fd932f5.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/1bc9af59-d05d-4e0a-8522-fa69fbebb1df_22f59e3317ad5f4bed5172d95fd932f5.png"></p>
+<h2 id="自定义后处理使用">自定义后处理使用</h2>
+<ul>
+<li>VolumeManager的使用</li>
+<li>材质尽量使用MaterialPropertyBlock避免创建额外实例</li>
+</ul>
+<h2 id="command-buffer注意事项">command buffer注意事项</h2>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_6c108896567c38e87bc609f65b62b973.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_6c108896567c38e87bc609f65b62b973.png"></p>
+</details>
+<h2 id="课程参考资料">课程参考资料</h2>
+<ul>
+<li>
+<p>Unity官方文档</p>
+</li>
+<li>
+<p>SRP概念相关:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/leixinyue/p/11038565.html">https://www.cnblogs.com/leixinyue/p/11038565.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Render_Target">https://en.wikipedia.org/wiki/Render_Target</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/363793724">https://zhuanlan.zhihu.com/p/363793724</a></li>
+</ul>
+</li>
+<li>
+<p>LoadAction/StoreAction RendertexuteMemeoryLess</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://answer.uwa4d.com/question/5e856425acb49302349a1119">https://answer.uwa4d.com/question/5e856425acb49302349a1119</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/262537295">https://zhuanlan.zhihu.com/p/262537295</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/LoadandStoreActions.html">https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/LoadandStoreActions.html</a></li>
+</ul>
+</li>
+<li>
+<p>Instances:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.xuanyusong.com/archives/4504">https://www.xuanyusong.com/archives/4504</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.xuanyusong.com/archives/4640">https://www.xuanyusong.com/archives/4640</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.xuanyusong.com/archives/4683">https://www.xuanyusong.com/archives/4683</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/OneStargazer/p/15170931.html">https://www.cnblogs.com/OneStargazer/p/15170931.html</a></li>
+</ul>
+</li>
+<li>
+<p>Draw相关指令:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/keijiro/Swarm">https://github.com/keijiro/Swarm</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/keijiro/GraphPlotter">https://github.com/keijiro/GraphPlotter</a></li>
+</ul>
+</li>
+<li>
+<p>Compute Shader:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://cheneyshen.com/directcompute-tutorial-for-unity-kernels-and-thread-groups/">https://cheneyshen.com/directcompute-tutorial-for-unity-kernels-and-thread-groups/</a></li>
+<li><a target="_blank" rel="noopener" href="https://catlikecoding.com/unity/tutorials/basics/compute-shaders/">https://catlikecoding.com/unity/tutorials/basics/compute-shaders/</a></li>
+</ul>
+</li>
+<li>
+<p>MSAA:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/479915187">https://www.zhihu.com/question/479915187</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/wlgys8/SRPLearn/wiki/MSAA_Implement">https://github.com/wlgys8/SRPLearn/wiki/MSAA_Implement</a></li>
+</ul>
+</li>
+<li>
+<p>RT精度:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Colour_banding">https://en.wikipedia.org/wiki/Colour_banding</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="补充参考文章">补充参考文章</h2>
+<ul>
+<li>Hacking into Unity’s rendering pipelines：<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=xrmbtBHJXt8&amp;t=388s">https://www.youtube.com/watch?v=xrmbtBHJXt8&amp;t=388s</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.unity.cn/cn/current/Manual/GraphicsCommandBuffers.html">https://docs.unity.cn/cn/current/Manual/GraphicsCommandBuffers.html</a></li>
+<li>Using Entity Command Buffers - Unite Copenhagen：<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=SecJibpoTYw&amp;t=34s">https://www.youtube.com/watch?v=SecJibpoTYw&amp;t=34s</a></li>
+<li>放牛的星星大佬翻译catlikecoding相关文章：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/333275514">https://zhuanlan.zhihu.com/p/333275514</a></li>
+<li>猫都能看懂的URP RenderFeature使用及自定义方法:<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/396965255">https://zhuanlan.zhihu.com/p/396965255</a></li>
+<li>猫都能看懂的CommandBuffer在URP中的使用方法:<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/400977346">https://zhuanlan.zhihu.com/p/400977346</a></li>
+<li>大佬笔记：
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/6527chen/ldyt32/pate7b#AwCUH">https://www.yuque.com/6527chen/ldyt32/pate7b#AwCUH</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/fanvuu">https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/fanvuu</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/488968981">https://zhuanlan.zhihu.com/p/488968981</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/510965477">https://zhuanlan.zhihu.com/p/510965477</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="作业">作业</h2>
+<p>doing~</p>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/c8ba751/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 4.4 抗锯齿概论</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>83</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        21
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (77)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 15.71px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.14px;" class="tags-cloud-7">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 14.29px;" class="tags-cloud-4">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.43px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/unity%E5%AD%A6%E4%B9%A0/" style="font-size: 12.86px;" class="tags-cloud-3">unity学习</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.43px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.57px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2023 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>
