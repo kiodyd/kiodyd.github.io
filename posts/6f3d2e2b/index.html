@@ -107,6 +107,11 @@
             <time  class="article-date" datetime="2023-03-01T09:28:57.000Z" itemprop="datePublished">2023-03-01</time>
           </h2>
           
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2023-03-13T14:28:26.000Z" itemprop="dateUpdated">2023-03-13</time>
+            </h2>
+          
           
           <ul class="wrap-list dark">
   
@@ -228,6 +233,20 @@ PPT地址：<a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DU
 <h2 id="command-buffer注意事项">command buffer注意事项</h2>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_6c108896567c38e87bc609f65b62b973.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_6c108896567c38e87bc609f65b62b973.png"></p>
 </details>
+<h2 id="作业">作业</h2>
+<p>结合学过的知识，复刻传送门效果</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/movie_001_d7c83d04609e6023bd310e22e2710ced.gif" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/movie_001_d7c83d04609e6023bd310e22e2710ced.gif"></p>
+<p>大体可以拆分为以下：</p>
+<ul>
+<li>门的出现动画，可以用dotween做，这里直接配合timeline简单k了个动画</li>
+<li>边框描边，借鉴了shader graph中的<strong>Rectangle</strong>节点</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// 使用mask来插值门颜色和边框颜色</span><br><span class="line">float2 d = abs(uv * 2 - 1) - float2(width, height);</span><br><span class="line">d = 1 - d / fwidth(d);</span><br><span class="line">mask = saturate(min(d.x, d.y));</span><br></pre></td></tr></table></figure>
+<ul>
+<li>门背后遮挡物体，这里用的模板测试，优点是实现简单（可以直接用renderfeature），但对视角有要求。本来想用alphatest去做，但考虑到需要修改人物shader，就没继续了。</li>
+<li>毛玻璃效果，对当前画面（不包括门）抓屏后再用任意模糊算法模糊，重新采样即可。</li>
+<li>物体与门交互，采样屏幕深度图与门的深度比较即可，参考卡通水那节</li>
+</ul>
 <h2 id="课程参考资料">课程参考资料</h2>
 <ul>
 <li>
@@ -303,7 +322,7 @@ PPT地址：<a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DU
 </ul>
 </li>
 </ul>
-<h2 id="作业">作业</h2>
+<h2 id="作业-2">作业</h2>
 <p>doing~</p>
 
       </section>
@@ -436,14 +455,14 @@ PPT地址：<a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DU
         </li>
       
         <li class="categorys-list-item">
-          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
-            软件 (2)
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
           </a>
         </li>
       
         <li class="categorys-list-item">
-          <a href="/categories/%E6%9D%82%E8%B0%88/">
-            杂谈 (1)
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
           </a>
         </li>
       
