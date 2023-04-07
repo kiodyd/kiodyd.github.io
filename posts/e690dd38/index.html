@@ -26,7 +26,7 @@
 
   
 
-  <title>只在堆上或栈上生成的对象 | 不特别周のBlog</title>
+  <title>《Unity性能优化》-- 4. 性能优化之道 | 不特别周のBlog</title>
 
   
 
@@ -100,17 +100,12 @@
     <div class="header-content">
       <div class="post-text layout-block">
         <div class="layout-margin">
-          <h1 class="title-wrap">只在堆上或栈上生成的对象</h1>
+          <h1 class="title-wrap">《Unity性能优化》-- 4. 性能优化之道</h1>
           <h2 class="title-sub-wrap">
-            <strong>kiodyd</strong>
+            <strong>kio0o0</strong>
             <span>发布于</span>
-            <time  class="article-date" datetime="2019-10-30T09:57:55.000Z" itemprop="datePublished">2019-10-30</time>
+            <time  class="article-date" datetime="2023-04-07T10:14:16.000Z" itemprop="datePublished">2023-04-07</time>
           </h2>
-          
-            <h2 class="title-sub-wrap new-date">
-              <span>最后更新于</span>
-              <time  class="article-updated" datetime="2023-02-23T12:23:53.440Z" itemprop="dateUpdated">2023-02-23</time>
-            </h2>
           
           
           <ul class="wrap-list dark">
@@ -120,7 +115,9 @@
 </ul>
           <ul class="wrap-list dark">
   
-    <li><a href="/tags/c-%E7%AC%94%E8%AE%B0/">🏷️ c++笔记</a></li>
+    <li><a href="/tags/Unity/">🏷️ Unity</a></li>
+  
+    <li><a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">🏷️ 性能优化</a></li>
   
 </ul>
         </div>
@@ -144,20 +141,73 @@
       
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
-        <p>c++的内存管理真的是博大精深呀~</p>
-<span id="more"></span>
-<h2 id="生成对象">生成对象</h2>
-<p>我们一般生成对象有两种方式，直接生成和通过new（先不考虑使用new在栈生成的情况）生成，分别对应静态和动态的生成。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">MyClass mc1; //栈</span><br><span class="line">MyClass mc2 = new MyClass; //堆</span><br></pre></td></tr></table></figure>
-<p>两个都需要用到构造函数（这不废话嘛~），所以我们不能通过私有构造函数的方式来达到我们的目的。</p>
-<h2 id="只在堆上生成的对象">只在堆上生成的对象</h2>
-<p>换句话说就是禁用掉直接生成的方式，我们回忆一下栈的特点，栈上的内存会自动分配和 <strong>自动销毁</strong>，那对象的销毁会调用什么呢？析构函数！</p>
-<p>假如析构函数失效了，那栈不就不能达到它的目的了吗。<br>
-实际上，栈有这样的特点：<strong>编译器在为类对象分配栈空间时，会先检查类的析构函数的访问性，其实不光是析构函数，只要是非静态的函数，编译器都会进行检查。如果类的析构函数是私有的，则编译器不会在栈空间上为类对象分配内存。</strong></p>
-<p>所以我们把析构函数定义为私有不就实现了不能在栈上生成了。<br>
-等等，析构函数没了，那你堆不也不能销毁了。嘿嘿，堆上怎么销毁主要还是靠我们说嘛，那定义多一个销毁函数，让他和析构做一样的事不就行了。所以对于堆，不要这个对象时，调用一下自己定义的销毁函数就行了。</p>
-<h2 id="只在栈上生成的对象">只在栈上生成的对象</h2>
-<p>在堆生成需要用到new关键字，如果new关键字失效了不就达到目的了。而且new相比malloc一个主要的特点就是能重载new和delete，所以说我们可以把new设为私有的函数，这样就能避免在堆上生成了。</p>
+        <span id="more"></span>
+<h4 id="性能优化问题的本质">性能优化问题的本质</h4>
+<ul>
+<li>慢与快的问题</li>
+<li>前提
+<ul>
+<li>稳定性：不能因优化造成稳定性变差</li>
+<li>兼容性：不能因优化导致兼容性变差</li>
+<li>性价比：优化要有度，考虑成本与复杂度</li>
+</ul>
+</li>
+</ul>
+<h4 id="性能优化的流程">性能优化的流程</h4>
+<ol>
+<li>发现问题（什么平台、什么操作系统、什么情况下出现问题，一般问题还是特例问题等）</li>
+<li>定位问题（什么地方造成的性能问题，是cpu还是gpu，是带宽还是内存，我们要用什么工具、什么方法确定瓶颈）</li>
+<li>研究问题（确定用什么方案处理这个问题，要考虑性能优化的前提）</li>
+<li>解决问题（按问题研究的结论去实际处理，并验证处理结果与预期的一致性，以及是否带来新问题）</li>
+</ol>
+<h4 id="影响性能的四大类问题">影响性能的四大类问题</h4>
+<ul>
+<li>CPU</li>
+<li>GPU</li>
+<li>带宽</li>
+<li>内存</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304071737300.png" alt=""></p>
+<blockquote>
+<p>其中的连线为带宽，比喻道路是否通畅</p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304071737305.png" alt=""></p>
+<blockquote>
+<p>CPU内部设计（内部工厂）</p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304071738593.png" alt=""></p>
+<blockquote>
+<p>GPU内部设计（内部工厂）</p>
+</blockquote>
+<h4 id="隐藏的几类小问题">隐藏的几类小问题</h4>
+<ul>
+<li>功耗比</li>
+<li>填充率（比如纹理过大时需要两次读取，但第二次读取并没有使用完全所有带宽。又比如4维的通道没用满之类）</li>
+<li>发热量</li>
+</ul>
+<h4 id="性能问题可能的情况">性能问题可能的情况</h4>
+<ul>
+<li>瓶颈可能性按由高到低的顺序排列（个人经验总结）
+<ul>
+<li>CPU利用率</li>
+<li>带宽利用率</li>
+<li>CPU/GPU强制同步</li>
+<li>片元着色器指令（改变分辨率来快速确认是不是这个瓶颈）</li>
+<li>几何图形到CPU到GPU的传输</li>
+<li>纹理CPU到GPU的传输</li>
+<li>顶点着色器指令</li>
+<li>几何图形复杂性</li>
+</ul>
+</li>
+</ul>
+<h4 id="经常用的优化思路">经常用的优化思路</h4>
+<blockquote>
+<p>不断积累来理解</p>
+</blockquote>
+<ul>
+<li>升维与降维（算法是否易于理解与性能权衡即抽象程度）</li>
+<li>维度转换，如空间（缓存池对象池）与时间（taa，dlss），量纲转换，面相对象设计的aos到面相数据设计的soa转换，积分变换</li>
+</ul>
 
       </section>
 
@@ -165,28 +215,14 @@
       
         <nav class="article-nav">
           
-            <div class="article-nav-item layout-padding">
-  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
-    
-    <div class="card-text">
-      
-        <a href="/posts/b510e05a/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">LuaClass的实现</h2>
-        </a>
-      
-      <div class="card-text--row">Newer</div>
-    </div>
-  </article>
-</div>
-          
           
             <div class="article-nav-item layout-padding">
   <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
     
     <div class="card-text">
       
-        <a href="/posts/f841e9a8/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">堆排序以及无序数组构建堆</h2>
+        <a href="/posts/3d91b605/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">《Unity性能优化》-- 3. 编辑器资源创建优化</h2>
         </a>
       
       <div class="card-text--row">Older</div>
