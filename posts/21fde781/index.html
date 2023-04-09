@@ -290,7 +290,19 @@
 <li>当一个有非常多OverDraw的场景，且不能很好的将不透明物体从前往后进行排序时，可以考虑使用PreZ进行优化</li>
 <li>注意，PreZ会增加DrawCall，如果用错了可能是负优化</li>
 </ul>
-<h2 id="Early-Z-和-Z-prepass的实例应用">Early-Z 和 Z-prepass的实例应用</h2>
+<h3 id="URP中的Pre-PASS">URP中的Pre-PASS</h3>
+<ul>
+<li>2021版本URP新出了Depth Priming选项，可以自动实现pre-pass，需要着色器有DepthOnly</li>
+<li>一些限制与不建议使用的场景：
+<ul>
+<li>只能在Forward前向渲染路径中使用，且需要着色器有DepthOnly</li>
+<li>场景不复杂，Overdraw不是造成GPU效率的瓶颈时</li>
+<li>手机上Depth Priming与MSAA同时开启带来的开销比Overdraw带来的开销还要大时</li>
+<li>DrawCall或其他图形api调用的开销比Overdraw带来的开销还要大时</li>
+</ul>
+</li>
+</ul>
+<h3 id="Early-Z-和-Z-prepass的实例应用">Early-Z 和 Z-prepass的实例应用</h3>
 <h4 id="面片叠加的头发渲染">面片叠加的头发渲染</h4>
 <p>对于半透明的面片来说，需要从后往前进行排序渲染才能得到正确的透明度混合结果</p>
 <p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302161659397.png" alt=""></p>
@@ -525,6 +537,18 @@
     <ul class="categorys-list">
       
         <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (83)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
           <a href="/categories/%E8%BD%AF%E4%BB%B6/">
             软件 (2)
           </a>
@@ -539,18 +563,6 @@
         <li class="categorys-list-item">
           <a href="/categories/%E6%9D%82%E8%B0%88/">
             杂谈 (1)
-          </a>
-        </li>
-      
-        <li class="categorys-list-item">
-          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
-            学习 (83)
-          </a>
-        </li>
-      
-        <li class="categorys-list-item">
-          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
-            工作 (1)
           </a>
         </li>
       
