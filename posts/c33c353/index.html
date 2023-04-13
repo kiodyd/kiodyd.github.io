@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>《Unity性能优化》-- 5.1 性能优化实战理论 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">《Unity性能优化》-- 5.1 性能优化实战理论</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-04-13T10:14:16.000Z" itemprop="datePublished">2023-04-13</time>
+          </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/Unity/">🏷️ Unity</a></li>
+  
+    <li><a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">🏷️ 性能优化</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="渲染提前期优化">渲染提前期优化</h2>
+<blockquote>
+<p>下面以农场生产番茄为例</p>
+</blockquote>
+<ul>
+<li>Culling
+<ul>
+<li>去除妨碍生长的树枝、叶子</li>
+<li>摘番茄时去掉那些品质坏、腐烂的</li>
+<li>去除不适合生产的</li>
+</ul>
+</li>
+<li>Simplization
+<ul>
+<li>将番茄分类，按大小、用途、品质等</li>
+<li>为了适应不同的番茄产品或销售渠道</li>
+</ul>
+</li>
+<li>Batching
+<ul>
+<li>装载发货的过程</li>
+<li>近距离、远距离、保鲜需求、时间需求</li>
+<li>总之要保证各地方有源源不断的货物，从而不会影响下游</li>
+</ul>
+</li>
+</ul>
+<h2 id="Unity中的Culling">Unity中的Culling</h2>
+<h3 id="哪些是需要剔除的内容">哪些是需要剔除的内容</h3>
+<blockquote>
+<p>gpu方案要考虑硬件兼容，cpu方案需要考虑会不会造成负优化</p>
+</blockquote>
+<p>广义上讲：</p>
+<ul>
+<li>看不见的像素、网格和对象</li>
+<li>重复的、用不到的资源</li>
+<li>不需要、不执行的代码</li>
+</ul>
+<h3 id="unity中提供的剔除手段">unity中提供的剔除手段</h3>
+<ul>
+<li>像素剔除：摄像机平截头体剔除、Back-face Culling、Early-Z、Pre-Z Pass</li>
+<li>网格剔除：Layer Mask、可见距离剔除、Occlusion（内存和cpu开销）</li>
+<li>灯光剔除：Tile-Based Deferred Rendering、Forward+</li>
+<li>场景剔除：Additive Scene</li>
+</ul>
+<h3 id="用户扩展剔除">用户扩展剔除</h3>
+<ul>
+<li>场景数据结构：Octree、BSP Tree、Portal、Voxelization、SDF等</li>
+<li>GPU Culling: Hi-Z Pass、Temporal Reprojection Culling、Cluster、Tile-based Visible Buffer等</li>
+</ul>
+<h2 id="Unity中的Simplization">Unity中的Simplization</h2>
+<blockquote>
+<p>简化：基于现有资源进行简化操作</p>
+</blockquote>
+<h3 id="哪些是需要简化的内容">哪些是需要简化的内容</h3>
+<p>广义上讲：</p>
+<ul>
+<li>运行效率较重的资源（运行时占用内存较高，处理耗时较长的资源）</li>
+<li>低效、不合适功能（平台的兼容性、功能的通用性）</li>
+</ul>
+<h3 id="Unity下的简化">Unity下的简化</h3>
+<ul>
+<li>Quality Settings</li>
+<li>通过烘焙光照简化实时光照</li>
+<li>通过Bounding Box或替代体碰撞代替Mesh碰撞</li>
+<li>通过Local Volume代替Global Volume</li>
+<li>RayCast代替Spherecast、CapsuleCast等</li>
+<li>纹理文字代替系统文字</li>
+<li>Mesh LOD</li>
+<li>Shader LOD</li>
+<li>HLOD（针对大世界，减少对象个数和drawcall，有一定cpu和内存开销）</li>
+<li>通过Camer override代替URP管线中的一些通用设置，只在某些摄像机开启</li>
+<li>各种OnDemand更新或分级设置接口</li>
+<li>…</li>
+</ul>
+<h3 id="用户扩展简化">用户扩展简化</h3>
+<ul>
+<li>场景简化数据结构，特别光追时</li>
+<li>第三方LOD方案</li>
+<li>Mesh Impostor，虚假替代体</li>
+<li>Animation LOD</li>
+<li>骨骼LOD</li>
+<li>2D寻路代替Navigation Mesh</li>
+<li>扩展类似OnDemand接口</li>
+</ul>
+<h2 id="Unity中的Batching">Unity中的Batching</h2>
+<h3 id="何为Batching">何为Batching</h3>
+<ul>
+<li>本质是按需求组织从cpu发给gpu的过程的数据，包括网格、纹理、shader变量、材质属性等</li>
+<li>batching要研究这些数据怎么组织、以什么数据结构组织、以什么频率发送、以及每次发送多少</li>
+</ul>
+<h3 id="哪些内容需要Batching">哪些内容需要Batching</h3>
+<p>广义上讲：</p>
+<ul>
+<li>资源Batching (Mesh、Texture、Shader参数、材质属性）</li>
+<li>Draw call Batching (Static Batching. Dynamic Batching)</li>
+<li>GPU Instancing （直接渲染、间接渲染、程序化问接渲染）</li>
+<li>Set Pass call Batching. ( SRP Batching)减少渲染状态切换的次数</li>
+</ul>
+<h3 id="资源的Batching">资源的Batching</h3>
+<p>Mesh:</p>
+<ul>
+<li>Mesh.CombineMesh，合并静态网格对象（剔除问题和内存开销）</li>
+<li>Submeshes-&gt;Single Mesh，合并材质与贴图，不同材质通过通道图标记（不合并的话每个不同材质就是drawcall）</li>
+</ul>
+<p>Texture:</p>
+<ul>
+<li>Atlas Texture，通过纹理坐标映射多张贴图</li>
+<li>TextureArray纹理数组，向GPU同时传递多张设置相同的资源</li>
+</ul>
+<p>Shader变量与材质属性</p>
+<ul>
+<li>Material Property Block (Build In管线）</li>
+<li>Const buffer（SRP管线，SRP batch 与 Material Property Block 不兼容）
+<ul>
+<li>不同的 Const buffer控制提交到Gpu的频率</li>
+<li>一般关注UnityPerMatrial</li>
+</ul>
+</li>
+</ul>
+<h3 id="DrawCall-Batching">DrawCall Batching</h3>
+<p>Static Batching</p>
+<ul>
+<li>引擎自动合并临近可合并的静态网格对象，并将合并后的网格转换到世界空间下，使用顶点信息构建一个共享的顶点缓冲和索引缓冲区，对可见网格进行绘制调用</li>
+<li>运行时合批可以调用StaticBatchingUtility.Combine，不需要勾选static batch</li>
+<li>额外的内存开销，合批的网格会有额外拷贝</li>
+</ul>
+<p>Dynamic Batching（一般用于低端机，现代CPU可能合批调用开销更大）</p>
+<ul>
+<li>Unity会将可动态合批的对象构建到一块大的顶点缓冲区中</li>
+<li>根据合批后的数据设置渲染器材质状态</li>
+<li>再将缓冲区绑定到GPU上</li>
+<li>对于每个MeshRenderer是根据缓冲区偏移量来更新提交绘制内容</li>
+</ul>
+<h3 id="GPU-Instancing">GPU Instancing</h3>
+<p>用于渲染网格的多个实例化副本，将基础网格对象传递给GPU后，充分利用InstaningBuffer传递多个网格实例位置、朝向、颜色等到GPU，避免反复传递多个基础对象。与SRP batch不兼容，对于顶点数较少的网格优化可能不是很明显</p>
+<ul>
+<li>DrawMeshInstanced</li>
+<li>DrawMeshInstancedIndirect</li>
+<li>DrawMeshInstancedProcedural</li>
+</ul>
+<h3 id="Set-Pass-call-Batching">Set Pass call Batching</h3>
+<ul>
+<li>SRP Batcher（显著减少Unity为相同着色器的材质：准备和调度绘制的CPU时间开销）</li>
+<li>Const Buffer（以什么时机、什么频率提交，一般是属性变化时才提交）
+<ul>
+<li>UnityPerCamera</li>
+<li>UnityPerFrame</li>
+<li>UnityPerPass</li>
+<li>UnityPerDraw</li>
+<li>UnityPerDrawRare</li>
+<li>++UnityPerMaterial++ （开发者一般定义这个）</li>
+</ul>
+</li>
+</ul>
+<h3 id="Batching优化顺序">Batching优化顺序</h3>
+<p>资源Batching &gt; SRP Batching = Static Batching &gt; GPU Instancing &gt; Dynamic Batching</p>
+<h3 id="Batching使用限制">Batching使用限制</h3>
+<h4 id="Static-Batching限制">Static Batching限制</h4>
+<ul>
+<li>额外内存开销</li>
+<li>64000个顶点限制，超过会开启下一个合批</li>
+<li>影响Culling剔除</li>
+</ul>
+<h4 id="Dynamic-Batching限制">Dynamic Batching限制</h4>
+<ul>
+<li>合批不超辻900个顶点属性（注意不是900个顶点，是诸如法线、切线这种寄存器属性）</li>
+<li>除了渲染阴影对象外，相同材质，不同材质实例也不能合并</li>
+<li>具有光照贴图的游戏对象如果有附加渲染器参数时，如果需要动态合批这些对象，他们必须指向相同的光照贴图位置。（非常苛刻）</li>
+<li>有多Shader Pass的游戏对象无法做动态合批</li>
+<li>受多个光照影响的游戏对象，满足动态合批条件合批后，只会受一个光源的影响</li>
+<li>延迟渲染下不支持动态合批</li>
+<li>CPU开销可能会增大，需要测试开启使用</li>
+</ul>
+<h4 id="GPU-Instancing限制">GPU Instancing限制</h4>
+<ul>
+<li>图形API版本要求</li>
+<li>与SRPBatcher不兼容</li>
+<li>不同绘制API的参数与绘制个数不同</li>
+<li>渲染顶点数较少的网格时，效率可能较差（需要测试使用）</li>
+</ul>
+<h4 id="Set-Pass-call-Batching-2">Set Pass call Batching</h4>
+<ul>
+<li>图形API版本要求</li>
+<li>必须是SRP渲染管线</li>
+<li>粒子对象不能合批</li>
+<li>使用MaterialPropertyBlocks的游戏对象不能合批</li>
+<li>Shader必须是compatible的</li>
+</ul>
+<h3 id="合批失败原因汇总2-0">合批失败原因汇总2.0</h3>
+<blockquote>
+<p>1.0版本：<a target="_blank" rel="noopener" href="https://github.com/Unity-Technologies/BatchBreakingCause">https://github.com/Unity-Technologies/BatchBreakingCause</a></p>
+</blockquote>
+<ol>
+<li>“An object is affected by multiple forward lights.” 此物体受到多个前向灯光的影响，多个灯关pass了</li>
+<li>“Objects have different materials.” 此物体有不同的材质，即使材质属性设置完全相同</li>
+<li>“An object is using a multi-pass shader.” 此物体使用了多pass着色器</li>
+<li>“An object has odd negative scaling.” 此物体Trasform的Scale使用了负数（奇数个负数，会导致culling state的改变）</li>
+<li>“Either objects have different \”Receive Shadows\“ settings, or some objects are within the shadow distance, while some other objects are not.” 此物体接收阴影的设置不同，或者物体有不同的的阴影距离设置</li>
+<li>“Objects are affected by different forward lights.” 此物体受到不同的前向灯光影响</li>
+<li>“Objects are on different lighting layers.” 物体在不同的Lighting Layer上</li>
+<li>“Objects have different \”Cast Shadows\“ settings.”  此物体有不同的投影体设置，指的在shadow pass中的合批</li>
+<li>“Objects either have different shadow caster shaders, or have different shader properties / keywords that affect the output of the shadow caster pass.” 此物体有不同的投影着色器设置或者有不同的着色器属性或者关键字，影响Shadow Caster Pass的输出</li>
+<li>“The shader explicitly disables batching with the \”DisableBatching\“ tag.” 着色器中显式设置了DisableBatching的标记</li>
+<li>“Objects have different MaterialPropertyBlock set.”  此物体有不同的MaterialPropertyBlock集合</li>
+<li>“Non-instanced properties set for instanced shader.”  Instanced的着色器有非instanced属性集</li>
+<li>“Objects are lightmapped.”  物体使用了不同的LightMap或者虽然使用相同的LightMap但使用的UV不同</li>
+<li>“Objects are affected by different light probes.”  此物体受到不同的光照探针影响</li>
+<li>“Objects are shadowed by baked occlusions and have different occlusion factors.”  此物体烘焙了遮挡，并且设置了不同的遮挡因子</li>
+<li>“Objects are affected by different reflection probes.”  此物体受到不同的反射探针影响</li>
+<li>“Rendering different meshes or submeshes with GPU instancing.” 使用GPU实例化渲染不同的网格或子网格</li>
+<li>“Objects have different batching-static settings.” 此物体有不同的静态合批设置</li>
+<li>“Objects belong to different static batches.” 此物体归属不同的Static Batches，顶点数超过上限拆成两个合批了</li>
+<li>&quot;Dynamic Batching is turned off in the Player Settings or is disabled temporarily in the current context to avoid z-fighting.” 在Player Settings中关闭了动态合批，或者在当前的环境中为了避免深度冲突而临时关闭了合批</li>
+<li>“There are too many indices (more than 32k) in a dynamic batch.” 动态合批中有太多的索引（大于32k）</li>
+<li>“A mesh renderer has additional vertex streams. Dynamic batching doesn‘t support such mesh renderers.” Mesh Renderer具有其他顶点流。动态批处理不支持此类网格渲染器。一般发生在粒子对象定义了additional vertex streams时</li>
+<li>“A submesh we are trying to dynamic-batch has more than 300 vertices.” 动态合批超过300个顶点</li>
+<li>“A submesh we are trying to dynamic-batch has more than 900 vertex attributes.” 动态合批超过900个顶点属性</li>
+<li>“This is the first draw call of a new shadow cascade.” 新阴影级联的第一次绘制调用，这时没有对象可以合批</li>
+<li>“The material doesn‘t have GPU instancing enabled.”  材质未启用GPU Instancing功能</li>
+<li>“Objects are rendered using different rendering functions. This can happen if the type of renderer is different (eg Mesh/Skinned Mesh) or when using different settings within the same renderer, such as Sprite Masking.”  使用不同的渲染。如果渲染器的类型不同（例如网格/蒙皮网格），或者在同一渲染器中使用不同的设置（例如精灵遮罩），则可能会发生这种情况。</li>
+<li>“Objects have different batching keys. This is usually caused by using different vertex streams on Particle Systems, or by mixing Lines and Trails, or by mixing lit and unlit geometry.” 此对象具有不同的Batching Keys。 这通常是由于在粒子系统上使用不同的顶点流，或混合线和轨迹，或混合Lit和Unlit的几何体造成的。&quot;</li>
+<li>“Mesh uses 32 bit index buffer.” Mesh使用了32位的索引缓冲</li>
+<li>“Submesh has non-zero base vertex.”  子网格对象有非0的基础顶点， submesh.BaseVertexLocation != 0</li>
+<li>“The previous instanced draw call has reached its maximum instance count.” 先前的InstanceDrawCall已经达到了Instance的最大数量</li>
+<li>“Motion Vector rendering doesn‘t support batching.” Motion Vector的渲染不支持Batching</li>
+<li>“When using late latching, children of an XR late latched GameObject do not use batching.” 使用late latching时，XR late latched GameObject的子级不能合批</li>
+<li>“Objects have different bounds and bounds instancing is disabled.” 对象具有不同的包裹体，那么包裹体实例化被禁用</li>
+<li>“SRP: Node have different shaders.” 节点具有不同的着色器</li>
+<li>“SRP: Node use multi-pass shader” 节点使用了多Pass着色器</li>
+<li>“SRP: Node use different shader keywords” 节点使用了不同的着色器关键字</li>
+<li>“SRP: End of the batch flush” Batch Flush结束，C Buffer达到上限时</li>
+<li>“SRP: Node is not compatible with SRP batcher” 节点与SRP Batcher不兼容</li>
+<li>“SRP: Node material requires device state change” 节点材质需要改变渲染设备状态</li>
+<li>“SRP: First call from ScriptableRenderLoopJob” ScriptableRenderLoopJob第一次调用</li>
+<li>“SRP: This material has custom buffer override” 材质有自定义重写的Buffer, 一般是修改了管线默认的顶点数据结构，两个不同顶点结构对象的网格不能进行合批</li>
+</ol>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/4a5d44c0/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">《Unity性能优化》-- 5. 性能优化实战</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>91</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        23
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (85)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2023 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

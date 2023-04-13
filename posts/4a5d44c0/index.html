@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>《Unity性能优化》-- 5. 性能优化实战 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">《Unity性能优化》-- 5. 性能优化实战</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-04-12T10:14:16.000Z" itemprop="datePublished">2023-04-12</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2023-04-13T12:17:19.250Z" itemprop="dateUpdated">2023-04-13</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/Unity/">🏷️ Unity</a></li>
+  
+    <li><a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">🏷️ 性能优化</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="性能总览与瓶颈定位">性能总览与瓶颈定位</h2>
+<h3 id="优化方向">优化方向</h3>
+<ul>
+<li>先优化iOS，再优化Android（iOS分析工具齐全，以及机型少、系统统一）</li>
+<li>先共性性能优化，再兼容性方面的性能优化</li>
+</ul>
+<h3 id="常用工具">常用工具</h3>
+<ul>
+<li>Profiler</li>
+<li>Frame Debugger</li>
+<li>Memory Profiler</li>
+<li>Profile Analyzer</li>
+<li>UPR 工具</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/nvpro-samples/gl_dynamic_lod/issues/1">NsightGraphics</a></li>
+<li>Xcode（十分强大）</li>
+</ul>
+<h3 id="瓶颈定位">瓶颈定位</h3>
+<h4 id="通过Profiler工具">通过Profiler工具</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304121633377.png" alt=""><br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304121643145.png" alt=""></p>
+<ul>
+<li>初步观察示例项目，发现Gfx.WaitForPresentOnGfxThread占用比较高</li>
+<li>这是主线程在等待渲染线程完成工作</li>
+<li>这种情况一般是GPU瓶颈或者CPU与GPU的带宽阻塞</li>
+<li>同时观察Timeline，查看一帧中渲染进程谁占用比较高</li>
+<li>这里是PostProcess进程，但也不能武断判断他就是渲染瓶颈，需要尝试手动屏蔽</li>
+</ul>
+<h4 id="Unity常见的等待函数">Unity常见的等待函数</h4>
+<table>
+<thead>
+<tr>
+<th>等待函数</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WaitForTargetFPS</td>
+<td>等待达到目标帧率，一般这种情况CPU与GPU都没什么负载问题</td>
+</tr>
+<tr>
+<td>Gfx.WaitForGfxCommandsFromMainThread/WaitForCommand</td>
+<td>渲染线程己经准备接受新的渲染命令，一般瓶颈在CPU</td>
+</tr>
+<tr>
+<td>Gfx.WaitForPresentOnGfxThread/WaitForPresent</td>
+<td>主线程等待渲染线程绘制完成，一般瓶颈在GPU</td>
+</tr>
+<tr>
+<td>WaitForJobGroupID</td>
+<td>等待工作线程完成，一般瓶颈在CPU</td>
+</tr>
+</tbody>
+</table>
+<h4 id="GPU或带宽瓶颈型游戏优化">GPU或带宽瓶颈型游戏优化</h4>
+<ul>
+<li>渲染流程与效果优化</li>
+<li>渲染中生成资源优化</li>
+<li>DrawCall与SetPassCall</li>
+<li>片元着色器</li>
+<li>渲染三角形</li>
+</ul>
+<h4 id="记录结果很重要">记录结果很重要</h4>
+<ul>
+<li>需要记录优化前的报告</li>
+<li>从而对比优化后的成果</li>
+<li>不然没有说服力</li>
+</ul>
+<h2 id="渲染流程分析">渲染流程分析</h2>
+<blockquote>
+<p>通过Frame Debug查看主要渲染流程，以下是课程项目中的渲染流程</p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230412170723.png" alt=""></p>
+<h3 id="Xcode-Metal-Capture">Xcode Metal Capture</h3>
+<blockquote>
+<p>需要在Scheme中Option选项开启Gpu Frame Capture</p>
+</blockquote>
+<ul>
+<li>提供十分强大的分析工具，包括各种资源使用情况，当前线程开启情况等</li>
+<li>还可以抓帧分析，每帧所有指令的耗时以及渲染流程清晰可见</li>
+<li>经验：任何超过1ms的渲染步骤都值得关注，尽量将GPU耗时控制在10ms</li>
+<li>Xcode工具会将有问题的流程标上三角叹号</li>
+<li>该工具每个指令还提供：
+<ul>
+<li>Attachments</li>
+<li>Geometry</li>
+<li>Bound Resources，当前使用的资源</li>
+<li>All Resources，整体使用的资源</li>
+<li>Pipeline Statisitics，渲染管线分析</li>
+<li>Performance，渲染性能分析</li>
+<li>CallStack，渲染api回调<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304121724969.png" alt=""></li>
+</ul>
+</li>
+</ul>
+<h2 id="与设备分辨率相关的GPU开销优化">与设备分辨率相关的GPU开销优化</h2>
+<h3 id="SSAO优化">SSAO优化</h3>
+<ul>
+<li>通过Xcode Metal Capture查看SSAO第一个pass耗时十分多</li>
+<li>查看其引用的资源，发现使用的纹理分辨率非常高，容易造成gpu采样瓶颈和带宽瓶颈</li>
+<li>查看渲染管线分析，主要耗时在ALU time和Wait time，基本证实片元着色器片元压力大以及带宽瓶颈</li>
+<li>查看性能分析，主要问题还是片元指令，片元指令过多以及缓存命中率低</li>
+<li>Timeline和Counters可以看到带宽读写、顶点与片元占用率、ALU逻辑单元运行、Cache缓存命中率等情况</li>
+<li>主要优化：
+<ul>
+<li>降采样中间纹理，可修改srp源码对中间模糊纹理也降采样</li>
+<li>将ao执行挪到不透明物体pass后面，提高移动端tbdr效率</li>
+<li>适当调低ssao采样半径选项</li>
+<li>采样次数，越低越好</li>
+<li>改进ao图像模糊算法（单pass或其他算法），或者直接不使用（降分辨率本身就是一种模糊）</li>
+</ul>
+</li>
+<li>进一步优化：
+<ul>
+<li>使用hbao、gtao 方案</li>
+<li>针对SSAO的Shader指令做进一步优化</li>
+<li>采样烘焙AO到光照贴图的方案替换SSAO</li>
+</ul>
+</li>
+<li>优化后总耗时降低比ssao降低秒数还多：
+<ul>
+<li>填充率提高了</li>
+<li>SSAO 的占用资源减少之后，减少了其它环节的阻塞</li>
+<li>缓存命中提高了</li>
+</ul>
+</li>
+</ul>
+<h3 id="AA优化">AA优化</h3>
+<h4 id="反走样方案的发展">反走样方案的发展</h4>
+<ul>
+<li>第一代：SSAA（超级采样抗锯齿Super-Sampling Anti-Aliasing )</li>
+<li>第二代：（URP目前主要方案）
+<ul>
+<li>MSAA（多重采样抗锯齿 Multi Sampling Anti-Aliasing）</li>
+<li>FXAA（快速近似抗锯齿Fast Approximate Anti-Aliasing)</li>
+<li>SMAA（增强子像素形变抗锯齿Enhanced Subpixel Morphological Anti-Aliasing )</li>
+</ul>
+</li>
+<li>第三代：TAA（时间序列抗锯齿Temporal Anti-Aliasing），目前还没有接入URP，可以使用PPV2包，但是不支持urp的motion vector，鬼影会比较严重</li>
+<li>第四代：DLSS（基于深度学习的超级采样Deep Learning super Sampling )，需要特殊硬件支持，目前只有hdrp的pc平台（康康fsr）</li>
+</ul>
+<blockquote>
+<p>注：这里只列出了Unity反走样的一些发展流程，其他反走样方案这里不包括</p>
+</blockquote>
+<h4 id="URP中的AA方案">URP中的AA方案</h4>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>URP支持</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MSAA</td>
+<td>URP默认支持，适合绝大多数非延迟渲染游戏</td>
+<td>显卡硬件支持，反走样效果较好</td>
+<td>仅支持前向渲，静态画面表现最好，运动画面一般，支持MRT的情况下效率较差，只能消除Geometry的反走样，对于高光像素部分无能为力</td>
+</tr>
+<tr>
+<td>FXAA</td>
+<td>URP默认支持，有Quality与Console两个不同版本，Quality版本需要PPV2.适合一些对低端硬件有要求、对画面模糊不敏感的特殊游戏</td>
+<td>后处理支持开销非常小，适合移动端</td>
+<td>没有格外像素辅助，在高频颜色变化快的地方，动态场景会出现闪烁，对图形所有颜色边缘进行柔化处理 ，导致画面整体较模糊</td>
+</tr>
+<tr>
+<td>SMAA</td>
+<td>URP默认支持，适合一些对低端硬件有要求的特殊游戏</td>
+<td>后处理支持，开销相对较小，适合低端PC端</td>
+<td>没有格外像素辅助 ，在高频颜色变化快的地方，动态场景会出现闪烁，三次pass，开销相对FXAA高一些，切换RT开销在手机上可能造成开销，边缘处理比FXAA精细些，但依然有模糊表现</td>
+</tr>
+<tr>
+<td>TAA</td>
+<td>URP末来支持，可用PPV2扩展支持</td>
+<td>支持延迟渲染，反走样效果较好，性能开销较小</td>
+<td>动态场景下，低帧率下可能出现鬼影，无法处理半透明物体、贴图序列帧动画物体，需要额外内存开销,需要MotionVector Buffer</td>
+</tr>
+</tbody>
+</table>
+<p>效率：FXAA&gt;SMAA&gt;TAA&gt;MSXX<br><br>
+质量：MSAA&gt;SMAA&gt;TAA&gt;FXAA(这里的TAA支持并不完整在urp中)</p>
+<h4 id="优化手段">优化手段</h4>
+<ul>
+<li>调低SMAA的质量选项</li>
+<li>优化SMAA中间pass的中间纹理带宽开销，利用metal片上内存，修改为memoryless模式、以及storeaction</li>
+<li>使用FXAA代替，有几毫米改进</li>
+<li>评估是否需要AA，手机DPI较大，色彩跳动较下</li>
+</ul>
+<h4 id="优化示例工程AA方案总结">优化示例工程AA方案总结</h4>
+<ul>
+<li>高端移动设备上采用优化后的SMAA或FXAA, Unity默认URP<br>
+下的TAA成熟后，根据性能与表现均衡选择采用</li>
+<li>中端移动设备上采用FXAA方式或关闭AA渲染</li>
+<li>低端移动设备上关闭AA渲染</li>
+</ul>
+<h3 id="PostProcess后处理优化">PostProcess后处理优化</h3>
+<h4 id="Unity-URP下支持的后处理效果分类">Unity URP下支持的后处理效果分类</h4>
+<ol>
+<li>色彩校正与增强（一般开销较低，但不可胡乱堆砌）</li>
+</ol>
+<ul>
+<li>Channel Mixer</li>
+<li>Color Adjustment</li>
+<li>Color Curves</li>
+<li>Lift，Gamma and Gain</li>
+<li>Shadows/Midtones/Highlights</li>
+<li>Tonemapping</li>
+<li>White Balance</li>
+<li>Split Toning</li>
+</ul>
+<ol start="2">
+<li>画面效果增强（一般需要额外PASS，涉及RT切换和采样，开销一般较高。建议使用local volume视条件开启）</li>
+</ol>
+<ul>
+<li>Bloom</li>
+<li>Chromatic Aberration</li>
+<li>Depth Of Field</li>
+<li>Film Grain</li>
+<li>Motion Blur</li>
+</ul>
+<ol start="3">
+<li>镜头效果（开销中等，主要是shader计算，建议视情况开启而不要全局）</li>
+</ol>
+<ul>
+<li>Lens Disortion</li>
+<li>Panini Projection</li>
+<li>Vignette</li>
+<li>Lens Flare</li>
+</ul>
+<h4 id="Unity-URP下支持的后处理效果列表">Unity URP下支持的后处理效果列表</h4>
+<table>
+<thead>
+<tr>
+<th>效果列表</th>
+<th>描述</th>
+<th>移动端性能开销</th>
+<th>常用性</th>
+<th>优化方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bloom</td>
+<td>泛光、镜头污垢</td>
+<td>中高</td>
+<td>高</td>
+<td>降采样、降低迭代次数、替换2遍模糊pass算法（ue有提出移动端的优化手段）。</td>
+</tr>
+<tr>
+<td>Channel Mixer</td>
+<td>通道混合器</td>
+<td>非常低</td>
+<td>低</td>
+<td>几乎无</td>
+</tr>
+<tr>
+<td>Chromatic Aberration</td>
+<td>散色像差，用于模拟相机的镜头无法将颜色聚合在一起的颜色失真效果（机器人视觉、屏幕破碎）</td>
+<td>中低（需要三遍采样）</td>
+<td>低</td>
+<td>几乎无</td>
+</tr>
+<tr>
+<td>Color Adiustment</td>
+<td>颜色调整</td>
+<td>中</td>
+<td>高</td>
+<td>ColorGradingMode(HDR or LDR)，如果支持浮点精度计算的平台或设备，HDR模式效率会更高</td>
+</tr>
+<tr>
+<td>Color Curves</td>
+<td>颜色曲线</td>
+<td>低</td>
+<td>低</td>
+<td>几乎无</td>
+</tr>
+<tr>
+<td>Depth Of Field</td>
+<td>景深</td>
+<td>非常高</td>
+<td>中低</td>
+<td>切换Gaussian与Bokeh的景深模式，移动平台建议用Gaussian</td>
+</tr>
+<tr>
+<td>Film Grain</td>
+<td>胶片颗粒</td>
+<td>中（需要采样多张Lookup纹理，可以修改LUT纹理大小）</td>
+<td>低</td>
+<td>几乎无</td>
+</tr>
+<tr>
+<td>Lens Disortion</td>
+<td>镜头失真</td>
+<td>中低</td>
+<td>低</td>
+<td>几乎无</td>
+</tr>
+<tr>
+<td>Lift, Gamma,and Gain</td>
+<td>提升、伽马与增益</td>
+<td>非常低</td>
+<td>低</td>
+<td>几乎无</td>
+</tr>
+<tr>
+<td>Motion Blur</td>
+<td>运动模糊</td>
+<td>高（需要MotionVector）</td>
+<td>中低</td>
+<td>MotionBlur质量分级、Intensity强度、Clamp摄像机旋转产生的速度可以具有的最大长度</td>
+</tr>
+<tr>
+<td>Panini Projection</td>
+<td>Panini投影</td>
+<td>中</td>
+<td>低</td>
+<td>几乎无</td>
+</tr>
+<tr>
+<td>Shadows、Midtones、Highlights</td>
+<td>阴影、中间调与高光</td>
+<td>中低</td>
+<td>低</td>
+<td>几乎无</td>
+</tr>
+<tr>
+<td>Split Toning</td>
+<td>拆分着色</td>
+<td>非常低</td>
+<td>低</td>
+<td>几乎无</td>
+</tr>
+<tr>
+<td>Tonemapping</td>
+<td>色调映射</td>
+<td>中</td>
+<td>中</td>
+<td>几乎无</td>
+</tr>
+<tr>
+<td>Vignette</td>
+<td>渐晕，四边暗角，一般用于无ui动画或截图</td>
+<td>中</td>
+<td>低</td>
+<td>Intensity与Smoothness</td>
+</tr>
+<tr>
+<td>White Balance</td>
+<td>白平衡</td>
+<td>中低</td>
+<td>低</td>
+<td>几乎无</td>
+</tr>
+<tr>
+<td>Lens Flare</td>
+<td>镜头光晕</td>
+<td>中高</td>
+<td>中</td>
+<td>Occlusion设置与光晕数量</td>
+</tr>
+</tbody>
+</table>
+<h4 id="优化手段-2">优化手段</h4>
+<ul>
+<li>去除不需要的后处理效果（最好是移除，不勾选复选框也会绑定资源，造成内存浪费）</li>
+<li>有优化空间的后处理效果看上表</li>
+<li>尽量不要全局使用volume效果</li>
+</ul>
+<h2 id="与场景复杂度相关的GPU开销优化">与场景复杂度相关的GPU开销优化</h2>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/c33c353/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">《Unity性能优化》-- 5.1 性能优化实战理论</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/e690dd38/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">《Unity性能优化》-- 4. 性能优化之道</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>91</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        23
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (85)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2023 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>
