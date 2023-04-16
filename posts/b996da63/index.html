@@ -26,7 +26,7 @@
 
   
 
-  <title>《Unity性能优化》-- 5.1 性能优化实战理论 | 不特别周のBlog</title>
+  <title>《Unity性能优化》-- 100. 游戏性能调试工具汇总 | 不特别周のBlog</title>
 
   
 
@@ -100,16 +100,16 @@
     <div class="header-content">
       <div class="post-text layout-block">
         <div class="layout-margin">
-          <h1 class="title-wrap">《Unity性能优化》-- 5.1 性能优化实战理论</h1>
+          <h1 class="title-wrap">《Unity性能优化》-- 100. 游戏性能调试工具汇总</h1>
           <h2 class="title-sub-wrap">
             <strong>kio0o0</strong>
             <span>发布于</span>
-            <time  class="article-date" datetime="2023-04-13T10:14:16.000Z" itemprop="datePublished">2023-04-13</time>
+            <time  class="article-date" datetime="2023-04-14T07:14:16.000Z" itemprop="datePublished">2023-04-14</time>
           </h2>
           
             <h2 class="title-sub-wrap new-date">
               <span>最后更新于</span>
-              <time  class="article-updated" datetime="2023-04-16T10:25:25.590Z" itemprop="dateUpdated">2023-04-16</time>
+              <time  class="article-updated" datetime="2023-04-16T10:28:41.360Z" itemprop="dateUpdated">2023-04-16</time>
             </h2>
           
           
@@ -147,242 +147,51 @@
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
         <span id="more"></span>
-<h2 id="渲染提前期优化">渲染提前期优化</h2>
-<blockquote>
-<p>下面以农场生产番茄为例</p>
-</blockquote>
+<h2 id="PC通用性能分析工具（某些需要特殊硬件支持）">PC通用性能分析工具（某些需要特殊硬件支持）</h2>
 <ul>
-<li>Culling
+<li>AMD μProf：<a target="_blank" rel="noopener" href="https://developer.amd.com/amd-uprof/">https://developer.amd.com/amd-uprof/</a></li>
+<li>NVIDIA NSight：<a target="_blank" rel="noopener" href="https://developer.nvidia.com/tools-overview">https://developer.nvidia.com/tools-overview</a></li>
+<li>Intel VTune：<a target="_blank" rel="noopener" href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/vtune-profiler.html">https://www.intel.com/content/www/us/en/developer/tools/oneapi/vtune-profiler.html</a></li>
+<li>Intel GPA suite：<a target="_blank" rel="noopener" href="https://www.intel.com/content/www/us/en/developer/tools/graphics-performance-analyzers/overview.html">https://www.intel.com/content/www/us/en/developer/tools/graphics-performance-analyzers/overview.html</a></li>
+<li>Superluminal：<a target="_blank" rel="noopener" href="https://superluminal.eu/">https://superluminal.eu/</a></li>
+</ul>
+<h2 id="平台性能分析工具（需要特殊操作系统、浏览器或硬件支持）">平台性能分析工具（需要特殊操作系统、浏览器或硬件支持）</h2>
+<h3 id="IOS">IOS:</h3>
 <ul>
-<li>去除妨碍生长的树枝、叶子</li>
-<li>摘番茄时去掉那些品质坏、腐烂的</li>
-<li>去除不适合生产的</li>
+<li>Xcode Instruments: <a target="_blank" rel="noopener" href="https://developer.apple.com/library/archive/documentation/AnalysisTools/Conceptual/instruments_help-collection/Chapter/Chapter.html">https://developer.apple.com/library/archive/documentation/AnalysisTools/Conceptual/instruments_help-collection/Chapter/Chapter.html</a></li>
 </ul>
-</li>
-<li>Simplization
+<h3 id="Android">Android</h3>
 <ul>
-<li>将番茄分类，按大小、用途、品质等</li>
-<li>为了适应不同的番茄产品或销售渠道</li>
+<li>Android Studio: <a target="_blank" rel="noopener" href="https://developer.android.com/studio/profile">https://developer.android.com/studio/profile</a></li>
+<li>Arm Mobile Studio: <a target="_blank" rel="noopener" href="https://developer.arm.com/Tools%20and%20Software/Arm%20Mobile%20Studio">https://developer.arm.com/Tools and Software/Arm Mobile Studio</a></li>
+<li>Snapdragon Profiler: <a target="_blank" rel="noopener" href="https://developer.qualcomm.com/software/snapdragon-profiler">https://developer.qualcomm.com/software/snapdragon-profiler</a></li>
 </ul>
-</li>
-<li>Batching
+<h3 id="Windows-XBox">Windows/XBox</h3>
 <ul>
-<li>装载发货的过程</li>
-<li>近距离、远距离、保鲜需求、时间需求</li>
-<li>总之要保证各地方有源源不断的货物，从而不会影响下游</li>
+<li>PIX: <a target="_blank" rel="noopener" href="https://devblogs.microsoft.com/pix/introduction/">https://devblogs.microsoft.com/pix/introduction/</a></li>
 </ul>
-</li>
-</ul>
-<h2 id="Unity中的Culling">Unity中的Culling</h2>
-<h3 id="哪些是需要剔除的内容">哪些是需要剔除的内容</h3>
-<blockquote>
-<p>gpu方案要考虑硬件兼容，cpu方案需要考虑会不会造成负优化</p>
-</blockquote>
-<p>广义上讲：</p>
+<h3 id="PlayStation">PlayStation</h3>
 <ul>
-<li>看不见的像素、网格和对象</li>
-<li>重复的、用不到的资源</li>
-<li>不需要、不执行的代码</li>
+<li>CPU profiler tools: <a target="_blank" rel="noopener" href="https://partners.playstation.net/">https://partners.playstation.net/</a></li>
 </ul>
-<h3 id="unity中提供的剔除手段">unity中提供的剔除手段</h3>
+<h3 id="WebGL">WebGL</h3>
 <ul>
-<li>像素剔除：摄像机平截头体剔除、Back-face Culling、Early-Z、Pre-Z Pass</li>
-<li>网格剔除：Layer Mask、可见距离剔除、Occlusion（内存和cpu开销）</li>
-<li>灯光剔除：Tile-Based Deferred Rendering、Forward+</li>
-<li>场景剔除：Additive Scene</li>
+<li>Chrome DevTools Performance: <a target="_blank" rel="noopener" href="https://developer.chrome.com/docs/devtools/evaluate-performance/">https://developer.chrome.com/docs/devtools/evaluate-performance/</a></li>
+<li>Firefox Profiler: <a target="_blank" rel="noopener" href="https://profiler.firefox.com/">https://profiler.firefox.com/</a></li>
 </ul>
-<h3 id="用户扩展剔除">用户扩展剔除</h3>
+<h2 id="GPU性能调试工具（某些需要对应硬件支持）">GPU性能调试工具（某些需要对应硬件支持）</h2>
 <ul>
-<li>场景数据结构：Octree、BSP Tree、Portal、Voxelization、SDF等</li>
-<li>GPU Culling: Hi-Z Pass、Temporal Reprojection Culling、Cluster、Tile-based Visible Buffer等</li>
+<li>Arm Graphics Analyzer：<a target="_blank" rel="noopener" href="https://developer.arm.com/Tools%20and%20Software/Graphics%20Analyzer">https://developer.arm.com/Tools and Software/Graphics Analyzer</a></li>
+<li>Tegra Graphics Debugger：<a target="_blank" rel="noopener" href="https://developer.nvidia.com/tegra-graphics-debugger">https://developer.nvidia.com/tegra-graphics-debugger</a></li>
+<li>Intel Graphics Performance Analyzers：<a target="_blank" rel="noopener" href="https://www.intel.com/content/www/us/en/developer/tools/graphics-performance-analyzers/overview.html">https://www.intel.com/content/www/us/en/developer/tools/graphics-performance-analyzers/overview.html</a></li>
+<li>NVIDIA Nsight Frame Debugger: <a target="_blank" rel="noopener" href="https://docs.nvidia.com/gameworks/content/developertools/desktop/frame_debugger_ogl.htm">https://docs.nvidia.com/gameworks/content/developertools/desktop/frame_debugger_ogl.htm</a></li>
+<li>AMD Radeon Developer Tool Suite: <a target="_blank" rel="noopener" href="https://gpuopen.com/tools/">https://gpuopen.com/tools/</a></li>
+<li>Xcode Frame Capture Debugging Tools: <a target="_blank" rel="noopener" href="https://developer.apple.com/documentation/metal/debugging_tools">https://developer.apple.com/documentation/metal/debugging_tools</a></li>
+<li>Visual Studio Graphics Diagnostics: <a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-gb/visualstudio/debugger/graphics/visual-studio-graphics-diagnostics?view=vs-2019&amp;redirectedfrom=MSDN&amp;viewFallbackFrom=vs-2015">https://docs.microsoft.com/en-gb/visualstudio/debugger/graphics/visual-studio-graphics-diagnostics?view=vs-2019&amp;redirectedfrom=MSDN&amp;viewFallbackFrom=vs-2015</a></li>
+<li>RenderDoc: <a target="_blank" rel="noopener" href="https://renderdoc.org/builds">https://renderdoc.org/builds</a></li>
 </ul>
-<h2 id="Unity中的Simplization">Unity中的Simplization</h2>
-<blockquote>
-<p>简化：基于现有资源进行简化操作</p>
-</blockquote>
-<h3 id="哪些是需要简化的内容">哪些是需要简化的内容</h3>
-<p>广义上讲：</p>
-<ul>
-<li>运行效率较重的资源（运行时占用内存较高，处理耗时较长的资源）</li>
-<li>低效、不合适功能（平台的兼容性、功能的通用性）</li>
-</ul>
-<h3 id="Unity下的简化">Unity下的简化</h3>
-<ul>
-<li>Quality Settings</li>
-<li>通过烘焙光照简化实时光照</li>
-<li>通过Bounding Box或替代体碰撞代替Mesh碰撞</li>
-<li>通过Local Volume代替Global Volume</li>
-<li>RayCast代替Spherecast、CapsuleCast等</li>
-<li>纹理文字代替系统文字</li>
-<li>Mesh LOD</li>
-<li>Shader LOD</li>
-<li>HLOD（针对大世界，减少对象个数和drawcall，有一定cpu和内存开销）</li>
-<li>通过Camer override代替URP管线中的一些通用设置，只在某些摄像机开启</li>
-<li>各种OnDemand更新或分级设置接口</li>
-<li>…</li>
-</ul>
-<h3 id="用户扩展简化">用户扩展简化</h3>
-<ul>
-<li>场景简化数据结构，特别光追时</li>
-<li>第三方LOD方案</li>
-<li>Mesh Impostor，虚假替代体</li>
-<li>Animation LOD</li>
-<li>骨骼LOD</li>
-<li>2D寻路代替Navigation Mesh</li>
-<li>扩展类似OnDemand接口</li>
-</ul>
-<h2 id="Unity中的Batching">Unity中的Batching</h2>
-<h3 id="何为Batching">何为Batching</h3>
-<ul>
-<li>本质是按需求组织从cpu发给gpu的过程的数据，包括网格、纹理、shader变量、材质属性等</li>
-<li>batching要研究这些数据怎么组织、以什么数据结构组织、以什么频率发送、以及每次发送多少</li>
-</ul>
-<h3 id="哪些内容需要Batching">哪些内容需要Batching</h3>
-<p>广义上讲：</p>
-<ul>
-<li>资源Batching (Mesh、Texture、Shader参数、材质属性）</li>
-<li>Draw call Batching (Static Batching. Dynamic Batching)</li>
-<li>GPU Instancing （直接渲染、间接渲染、程序化问接渲染）</li>
-<li>Set Pass call Batching. ( SRP Batching)减少渲染状态切换的次数</li>
-</ul>
-<h3 id="资源的Batching">资源的Batching</h3>
-<p>Mesh:</p>
-<ul>
-<li>Mesh.CombineMesh，合并静态网格对象（剔除问题和内存开销）</li>
-<li>Submeshes-&gt;Single Mesh，合并材质与贴图，不同材质通过通道图标记（不合并的话每个不同材质就是drawcall）</li>
-</ul>
-<p>Texture:</p>
-<ul>
-<li>Atlas Texture，通过纹理坐标映射多张贴图</li>
-<li>TextureArray纹理数组，向GPU同时传递多张设置相同的资源</li>
-</ul>
-<p>Shader变量与材质属性</p>
-<ul>
-<li>Material Property Block (Build In管线）</li>
-<li>Const buffer（SRP管线，SRP batch 与 Material Property Block 不兼容）
-<ul>
-<li>不同的 Const buffer控制提交到Gpu的频率</li>
-<li>一般关注UnityPerMatrial</li>
-</ul>
-</li>
-</ul>
-<h3 id="DrawCall-Batching">DrawCall Batching</h3>
-<p>Static Batching</p>
-<ul>
-<li>引擎自动合并临近可合并的静态网格对象，并将合并后的网格转换到世界空间下，使用顶点信息构建一个共享的顶点缓冲和索引缓冲区，对可见网格进行绘制调用</li>
-<li>运行时合批可以调用StaticBatchingUtility.Combine，不需要勾选static batch</li>
-<li>额外的内存开销，合批的网格会有额外拷贝</li>
-</ul>
-<p>Dynamic Batching（一般用于低端机，现代CPU可能合批调用开销更大）</p>
-<ul>
-<li>Unity会将可动态合批的对象构建到一块大的顶点缓冲区中</li>
-<li>根据合批后的数据设置渲染器材质状态</li>
-<li>再将缓冲区绑定到GPU上</li>
-<li>对于每个MeshRenderer是根据缓冲区偏移量来更新提交绘制内容</li>
-</ul>
-<h3 id="GPU-Instancing">GPU Instancing</h3>
-<p>用于渲染网格的多个实例化副本，将基础网格对象传递给GPU后，充分利用InstaningBuffer传递多个网格实例位置、朝向、颜色等到GPU，避免反复传递多个基础对象。与SRP batch不兼容，对于顶点数较少的网格优化可能不是很明显</p>
-<ul>
-<li>DrawMeshInstanced</li>
-<li>DrawMeshInstancedIndirect</li>
-<li>DrawMeshInstancedProcedural</li>
-</ul>
-<h3 id="Set-Pass-call-Batching">Set Pass call Batching</h3>
-<ul>
-<li>SRP Batcher（显著减少Unity为相同着色器的材质：准备和调度绘制的CPU时间开销）</li>
-<li>Const Buffer（以什么时机、什么频率提交，一般是属性变化时才提交）
-<ul>
-<li>UnityPerCamera</li>
-<li>UnityPerFrame</li>
-<li>UnityPerPass</li>
-<li>UnityPerDraw</li>
-<li>UnityPerDrawRare</li>
-<li>++UnityPerMaterial++ （开发者一般定义这个）</li>
-</ul>
-</li>
-</ul>
-<h3 id="Batching优化顺序">Batching优化顺序</h3>
-<p>资源Batching &gt; SRP Batching = Static Batching &gt; GPU Instancing &gt; Dynamic Batching</p>
-<h3 id="Batching使用限制">Batching使用限制</h3>
-<h4 id="Static-Batching限制">Static Batching限制</h4>
-<ul>
-<li>额外内存开销</li>
-<li>64000个顶点限制，超过会开启下一个合批</li>
-<li>影响Culling剔除</li>
-</ul>
-<h4 id="Dynamic-Batching限制">Dynamic Batching限制</h4>
-<ul>
-<li>合批不超辻900个顶点属性（注意不是900个顶点，是诸如法线、切线这种寄存器属性）</li>
-<li>除了渲染阴影对象外，相同材质，不同材质实例也不能合并</li>
-<li>具有光照贴图的游戏对象如果有附加渲染器参数时，如果需要动态合批这些对象，他们必须指向相同的光照贴图位置。（非常苛刻）</li>
-<li>有多Shader Pass的游戏对象无法做动态合批</li>
-<li>受多个光照影响的游戏对象，满足动态合批条件合批后，只会受一个光源的影响</li>
-<li>延迟渲染下不支持动态合批</li>
-<li>CPU开销可能会增大，需要测试开启使用</li>
-</ul>
-<h4 id="GPU-Instancing限制">GPU Instancing限制</h4>
-<ul>
-<li>图形API版本要求</li>
-<li>与SRPBatcher不兼容</li>
-<li>不同绘制API的参数与绘制个数不同</li>
-<li>渲染顶点数较少的网格时，效率可能较差（需要测试使用）</li>
-</ul>
-<h4 id="Set-Pass-call-Batching-2">Set Pass call Batching</h4>
-<ul>
-<li>图形API版本要求</li>
-<li>必须是SRP渲染管线</li>
-<li>粒子对象不能合批</li>
-<li>使用MaterialPropertyBlocks的游戏对象不能合批</li>
-<li>Shader必须是compatible的</li>
-</ul>
-<h3 id="合批失败原因汇总2-0">合批失败原因汇总2.0</h3>
-<blockquote>
-<p>1.0版本：<a target="_blank" rel="noopener" href="https://github.com/Unity-Technologies/BatchBreakingCause">https://github.com/Unity-Technologies/BatchBreakingCause</a></p>
-</blockquote>
-<ol>
-<li>“An object is affected by multiple forward lights.” 此物体受到多个前向灯光的影响，多个灯关pass了</li>
-<li>“Objects have different materials.” 此物体有不同的材质，即使材质属性设置完全相同</li>
-<li>“An object is using a multi-pass shader.” 此物体使用了多pass着色器</li>
-<li>“An object has odd negative scaling.” 此物体Trasform的Scale使用了负数（奇数个负数，会导致culling state的改变）</li>
-<li>“Either objects have different \”Receive Shadows\“ settings, or some objects are within the shadow distance, while some other objects are not.” 此物体接收阴影的设置不同，或者物体有不同的的阴影距离设置</li>
-<li>“Objects are affected by different forward lights.” 此物体受到不同的前向灯光影响</li>
-<li>“Objects are on different lighting layers.” 物体在不同的Lighting Layer上</li>
-<li>“Objects have different \”Cast Shadows\“ settings.”  此物体有不同的投影体设置，指的在shadow pass中的合批</li>
-<li>“Objects either have different shadow caster shaders, or have different shader properties / keywords that affect the output of the shadow caster pass.” 此物体有不同的投影着色器设置或者有不同的着色器属性或者关键字，影响Shadow Caster Pass的输出</li>
-<li>“The shader explicitly disables batching with the \”DisableBatching\“ tag.” 着色器中显式设置了DisableBatching的标记</li>
-<li>“Objects have different MaterialPropertyBlock set.”  此物体有不同的MaterialPropertyBlock集合</li>
-<li>“Non-instanced properties set for instanced shader.”  Instanced的着色器有非instanced属性集</li>
-<li>“Objects are lightmapped.”  物体使用了不同的LightMap或者虽然使用相同的LightMap但使用的UV不同</li>
-<li>“Objects are affected by different light probes.”  此物体受到不同的光照探针影响</li>
-<li>“Objects are shadowed by baked occlusions and have different occlusion factors.”  此物体烘焙了遮挡，并且设置了不同的遮挡因子</li>
-<li>“Objects are affected by different reflection probes.”  此物体受到不同的反射探针影响</li>
-<li>“Rendering different meshes or submeshes with GPU instancing.” 使用GPU实例化渲染不同的网格或子网格</li>
-<li>“Objects have different batching-static settings.” 此物体有不同的静态合批设置</li>
-<li>“Objects belong to different static batches.” 此物体归属不同的Static Batches，顶点数超过上限拆成两个合批了</li>
-<li>&quot;Dynamic Batching is turned off in the Player Settings or is disabled temporarily in the current context to avoid z-fighting.” 在Player Settings中关闭了动态合批，或者在当前的环境中为了避免深度冲突而临时关闭了合批</li>
-<li>“There are too many indices (more than 32k) in a dynamic batch.” 动态合批中有太多的索引（大于32k）</li>
-<li>“A mesh renderer has additional vertex streams. Dynamic batching doesn‘t support such mesh renderers.” Mesh Renderer具有其他顶点流。动态批处理不支持此类网格渲染器。一般发生在粒子对象定义了additional vertex streams时</li>
-<li>“A submesh we are trying to dynamic-batch has more than 300 vertices.” 动态合批超过300个顶点</li>
-<li>“A submesh we are trying to dynamic-batch has more than 900 vertex attributes.” 动态合批超过900个顶点属性</li>
-<li>“This is the first draw call of a new shadow cascade.” 新阴影级联的第一次绘制调用，这时没有对象可以合批</li>
-<li>“The material doesn‘t have GPU instancing enabled.”  材质未启用GPU Instancing功能</li>
-<li>“Objects are rendered using different rendering functions. This can happen if the type of renderer is different (eg Mesh/Skinned Mesh) or when using different settings within the same renderer, such as Sprite Masking.”  使用不同的渲染。如果渲染器的类型不同（例如网格/蒙皮网格），或者在同一渲染器中使用不同的设置（例如精灵遮罩），则可能会发生这种情况。</li>
-<li>“Objects have different batching keys. This is usually caused by using different vertex streams on Particle Systems, or by mixing Lines and Trails, or by mixing lit and unlit geometry.” 此对象具有不同的Batching Keys。 这通常是由于在粒子系统上使用不同的顶点流，或混合线和轨迹，或混合Lit和Unlit的几何体造成的。&quot;</li>
-<li>“Mesh uses 32 bit index buffer.” Mesh使用了32位的索引缓冲</li>
-<li>“Submesh has non-zero base vertex.”  子网格对象有非0的基础顶点， submesh.BaseVertexLocation != 0</li>
-<li>“The previous instanced draw call has reached its maximum instance count.” 先前的InstanceDrawCall已经达到了Instance的最大数量</li>
-<li>“Motion Vector rendering doesn‘t support batching.” Motion Vector的渲染不支持Batching</li>
-<li>“When using late latching, children of an XR late latched GameObject do not use batching.” 使用late latching时，XR late latched GameObject的子级不能合批</li>
-<li>“Objects have different bounds and bounds instancing is disabled.” 对象具有不同的包裹体，那么包裹体实例化被禁用</li>
-<li>“SRP: Node have different shaders.” 节点具有不同的着色器</li>
-<li>“SRP: Node use multi-pass shader” 节点使用了多Pass着色器</li>
-<li>“SRP: Node use different shader keywords” 节点使用了不同的着色器关键字</li>
-<li>“SRP: End of the batch flush” Batch Flush结束，C Buffer达到上限时</li>
-<li>“SRP: Node is not compatible with SRP batcher” 节点与SRP Batcher不兼容</li>
-<li>“SRP: Node material requires device state change” 节点材质需要改变渲染设备状态</li>
-<li>“SRP: First call from ScriptableRenderLoopJob” ScriptableRenderLoopJob第一次调用</li>
-<li>“SRP: This material has custom buffer override” 材质有自定义重写的Buffer, 一般是修改了管线默认的顶点数据结构，两个不同顶点结构对象的网格不能进行合批</li>
-</ol>
+<h2 id="总结">总结</h2>
+<p>还是Xcode好用，信息最全，而且可以定量分析</p>
 
       </section>
 
@@ -390,28 +199,14 @@
       
         <nav class="article-nav">
           
-            <div class="article-nav-item layout-padding">
-  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
-    
-    <div class="card-text">
-      
-        <a href="/posts/b996da63/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">《Unity性能优化》-- 100. 游戏性能调试工具汇总</h2>
-        </a>
-      
-      <div class="card-text--row">Newer</div>
-    </div>
-  </article>
-</div>
-          
           
             <div class="article-nav-item layout-padding">
   <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
     
     <div class="card-text">
       
-        <a href="/posts/4a5d44c0/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">《Unity性能优化》-- 5. 性能优化实战</h2>
+        <a href="/posts/c33c353/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">《Unity性能优化》-- 5.1 性能优化实战理论</h2>
         </a>
       
       <div class="card-text--row">Older</div>
