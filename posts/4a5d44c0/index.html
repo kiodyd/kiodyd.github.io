@@ -109,7 +109,7 @@
           
             <h2 class="title-sub-wrap new-date">
               <span>最后更新于</span>
-              <time  class="article-updated" datetime="2023-04-13T12:17:19.250Z" itemprop="dateUpdated">2023-04-13</time>
+              <time  class="article-updated" datetime="2023-04-16T10:25:06.580Z" itemprop="dateUpdated">2023-04-16</time>
             </h2>
           
           
@@ -518,6 +518,405 @@
 <li>尽量不要全局使用volume效果</li>
 </ul>
 <h2 id="与场景复杂度相关的GPU开销优化">与场景复杂度相关的GPU开销优化</h2>
+<blockquote>
+<p>先从整体开销判断是不是场景复杂度瓶颈，一般看前向渲染（如果延迟渲染可以看阴影开销）各个阶段的DrawCall</p>
+</blockquote>
+<blockquote>
+<p>条件允许优先做Simplization，接着Culling，最后才是Batching</p>
+</blockquote>
+<h3 id="常用观察数据">常用观察数据</h3>
+<ul>
+<li>Batches          drawcall数量</li>
+<li>Tris             三角形数</li>
+<li>Verts            顶点数</li>
+<li>setpass calls</li>
+<li>shadowcasters    投影体数量</li>
+</ul>
+<h3 id="Simplization简化">Simplization简化</h3>
+<h4 id="场景简化总览">场景简化总览</h4>
+<ul>
+<li>用编辑器的线框模式查看顶点和三角形分别情况</li>
+<li>使用Rendering Debug 查看overdraw信息</li>
+<li>使用Rendering Debug 查看级联阴影设置情况</li>
+</ul>
+<h4 id="地形分类">地形分类</h4>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>远景</td>
+<td>视距较远，主要用于表现开阔景物，为了渲染总体气氛和空间感，配合景深使层次感更丰富，增加整体意境，一般不需要具体细节表现</td>
+</tr>
+<tr>
+<td>中景</td>
+<td>画面视觉中心的部分，进一步烘托场景气氛，需要一定视觉和细节表现，但不需要过分强调，更多通过材质颜色、质地、大范围光影明暗来呈现</td>
+</tr>
+<tr>
+<td>近景</td>
+<td>视距最近的画面部分，突出表现具体某个物体或角色上，需要突出表现材质细节，凹凸、光影细节、反射折射投射等，通过近景与中景远景的占比更好突出场景透视感</td>
+</tr>
+</tbody>
+</table>
+<p>可以通过LOD来配合远中近景使用，一般层级不宜超过5级（原模型-简化1-简化2-替代体-剔除），不需要替代体的一般是4级，如果只在近景可见那就是两级了（原模型-剔除）</p>
+<h4 id="远景简化">远景简化</h4>
+<p>远景不可达地形使用天空盒烘焙，而不用真实网格</p>
+<ul>
+<li>反射探针烘焙cubemap</li>
+<li>legacy-&gt;cubemap（旧的方法，unity可能会舍弃）</li>
+<li>Camera.RenderToCubemap</li>
+</ul>
+<h4 id="中景简化">中景简化</h4>
+<ul>
+<li>配合overdraw视图进行LOD简化，使用DCC软件制作或者Unity插件
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/Whinarn/UnityMeshSimplifier">UnityMeshSimplifier</a>简化Mesh</li>
+<li>替代体生成Amplify Imposters与Runtime Imposters</li>
+</ul>
+</li>
+<li>要小心Quality setting中的LOD Bias</li>
+<li>对一些简化后的LOD层级物体去除阴影投影，减少投影体数量</li>
+<li>对一些静态光照物体，已经处于阴影体内也不必要开启投影体，视项目而定，毕竟可以开启SSAO弥补下</li>
+</ul>
+<h3 id="Culling剔除">Culling剔除</h3>
+<h4 id="遮挡剔除与灯关剔除">遮挡剔除与灯关剔除</h4>
+<p>遮挡剔除Occlusion Culling是在CPU端做的优化，GPU可以通过延迟渲染、前向渲染配合EarlyZ|PreZ进行优化</p>
+<ul>
+<li>需要在对应相机开启Occlusion Culling选项</li>
+<li>对场景中设置成静态遮挡体或被遮挡体起作用</li>
+<li>对应动态物体，比如门窗，可以通过添加Occlusion Portal 组件</li>
+<li>注意需要烘焙场景，可以设置烘焙精度</li>
+</ul>
+<p>对于不需要向其他物体投影的物体可以关闭投影选项（比如平坦的地形）</p>
+<p>灯关方面的剔除</p>
+<ul>
+<li>充分利用tbdr、forward+架构</li>
+<li>前期注意使用urp的light layer功能</li>
+<li>如果后期无法大量修改资源了，也可以通过脚本来控制灯光的开启</li>
+<li>调整Quality urp setting中的灯光设置
+<ul>
+<li>主光源阴影贴图分辨率</li>
+<li>每个对象最多受光源数量</li>
+<li>额外光源的shadow Atlas resolution大小（这个是所有额外光源共享的纹理）</li>
+</ul>
+</li>
+<li>调整Quality urp setting中的级联阴影设置</li>
+</ul>
+<h3 id="Batching合批">Batching合批</h3>
+<p>不支持SRP Batcher的物体最好放在不透明渲染队列最后面，避免打断其他合批</p>
+<h3 id="Terrain优化">Terrain优化</h3>
+<p>内置Terrain方案在移动端性能并不高，特别是shader不够轻量。</p>
+<p>自己写一套地形烘焙工具</p>
+<ul>
+<li>根据Terrain Data将mesh信息与混合后的地形纹理烘焙出来</li>
+<li>再通过prefab生成地形块</li>
+<li>Unity商店也有挺多现成工具：Terrain To Mesh</li>
+</ul>
+<p>烘焙完网格需要重新Occlusion Culling</p>
+<p>如果是平坦地形，不需要自我投影时，请关闭投影选项</p>
+<h3 id="主光源级联阴影优化">主光源级联阴影优化</h3>
+<ul>
+<li>减少级联层级</li>
+<li>如果阴影变化不大，没有相关动画，可以将阴影进行缓存，按级联阴影的不同层级定制刷新频率，也是一种LOD思路（<a target="_blank" rel="noopener" href="https://www.bilibili.com/read/cv18581528">相关链接</a>）
+<ul>
+<li>调整阴影的创建和销毁时机</li>
+<li>去除渲染目标每帧清空逻辑</li>
+<li>调整阴影刷新频率</li>
+</ul>
+</li>
+</ul>
+<h2 id="渲染管线精简与优化">渲染管线精简与优化</h2>
+<blockquote>
+<p>这块需要的知识面比较深，需要多回顾下https://www.bilibili.com/video/BV1i94y1Q7W3</p>
+</blockquote>
+<p>引擎为了通用考虑，通常会有冗余的流程或资源生成，当项目需要深度优化时，进行管线的精简与优化是有必要的，高效的管线一定是定制化而非通用化的。</p>
+<ul>
+<li>unity通常需要做加法，因为其管线功能并没有那么强，需要添加新功能或替换已有效率不高的功能</li>
+<li>unreal通常需要做减法，因为其管线功能并不一定全需要用到，但其设置和流程与编辑器耦合比较紧密</li>
+<li>unity最佳实践还是需要写一套能满足表现需求，又无过多冗余流程的srp管线</li>
+</ul>
+<h3 id="主要手段">主要手段</h3>
+<ul>
+<li>使用URP的<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1sG411p737">Native RenderPass</a>，主要是能优化一些需要多PASS的渲染效果（比如延时渲染需要gbuffer生成和着色两个pass，可以优化成一个native pass），主要目的是减少RT切换和读取的开销（节省带宽和内存，使用后Memoryless、load action为dontcare），使tbr架构更高效渲染。需要图形API支持（metal和vulkan)</li>
+<li>去除URP为了通用且对于该项目冗余的PASS（绑定了资源又不使用的PASS），需要修改URP源码</li>
+<li>考虑是否需要Normal与Depth提前生成的PASS，如果是延迟渲染则是可以不需要的，但一些透明物体又确实是前向渲染（URP 使用unlit着色器对象也会被强制使用前向渲染）。
+<ul>
+<li>如果开启SSAO发现即使使用了延迟渲染也会生成这个上述Normal、Depth PrePass，需要修改URP源码处理没有额外使用前向渲染不透明物体时不生成这个Pass的情况。（关键字ConfigureInput）</li>
+<li>但去除这个pass可能会发现ssao不生效了，原因在于没有正确读取gbuffer中的法线与深度信息，可以将其资源绑定一下，但同时也会打断Native RenderPass了，需要权衡一下。</li>
+</ul>
+</li>
+<li>建议CopyDepth和CopyColor不要在URP设置中开启，而是使用对应相机设置覆写开启，可以将生成纹理生命周期控制在对应功能开启时，而不是实时生成
+<ul>
+<li>考虑是否需要CopyDepth（常用于深度雾、扫描线等效果）Pass，生成的深度图不能降采样</li>
+<li>考虑是否需要CopyColor（常用于扰动、反射、UI上的效果）Pass，生成的颜色图可以降采样，但反射其实可以用SSR或反射探针实现，其他情况可以视条件开启，不需要全程使用</li>
+<li>Metal Api下延迟渲染管线除非开启了Native RenderPass否则都会进行CopyDepth（2021 URP）</li>
+</ul>
+</li>
+<li>修改URP源码需要将Library中的PackageCache对应的包拷贝到Packages中，后续如果URP要升级只能手动Merge代码</li>
+</ul>
+<h2 id="内存优化">内存优化</h2>
+<h3 id="Unity中的内存概述与工具方法">Unity中的内存概述与工具方法</h3>
+<table>
+<thead>
+<tr>
+<th>Unity中的内存</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>托管内存</td>
+<td>主要是指使用托管堆或者垃圾收集器自动分配和管理的内存也包括脚本堆栈与虚拟机内存（unity目前使用的贝母垃圾回收器比较保守）</td>
+</tr>
+<tr>
+<td>C#非托管内存</td>
+<td>可以在C#下与Unity Collection名字空间和包结合使用，不使用垃圾收集器管理的内存部分</td>
+</tr>
+<tr>
+<td>Native内存</td>
+<td>Unity用于运行引擎的C++内存</td>
+</tr>
+</tbody>
+</table>
+<p>Unity应用程序的内存主要有：</p>
+<ul>
+<li>Unity中的内存
+<ul>
+<li>托管内存</li>
+<li>C#非托管内存</li>
+<li>Native内存</li>
+</ul>
+</li>
+<li>显存</li>
+<li>其他内存
+<ul>
+<li>应用程序框架</li>
+<li>第三方库</li>
+<li>系统内存</li>
+</ul>
+</li>
+</ul>
+<p>内存工具：</p>
+<ul>
+<li>Profiler的内存分页，可以添加自定义memory module</li>
+<li>Memory Profiler：抓取内存快照</li>
+<li>UPR工具内存页</li>
+<li>Xcode-Profile-Allocations（可以看非Unity内存部分），VM Tracker需要勾选Automatic Snapshoting
+<ul>
+<li>Dirty Size：不能被复用或卸载的内存块，比较重要，超过上限iOS程序会退出</li>
+<li>Swapped Size：不活跃的内存，可以被交换到磁盘上的大小</li>
+<li>Resident Size：使用的物理内存量</li>
+<li>Allocations-Call Tree-按线程分类，可以查看指定时间内某线程分配内存的堆栈情况</li>
+</ul>
+</li>
+</ul>
+<h3 id="Unity中Allocator详解">Unity中Allocator详解</h3>
+<p>对内存分配的封装分配器，用来拓展内存统计、检查和管理</p>
+<p>Memory Setting：<a target="_blank" rel="noopener" href="https://docs.unity3d.com/cn/current/Manual/performance-garbage-collection-best-practices.html">https://docs.unity3d.com/cn/current/Manual/performance-garbage-collection-best-practices.html</a></p>
+<h4 id="按用途分类">按用途分类</h4>
+<ul>
+<li>Main Allocators：绝大数内存分配，主线程渲染资源相关、文件cache、typetree等不同用途下的分配器</li>
+<li>Fast Per Thread Temporary Allocators：线程上使用的临时分配器，包括各工作线程使用的栈分配器，比如音乐、渲染、预加载、烘焙等工作线程上的分配器</li>
+<li>Fast Thread Shared Temporary Allocators：线程间共享的临时分配器</li>
+<li>Profiler Allocators：用于profiler使用的分配器</li>
+</ul>
+<h4 id="按底层类型分类">按底层类型分类</h4>
+<ul>
+<li>UnityDefaultAllocator</li>
+<li>BucketAllocator</li>
+<li>DynamicHeapAllocator</li>
+<li>DualThreadAllocator</li>
+<li>TLSAllocator(Thread Local Storage)</li>
+<li>StackAllocator</li>
+<li>ThreadSafeLinearAllocator</li>
+<li>…</li>
+</ul>
+<h4 id="Unity中的内存分配器">Unity中的内存分配器</h4>
+<table>
+<thead>
+<tr>
+<th>分配器类型</th>
+<th>分配器算法</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bucket 桶分配器</td>
+<td>Two Level Segregated Fit(TLSF)</td>
+<td>- Main allocator<br> - Gfx allocator<br> - Typetree allocator<br> - File cache allocator<br> - Profiler allocator<br> - Editor Profiler allocator (on Editor only)<br></td>
+</tr>
+<tr>
+<td>Dynamic Heap动态堆分配器</td>
+<td>Fixed size lock-free allocator</td>
+<td>As a shared allocator for small allocations for:<br> - Main allocator<br> - Gfx allocator<br> - Typetree allocator<br> - File cache allocator</td>
+</tr>
+<tr>
+<td>Dual thread</td>
+<td>Redirects allocations based on size and thread ID</td>
+<td>- Main allocator<br> - Gfx allocator<br> - Typetree allocator<br> - File cache allocator</td>
+</tr>
+<tr>
+<td>Thread Local Storage(TLS) stack</td>
+<td>LIFO stack</td>
+<td>Temporary allocations</td>
+</tr>
+<tr>
+<td>Threadsafe linear</td>
+<td>Round robin FIFO</td>
+<td>Buffers for passing data to jobs</td>
+</tr>
+</tbody>
+</table>
+<h4 id="BucketAllocator-桶分配器）">BucketAllocator(桶分配器）</h4>
+<ul>
+<li>每个bucket由固定大小粒度granularity表示，如果granularity为16字节大小，则用于分配<br>
+16/32/48/54/…字节的内存，如果是development版本granularity在设置大小的基础上增加40个<br>
+字节</li>
+<li>分配器为分配保留内存块Block，每个块被划分为16kb的子段(subsections),并且不可配置。<br>
+Block块只能增长,并且需要是固定16kb大小的整数倍。</li>
+<li>分配是固定大小无锁的，速度快，通常作为进入堆分配器之前用来加速小内存分配的分配器</li>
+<li>Log日志中可以通过查看[ALLOC_BUCKET]字段来看是否有Failed Allocations. Bucket layout字段，以及Peak Allocated bytes字段与Large Block size字段的利用率，来判定大小是否分配合适，</li>
+<li>分配失败会会退到DynamicHleapAllocator或UnityDefaultAllocator分配器上，效率变差。</li>
+</ul>
+<h4 id="DynamicHeapAllocator-动态堆分配器）">DynamicHeapAllocator(动态堆分配器）</h4>
+<ul>
+<li>所有平合都希望使用的分配器 （Mac与iOS哲时仍然使用Unity DefaultAllocator，可以理解为原生的alloc和free）</li>
+<li>底层基于TLSF，保留tsf块列表，并在一个块已满后，切换到另一个块,或没有时分配一个新块,关<br>
+于TLSF :<a target="_blank" rel="noopener" href="http://www.gii.upv.es/tlsf/files/ecrts04_tlsf.pdf">http://www.gii.upv.es/tlsf/files/ecrts04_tlsf.pdf</a></li>
+<li>最棘手的部分是设置块的大小。根据不同平合，更大的块效率更高，碎片更少，但对于内存有限的平台来说灵活性差</li>
+<li>最大块为256M，最小块为128k，如果64位架构使用更大的Reaion来保存多个块<br>
+MEMORY_USE_LARGE_BLOCKS，如果分配失败会会退到虛拟内存分配，效率更差</li>
+<li>Log中[ALLOC_DEFAULT_MAIN]下关注Peak usage frame count字段，查看大多数帧分配内存的范圃，关注内存分配峰值Peak Allocated memory字段，以区Peak Large allocation bytes没有使用TLSF分配的内存大小</li>
+</ul>
+<h4 id="DualThreadAllocator">DualThreadAllocator</h4>
+<ul>
+<li>它是将2个DynamicHeapAllocator实例与1个BucketAllocator封装到一起，其中BucketAllocator负责小的共享内存分配，1个无锁的DynamicHeapAllocator用于主线程分配，另外一个DynamicHleapAllocator负责其他线程的共享分配，但是分配与回收时需要加锁</li>
+<li>Log中[ALLOC_DEFAULT]下分别关注[ALLOC_BUCKET]、[ALLOC_DEFAULT_MAIN]、[ALLOC_DEFAULT_THREAD]字段下一个BucketAllocator与2个DynamicHeapAllocator的分配信息，其中尤其关注Peak main deferred allocation count字段，这个字段代表需要在主线程回收的分配队列。</li>
+<li>负责其他线程的共享分配的DynamicHeapAllocatord对应C#非托管内存的Allocator.Persistent</li>
+</ul>
+<h4 id="TLS-Stack-Allocator">TLS Stack Allocator</h4>
+<ul>
+<li>用于快速临时分配的堆栈分配器。它是最快的分配器，几乎没有开销，并且可以防止内存碎片，对应C#非托管内存的Allocator.Temp分配类型</li>
+<li>它是基于后进先出LIFO的算法，分配的内存生命周期在一帧内。</li>
+<li>如果分配器使用超过了配置的大小，Unity会增加分配块大小，但会是配置设置的2倍大小，</li>
+<li>如果线程堆栈分配器满了，分配器将会退到线程安全线性job分配器。这时一帧内允许有1-10分配，甚至如果是加载期间可以允许几百次。但如果每帧的分配数字增加可以考虑增加块大小。</li>
+<li>Log日志[ALLOC_TEMP_TLSJ下关注[ALLOC TEMP_MAIN]与[ALLOC TEMP Job.Worker xx]中的Peak usage frame count于Peak Allocated Bytes字段，也要关注Overtlow Count字段，是否发生了分配器溢出回退的情況。</li>
+</ul>
+<h4 id="Thread-Safe-Linear-Allocator">Thread Safe Linear Allocator</h4>
+<ul>
+<li>用于快速无锁分配Job线程的缓冲区，并在Job完成后释放缓冲区，对应C#非托管内存的Allocator.TempJob</li>
+<li>采用循环先进先出FIFO算法，先分配内存块，然后在这些内存块内进行线性分配内存所有可用块都会存到一个池中，当一个块满时再从池中提取一个新的可用块。当分配器不再需要块中内存时，清理该块并放回到可用池中。快速清理分配可用块非常重要。因此Job的分配尽量在几帧内完成。</li>
+<li>如果所有块都在使用中，或者一个分配对于一个块太大的情况下，则会退到主堆分配<br>
+器，分配效率会下降。</li>
+<li>Log日志[ALLOC_ TEMP_ JOB_4_FRAMESJ中我们需要关注Overflow Cout(too large)与Overtlow Count(full)字段，判断是否发生了分配器溢出会退。</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304161634019.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304161634173.png" alt=""></p>
+<h3 id="内存指标术语与进程内存结构">内存指标术语与进程内存结构</h3>
+<h4 id="Memory-Profiler中的内存度量与术语">Memory Profiler中的内存度量与术语</h4>
+<ul>
+<li>Page操作系统内存管理的最小单元（通常是4KB大小，但不同操作系统和平台会有所不同）</li>
+<li>内存管理单元MMU，维护一张Page的表，将虚拟地址映射到物理内存地址上。</li>
+<li>当用户访问虚拟地址时，会自动被MMU转换到物理内存地址，但如果CPU没有找到虚拟地址映射的物理内存地址时，会触发page fault中断当前程序执行，然后再分配一块干净的物理内存，并从磁盘加载所需的一页数据到该物理地址，同时更新页表，继续执行</li>
+<li>一个进程向系统申请内存时，并不会返回物理内存地址，而是返回虚拟内存地址，仅当CPU需要访问该虚拟地址时，系统才会分配并映射到物理内存上</li>
+<li>Page的状态
+<ul>
+<li>Used，Page正在被进程使用，内存页也映射到物理内存中</li>
+<li>Free，该page可用，且内存页还没有被映射到物理内存中</li>
+<li>Cache，该Page被操作系统用于缓存的可用内存，虽然内存页已经被映射到物理内存中，但该Page可能近期没有被访问，如果Free page低于阈值时，操作系统会从Cache去获取内存，并将Cache页数据交换到磁盘，然后对Cache页进行清理，标记为Free Cache</li>
+</ul>
+</li>
+<li>Region，将Page组织成区域，是一块共享内存状态和保护级别的连续地址空间，可以由具有不同page状态的多个页面组成</li>
+<li>Region的状态
+<ul>
+<li>Resident：其中的配置页已经在物理内存中</li>
+<li>Dirty：配置已修改，但未写入磁盘</li>
+<li>Wired：代表永远不会交换到辅助存储的固定配置段</li>
+<li>Committed：代表已分配的内存区域，其地址不能被其他分配使用，是由RAM、磁盘上的分页文件或其他资源来支持的，访问权限由内存的保护级别控制</li>
+<li>Reserved：保留地址空间供将来使用，地址不会被其他分配使用，也不可访问，没有与之关联的物理存储</li>
+<li>Free：空闲内存区域，既不会Committed也不会Reserved，进程无法访问</li>
+</ul>
+</li>
+<li>Region的类型
+<ul>
+<li>Anonymous：与文件系统的文件并无关联，如c++使用malloc的任何分配</li>
+<li>Mapped：与文件系统、设备节点相关联，直接映射</li>
+</ul>
+</li>
+</ul>
+<h4 id="进程的内存结构">进程的内存结构</h4>
+<ul>
+<li>USS ：当前进程私有的Resident内存总和</li>
+<li>PSS ：当前进程常驻内存与其他进程共享的Resident内存总和</li>
+<li>RSS ：进程可访问的Resident常驻内存总和</li>
+<li>VSS : 总共Committed提交的Region内存总和</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304161709819.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304161709332.png" alt=""></p>
+<h4 id="各工具的内存指标">各工具的内存指标</h4>
+<ul>
+<li>Unity Memory Profiler是对VSS进行衡量的</li>
+<li>Windows资源管理器的内存指标是针对USS衡量</li>
+<li>Xcode上内存指标是RSS+压缩后内存交换页的大小</li>
+</ul>
+<h3 id="移动平台内存经验值数据分享">移动平台内存经验值数据分享</h3>
+<ul>
+<li>Texture: 80M-160M</li>
+<li>Mesh: 50M-70M</li>
+<li>Render Texture: 50-80M</li>
+<li>AnimationClips: 30-60M</li>
+<li>Audio: 10-20M</li>
+<li>Cubemap: 0-50M</li>
+<li>Font: 5M-15M</li>
+<li>Shader: 20M-40M（小心shader变体，看这篇https://blog.unity.com/engine-platform/stripping-scriptable-shader-variants）</li>
+<li><a target="_blank" rel="noopener" href="http://System.xxx">System.xxx</a> 总和：15M-30M（不要将大的配置表缓存进内存，特别是文本数据）</li>
+<li>AssetBundle: 0-10M</li>
+<li>其他各类对象单项：0-10M,数量小于10000</li>
+<li>ReservedMono: &lt;100M</li>
+<li>ReservedGFX: &lt;300M</li>
+<li>ReservedTotal: &lt;650M</li>
+</ul>
+<h3 id="主要优化手段">主要优化手段</h3>
+<ul>
+<li>导入资源优化设置</li>
+<li>如果Mesh占用的内存过高，就要考虑Static Batching使用是否划算了，可以在player setting中一键关闭</li>
+<li>如果使用了Terrain烘焙Mesh的方案，会造成顶点数和内存增高，考虑是否需要烘焙的优化方案</li>
+<li>RT纹理需要去除冗余资源，以及分辨率调整</li>
+<li>HDR纹理占用内存会增多一半左右</li>
+<li>Texture2d纹理可以强制控制（Texture Quality）某个平台使用某一级别以及以下级别的mipmap纹理，但这个需要运行前确认，适用于高中低机型调整
+<ul>
+<li>利用Mipmap Streaming功能可以运行时动态调整mipmap层级，使用少量cpu资源来降低GPU显存使用</li>
+<li>使用Streaming Controller脚本控制相机的mipmap bias偏移</li>
+<li>Unity关于Mipmap Streaming的示例项目+UI调试项目 <a target="_blank" rel="noopener" href="https://github.com/lwwhb/MipMapStreamingDemo">https://github.com/lwwhb/MipMapStreamingDemo</a></li>
+</ul>
+</li>
+<li>使用Editor.log查看打包shader 变体情况（剔除与收集），2022有dynamic_branch关键字，不会产生变体的分支</li>
+<li>托管内存优化技巧与建议
+<ul>
+<li>Boxing Allocation装箱操作</li>
+<li>使用lua和unity交互时，尽量不要传递unity内存对象，而是传递或返回基础类型值对象，lua内存查看：<a target="_blank" rel="noopener" href="https://github.com/leinlin/Miku-LuaProfiler">https://github.com/leinlin/Miku-LuaProfiler</a></li>
+<li>Stringt字符串拼接</li>
+<li>闭包分配</li>
+<li>避免使用Linq库，会生成大量托管堆垃圾内存</li>
+<li>Unity中提供了NonAlloc函数，如Physics.RayCastAll用Physics.RayCastAlINonAlloc代替</li>
+<li>有托管内存开销：Unity.Object.FindObjectsOfType、UnityEngine.Component.GetComponentsInParent、UnityEngine.Component.GetComponentslnChild 等</li>
+<li>成员变量访问方式
+<ul>
+<li>UnityEngine.Mesh.vertices=&gt; UnityEngine.Mesh.GetVertices,</li>
+<li>UnityEngine.Mesh.uv=&gt; UnityEngine.Mesh.GetUV</li>
+<li>UnityEngine.Renderer.sharedMaterials=&gt;UnityEngine.Renderer.GetSharedMaterials,</li>
+<li>Unity.lnput.touches=&gt;Unity.lnput.GeTouches等</li>
+</ul>
+</li>
+<li>程序集优化：Strip Engine Code</li>
+</ul>
+</li>
+</ul>
 
       </section>
 
@@ -606,7 +1005,7 @@
         <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
   <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
 </svg>
-        <span>91</span>
+        <span>92</span>
       </div>
       <div class="count-box--item">
         <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
@@ -651,14 +1050,8 @@
     <ul class="categorys-list">
       
         <li class="categorys-list-item">
-          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
-            工作 (1)
-          </a>
-        </li>
-      
-        <li class="categorys-list-item">
-          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
-            硬件 (2)
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (86)
           </a>
         </li>
       
@@ -669,14 +1062,20 @@
         </li>
       
         <li class="categorys-list-item">
-          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
-            学习 (85)
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
           </a>
         </li>
       
         <li class="categorys-list-item">
           <a href="/categories/%E8%BD%AF%E4%BB%B6/">
             软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
           </a>
         </li>
       
