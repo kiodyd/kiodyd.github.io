@@ -109,7 +109,7 @@
           
             <h2 class="title-sub-wrap new-date">
               <span>最后更新于</span>
-              <time  class="article-updated" datetime="2023-04-16T10:25:06.580Z" itemprop="dateUpdated">2023-04-16</time>
+              <time  class="article-updated" datetime="2023-04-17T07:27:06.480Z" itemprop="dateUpdated">2023-04-17</time>
             </h2>
           
           
@@ -658,6 +658,155 @@
 </li>
 <li>修改URP源码需要将Library中的PackageCache对应的包拷贝到Packages中，后续如果URP要升级只能手动Merge代码</li>
 </ul>
+<h2 id="Shader指令优化">Shader指令优化</h2>
+<blockquote>
+<p>如果要按渲染功能分级优化：Shader LOD</p>
+</blockquote>
+<blockquote>
+<p>Xcode查看Shader总体耗时排名：抓帧后将Group by API Call -&gt; Group by Pipeline State</p>
+</blockquote>
+<blockquote>
+<p>直接在Xcode抓帧中修改Shader后刷新即可看到修改变化</p>
+</blockquote>
+<h4 id="Shader四类性能指标">Shader四类性能指标</h4>
+<ol>
+<li>ALU: GPU逻辑处理单元的时间花费
+<ul>
+<li>Float指令占比过高时：浮点精度修改半浮点精度</li>
+<li>Complex过高时：减少sqrt、sin、cos、recip等复杂指令的使用</li>
+</ul>
+</li>
+<li>Memory: 代表访问程序的一些缓冲区或纹理内存的时间花费
+<ul>
+<li>Sample过高时：纹理降采样</li>
+<li>Load/Store过高时：降低分辨率或减少内存读写开销</li>
+</ul>
+</li>
+<li>Control Flow：着色器在分支、循环、增量、跳转等指令上花费的时间。
+<ul>
+<li>使用恒定的迭代记数来最小化循环时间</li>
+<li>使用一些指令替换或优化分支语句</li>
+</ul>
+</li>
+<li>Syuchrouization: 在指令执行前等待所需系统资源或同步事件所花费的时间
+<ul>
+<li>wait Memory：等待内存访问，如纹理采样或缓冲区读写Memory类的优化同样会改善此类同步问题</li>
+<li>wait Pixel:等待像素资源释放，除ColorAttachment外这些像素还来自深度与模版缓冲区或者用户自定义资源，Blender是造成像素等待的常见情况，合理的光栅化对象顺序（渲染排序）来减少等待时间</li>
+<li>Wait Barriar：等待同一组中其余线程完成，合理的compute shader group分组与线程分组可以改善这一情况</li>
+<li>Wait Atomic：等待原语指令同步，很难优化</li>
+</ul>
+</li>
+</ol>
+<h4 id="Shader数据类型精度">Shader数据类型精度</h4>
+<ul>
+<li>Float（32bit）（位置与纹理坐标信息时使用）</li>
+<li>Half（16bit）（纹理坐标与颜色信息时使用）</li>
+<li>Fixed（11bit）（颜色信息）（SRP下已不支持）</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304171057783.png" alt=""></p>
+<h4 id="尽量使用内置函数">尽量使用内置函数</h4>
+<blockquote>
+<p>不要自己造轮子，内置函数有ALU单元优化</p>
+</blockquote>
+<ul>
+<li>pow</li>
+<li>normalize</li>
+<li>dot</li>
+<li>inversesqrt</li>
+<li>…</li>
+</ul>
+<h4 id="超越函数">超越函数</h4>
+<blockquote>
+<p>一些变量之间关系不能用有限次加减乘除、乘方、开方运算表示的函数，这些函数在芯片上计算属于资源密集型函数，在低端设备上要慎用少用</p>
+</blockquote>
+<ul>
+<li>exp</li>
+<li>log</li>
+<li>sin,cos,tan…</li>
+<li>asin,acos,atan,atan2…</li>
+<li>sincos</li>
+<li>…</li>
+</ul>
+<h4 id="指令周期与阶段">指令周期与阶段</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304171102865.png" alt=""></p>
+<h4 id="指令优化">指令优化</h4>
+<ul>
+<li>mul + add =&gt; mad
+<ul>
+<li>(x-0.5)*1.5 -&gt; ×*1.5+(-0.75)</li>
+</ul>
+</li>
+<li>除法 =&gt; rcp
+<ul>
+<li>(t.x * t.y + t.z) / t.x -&gt; t.y + t.z * ( 1.0 / t.x )</li>
+</ul>
+</li>
+<li>对齐
+<ul>
+<li>float3 * float * float * float3 -&gt; (float*float) * (float3*float3)</li>
+</ul>
+</li>
+<li>abs或neg指令输出 =&gt; 输入
+<ul>
+<li>abs(a.x * a.y) -&gt; abs(a.x) * abs(a.y)</li>
+<li>-(a.x*a.y) -&gt; -a.× * a.y</li>
+</ul>
+</li>
+<li>saturate指令输入 =&gt; 输出
+<ul>
+<li>1.0-saturate(a) -&gt; saturate(1.0-a)</li>
+</ul>
+</li>
+<li>min或max =&gt; saturate (某些平合）
+<ul>
+<li>max(x, 0.0) = min (x, 1.0) -＞ saturate (x)</li>
+</ul>
+</li>
+<li>sart (×) = rcp (rsqrt (x)) : map to HW</li>
+<li>if0=&gt;sign(×) if/else=&gt;step(×) lerp (a, b, step (cx, cy));</li>
+<li>sin/cos/sincos &lt;&lt; asin/acos/atan/atan2/degrees/radians</li>
+<li>mul(v.m) v.x*m[0] +v.y*m[1] + v.z*m[2] + v.w*m[3] : MAD-MAD-MAD</li>
+<li>mul(float4(v.xyz, 1)) v.×*m[0] + v.y*m [1] + v.z*m [2] + m[3] : MUL-MAD-MAD-MAD</li>
+<li>v.x*m[01 + (v.y*m[1]+(v.z*m|2] + m[3])) : MUL-MAD-MAD-ADD</li>
+<li>normalize/length/distance都包含一个dot，可以共亨，length(a-b)与distance(a，b)可共享，但与distance(b，a)不共享</li>
+<li>normalize (vec) = vec * rsart(dot (vec, vec) ) ; 50*normalize (vec) -&gt; vec(50 * rsqrt(dot(vec, vec)))</li>
+<li>自表达式不共享指令
+<ul>
+<li>if(length(v) &gt; 1.0)</li>
+<li>V = normalize (v)</li>
+<li>return v</li>
+</ul>
+</li>
+<li>mul =&gt; mul24(高版本用于向量前三个相乘)</li>
+<li>fma 注重精度的mad</li>
+<li>texture.Load VS texture.Sample, Load (tc, offset) &gt; Samole (tc, offset)</li>
+<li>FS=&gt;VS，均衡GPU着色器负载</li>
+<li>避免隐式转换，Vector4转成Vector3</li>
+<li>Varying数据尽可能组织成向量形式，而非标量，从而减少MissCache</li>
+</ul>
+<h4 id="其他指令优化">其他指令优化</h4>
+<ul>
+<li>[branch]UNITY_BRANCH ：真分支是否动态判断，语句比较多，且大概率走其中某一条分支</li>
+<li>[flatten]UNITY_FLATTEN ：分支是否展开，分支语句比较简单的情况，比如少于6条语句的分支</li>
+<li>[loop] UNITY_LOOP ：循环语句不展开，标记为真循环</li>
+<li>[unroll] UNITY_UNROLL ：循环语句展开</li>
+<li>[unroll(_x)] UNITY_UNROLL (_x) ：循环语句展开到第几层</li>
+</ul>
+<h4 id="Early-z失效">Early-z失效</h4>
+<ul>
+<li>开启Alpha Test</li>
+<li>Clip()</li>
+<li>Discard</li>
+<li>Alpha Coverage</li>
+<li>光栅化后修改深度</li>
+<li>手动关闭Depth Test</li>
+</ul>
+<h4 id="某些平台慎用或推荐用某些内置功能">某些平台慎用或推荐用某些内置功能</h4>
+<ul>
+<li>Alpha Test，需要真机测验</li>
+<li>Color Mask，需要真机测验</li>
+<li>sRGB硬件解压，大多数平台推荐用</li>
+</ul>
 <h2 id="内存优化">内存优化</h2>
 <h3 id="Unity中的内存概述与工具方法">Unity中的内存概述与工具方法</h3>
 <table>
@@ -1005,7 +1154,7 @@ MEMORY_USE_LARGE_BLOCKS，如果分配失败会会退到虛拟内存分配，效
         <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
   <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
 </svg>
-        <span>92</span>
+        <span>93</span>
       </div>
       <div class="count-box--item">
         <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
@@ -1050,8 +1199,14 @@ MEMORY_USE_LARGE_BLOCKS，如果分配失败会会退到虛拟内存分配，效
     <ul class="categorys-list">
       
         <li class="categorys-list-item">
-          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
-            学习 (86)
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
           </a>
         </li>
       
@@ -1062,20 +1217,14 @@ MEMORY_USE_LARGE_BLOCKS，如果分配失败会会退到虛拟内存分配，效
         </li>
       
         <li class="categorys-list-item">
-          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
-            硬件 (2)
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (87)
           </a>
         </li>
       
         <li class="categorys-list-item">
           <a href="/categories/%E8%BD%AF%E4%BB%B6/">
             软件 (2)
-          </a>
-        </li>
-      
-        <li class="categorys-list-item">
-          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
-            工作 (1)
           </a>
         </li>
       
