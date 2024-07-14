@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>Unity Shader入门精要-章节11 让画面动起来 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">Unity Shader入门精要-章节11 让画面动起来</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2022-10-18T14:33:00.000Z" itemprop="datePublished">2022-10-18</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-07-14T09:03:59.225Z" itemprop="dateUpdated">2024-07-14</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/">🏷️ Unity Shader入门精要</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <p>求知若饥，虚心若愚</p>
+<span id="more"></span>
+<h3 id="UnityShader中的内置变量（时间篇）">UnityShader中的内置变量（时间篇）</h3>
+<p>动画效果往往都是把时间添加到一些变量的计算中，以便在时间变化时画面也可以随之变化。</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>_Time</td>
+<td>float4</td>
+<td>t是自该场景加载开始所经过的时间，4个分量的值分别是(t/20,t,2t,3t)。</td>
+</tr>
+<tr>
+<td>_SinTime</td>
+<td>float4</td>
+<td>t是时间的正弦值，4个分量的值分别是(t/8,t/4,t/2,t)。</td>
+</tr>
+<tr>
+<td>_CosTime</td>
+<td>float4</td>
+<td>t是时间的余弦值，4个分量的值分别是(t/8,t/4,t/2,t)。</td>
+</tr>
+<tr>
+<td>unity_DeltaTime</td>
+<td>float4</td>
+<td>dt是时间增量，4个分量的值分别是(dt,1/dt,smoothDt,1/smoothDt)。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="纹理动画">纹理动画</h3>
+<p>在游戏中应用广泛。尤其是在资源局限的移动平台上，会使用纹理动画代替复杂的粒子系统模拟动画效果。</p>
+<h6 id="序列帧动画">序列帧动画</h6>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Unity Shaders Learn/Chapter11/ImageSequenceAnimation&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Color (&quot;Color Tint&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _MainTex (&quot;Image Sequence&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _HorizontalAmount (&quot;Horizontal Amount&quot;, Float) = 4</span><br><span class="line">        _VerticalAmount (&quot;Vertical Amount&quot;, Float) = 4</span><br><span class="line">        _Speed (&quot;Animation Speed&quot;, Range(1, 100)) = 30</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags &#123;&quot;Queue&quot;=&quot;Transparent&quot; &quot;IgnoreProjector&quot;=&quot;True&quot; &quot;RenderType&quot;=&quot;Transparent&quot;&#125;</span><br><span class="line">        Pass </span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123;&quot;LightMode&quot; = &quot;ForwardBase&quot;&#125;</span><br><span class="line">            ZWrite Off</span><br><span class="line">            Blend SrcAlpha OneMinusSrcAlpha</span><br><span class="line">            </span><br><span class="line">            CGPROGRAM</span><br><span class="line">            #pragma vertex vert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line"></span><br><span class="line">            #include &quot;UnityCG.cginc&quot;</span><br><span class="line"></span><br><span class="line">            fixed4 _Color;</span><br><span class="line">            sampler2D _MainTex;</span><br><span class="line">            float4 _MainTex_ST;</span><br><span class="line">            float _HorizontalAmount;</span><br><span class="line">            float _VerticalAmount;</span><br><span class="line">            float _Speed;</span><br><span class="line"></span><br><span class="line">            struct a2v</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float4 texcoord : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line">                o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">                o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);</span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            fixed4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                float time = floor(_Time.y * _Speed);</span><br><span class="line">                float row = floor(time / _HorizontalAmount);</span><br><span class="line">                float col = time - row * _HorizontalAmount;</span><br><span class="line"></span><br><span class="line">                // 先分成小块，再计算偏移多少个小块</span><br><span class="line">                // half2 uv = float2(i.uv.x / _HorizontalAmount, i.uv.y / _VerticalAmount);</span><br><span class="line">                // uv.x += col/_HorizontalAmount;</span><br><span class="line">                // uv.y -= row/_VerticalAmount;</span><br><span class="line"></span><br><span class="line">                half2 uv = i.uv + half2(col, -row);</span><br><span class="line">                uv.x /= _HorizontalAmount;</span><br><span class="line">                uv.y /= _VerticalAmount;</span><br><span class="line"></span><br><span class="line">                fixed4 color = tex2D(_MainTex, uv);</span><br><span class="line">                color.rgb *= _Color;</span><br><span class="line">                return color;</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    FallBack &quot;Transparent/VertexLit&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>_Time.y得到场景加载后经过的时间，乘以_Speed来得到模拟的时间。取整后来计算当前纹理的行列，以得到正确的采样坐标。<br>
+<img src="http://static.zybuluo.com/candycat/l0k525lbsoqgxvy6hx0qcypv/boom.png" alt="image"></p>
+<h6 id="滚动的背景">滚动的背景</h6>
+<p>很多2D游戏使用了不断滚动的背景来模拟角色在场景中的穿梭，用多个层（layers）来模拟视差效果。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Unity Shaders Learn/Chapter11/ScrollingBackground&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _MainTex (&quot;Base Layer (RGB)&quot;, 2D) = &quot;white&quot; &#123;&#125;      //第一层（较远）背景纹理</span><br><span class="line">        _DetailTex (&quot;2nd Layer (RGB)&quot;, 2D) = &quot;white&quot; &#123;&#125;     //第二层（较近）背景纹理</span><br><span class="line">        _ScrollX (&quot;Base Layer Scroll Speed&quot;, Float) = 1.0   //第一层速度</span><br><span class="line">        _Scroll2X (&quot;2nd Layer Scroll Speed&quot;, Float) = 1.0   //第二层速度</span><br><span class="line">        _Multiplier (&quot;Layer Multiplier&quot;, Float) = 1         //整体亮度</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123;&quot;LightMode&quot;=&quot;ForwardBase&quot;&#125;</span><br><span class="line">            CGPROGRAM</span><br><span class="line"></span><br><span class="line">            #include &quot;UnityCG.cginc&quot;</span><br><span class="line">            </span><br><span class="line">            #pragma vertex vert;</span><br><span class="line">            #pragma fragment frag;</span><br><span class="line"></span><br><span class="line">            sampler2D _MainTex;</span><br><span class="line">            float4 _MainTex_ST;</span><br><span class="line">            sampler2D _DetailTex;</span><br><span class="line">            float4 _DetailTex_ST;</span><br><span class="line">            float _ScrollX;</span><br><span class="line">            float _Scroll2X;</span><br><span class="line">            float _Multiplier;</span><br><span class="line"></span><br><span class="line">            struct a2v</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float4 texcoord : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float4 uv : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line">                o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">                // 这里是不断给uv加偏移，frac是取小数点部分（x - floor(x)）, 线性变化</span><br><span class="line">                o.uv.xy = TRANSFORM_TEX(v.texcoord, _MainTex) + frac(float2(_ScrollX, 0.0) * _Time.y);</span><br><span class="line">                o.uv.zw = TRANSFORM_TEX(v.texcoord, _DetailTex) + frac(float2(_Scroll2X, 0.0) * _Time.y);</span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            fixed4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                fixed4 firstLayer = tex2D(_MainTex, i.uv.xy);</span><br><span class="line">                fixed4 secondLayer = tex2D(_DetailTex, i.uv.zw);</span><br><span class="line"></span><br><span class="line">                fixed4 color = lerp(firstLayer, secondLayer, secondLayer.a);</span><br><span class="line">                color *= _Multiplier;</span><br><span class="line">                return color;</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    FallBack &quot;VertexLit&quot; </span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>在顶点着色器中，使用一个float4记录两张贴图的纹理坐标，用_Time.y在水平方向上进行偏移，达到滚动的效果。在片元着色器中，分别采样，用近层的透明通道值通过lerp来混合两张纹理。</p>
+<p><img src="http://static.zybuluo.com/candycat/2kti0v0qeqdg3nh4k1g1tvd9/scroll_background.png" alt="image"></p>
+<h3 id="顶点动画">顶点动画</h3>
+<p>常使用顶点动画来模拟飘动的旗帜、湍流的小溪等。</p>
+<h6 id="流动的河流">流动的河流</h6>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Unity Shaders Learn/Chapter11/Water&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Color (&quot;Color Tint&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _MainTex (&quot;Main Tex&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _Magnitude (&quot;Distortion Magnitude&quot;, Float) = 1 // 水流波动的幅度</span><br><span class="line">        _Frequency (&quot;Distortion Frequency&quot;, Float) = 1 // 水流波动的频率</span><br><span class="line">        _InWaveLength (&quot;Distortion Inverse Wave Length&quot;, Float) = 10 // 波长的倒数</span><br><span class="line">        _Speed (&quot;Speed&quot;, Float) = 0.5 // 控制uv采样的速度</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags &#123;</span><br><span class="line">            &quot;Queue&quot;=&quot;Transparent&quot;</span><br><span class="line">            &quot;IgnoreProjector&quot;=&quot;True&quot;</span><br><span class="line">            &quot;RenderType&quot;=&quot;Transparent&quot;</span><br><span class="line">            &quot;DisableBatching&quot;=&quot;True&quot; //不使用批处理，因为要做顶点动画</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123;&quot;LightMode&quot;=&quot;ForwardBase&quot;&#125;</span><br><span class="line">            ZWrite Off</span><br><span class="line">            Blend SrcAlpha OneMinusSrcAlpha</span><br><span class="line">            Cull Off</span><br><span class="line">            </span><br><span class="line">            CGPROGRAM</span><br><span class="line">            #pragma vertex vert;</span><br><span class="line">            #pragma fragment frag;</span><br><span class="line"></span><br><span class="line">            #include &quot;UnityCG.cginc&quot;</span><br><span class="line"></span><br><span class="line">            fixed4 _Color;</span><br><span class="line">            sampler2D _MainTex;</span><br><span class="line">            float4 _MainTex_ST;</span><br><span class="line">            float _Magnitude;</span><br><span class="line">            float _Frequency;</span><br><span class="line">            float _InWaveLength;</span><br><span class="line">            float _Speed;</span><br><span class="line"></span><br><span class="line">            struct a2v</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float4 texcoord : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line"></span><br><span class="line">                float4 offset;</span><br><span class="line">                offset.yzw = float3(0.0, 0.0, 0.0);</span><br><span class="line">                offset.x = sin(_Frequency * _Time.y + v.vertex.x * _InWaveLength + v.vertex.y * _InWaveLength</span><br><span class="line">                     + v.vertex.z * _InWaveLength) * _Magnitude;</span><br><span class="line">                o.pos = UnityObjectToClipPos(v.vertex + offset);</span><br><span class="line"></span><br><span class="line">                o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);</span><br><span class="line">                o.uv += float2(0.0, _Time.y * _Speed);</span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            fixed4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                fixed4 c = tex2D(_MainTex, i.uv);</span><br><span class="line">                c.rgb *= _Color.rgb;</span><br><span class="line">                return c;</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    FallBack &quot;Transparent/VertexLit&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>在SubShader的Tags中，将DisableBatching设置为True来禁用批处理，因为批处理合并了所有相关的模型，各自的模型空间就丢失了，影响我们在物体的模型空间下对顶点位置进行偏移。之后在顶点着色器中，对顶点的X坐标进行位移。<br>
+<img src="http://static.zybuluo.com/candycat/zbckc0o5c8ygxj52o1vjl6gn/river.png" alt="image"></p>
+<h6 id="广告牌">广告牌</h6>
+<p>广告牌技术（Billboarding），会根据视角方向旋转一个被纹理着色的多边形，使多边形看起来好像总是面对摄像机。应用例如渲染烟雾、云朵、闪光效果等。</p>
+<p>本质是构建旋转矩阵。使用的基向量通常是<strong>表面法线（normal）</strong> 、<strong>指向上的方向（up）</strong> 、<strong>指向右的方向（right）</strong> 以及<strong>锚点（anchor location）</strong> 。</p>
+<p>如何构建3个相互正交的基向量：首先会通过初始计算得到目标的表面法线和指向上的方向，两者往往是不垂直的，但两者其中之一是固定的。通过这可以计算出指向右的方向：<img src="https://math.now.sh?inline=right%3Dup%20%5Ctimes%20normal" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/>。例如模拟例子效果时，法线总是指向视角方向， 计算出right后，在叉积计算出修改后向上的方向：<img src="https://math.now.sh?inline=up%3Dnormal%20%5Ctimes%20right" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/>。<br>
+<img src="http://static.zybuluo.com/candycat/nmwj4c59j8dif8828fehq477/basis_vector.png" alt="image"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Unity Shaders Learn/Chapter11/Billboard&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Color (&quot;Color&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _MainTex (&quot;Albedo (RGB)&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _VerticalBillboarding (&quot;Vertical Restraints&quot;, Range(0, 1)) = 1</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags </span><br><span class="line">        &#123;</span><br><span class="line">            &quot;Queue&quot;=&quot;Transparent&quot;</span><br><span class="line">            &quot;IgnoreProjector&quot;=&quot;True&quot;</span><br><span class="line">            &quot;RenderType&quot;=&quot;Transparent&quot;</span><br><span class="line">            &quot;DisableBatching&quot;=&quot;True&quot; //不使用批处理，因为要做顶点动画</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123;&quot;LightMode&quot;=&quot;ForwardBase&quot;&#125;</span><br><span class="line">            ZWrite Off</span><br><span class="line">            Blend SrcAlpha OneMinusSrcAlpha</span><br><span class="line">            Cull Off</span><br><span class="line">            </span><br><span class="line">            CGPROGRAM</span><br><span class="line">            #pragma vertex vert;</span><br><span class="line">            #pragma fragment frag;</span><br><span class="line"></span><br><span class="line">            #include &quot;UnityCG.cginc&quot;</span><br><span class="line"></span><br><span class="line">            fixed4 _Color;</span><br><span class="line">            sampler2D _MainTex;</span><br><span class="line">            float4 _MainTex_ST;</span><br><span class="line">            fixed _VerticalBillboarding;</span><br><span class="line">            </span><br><span class="line"></span><br><span class="line">            struct a2v</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float4 texcoord : TEXCOORD0;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line">                </span><br><span class="line">                float3 center = float3(0, 0, 0); //选定广告牌的锚点</span><br><span class="line">                float3 viewer = mul(unity_WorldToObject, fixed4(_WorldSpaceCameraPos, 1)); //获取摄像机模型空间位置</span><br><span class="line"></span><br><span class="line">                float3 normalDir = viewer - center; //假设法线方向朝向摄像机</span><br><span class="line">                //_VerticalBillboarding为0时说明，朝上的方向是固定的（所以这个时候法线的y分量肯定为0，不然怎么和向上垂直）</span><br><span class="line">                normalDir.y *= _VerticalBillboarding;</span><br><span class="line">                //_VerticalBillboarding不为0则对法线无影响，做了归一化</span><br><span class="line">                normalDir = normalize(normalDir);       </span><br><span class="line"></span><br><span class="line">                // 保证不与法线平行，同时x分量为0时右方向计算是正确的</span><br><span class="line">                // 如果法线已经向上，那么向上方向应该朝前</span><br><span class="line">                // 除非法线向上，否则先将向上方向近似设置为0,1,0</span><br><span class="line">                float3 upDir = abs(normalDir.y) &gt; 0.999 ? float3(0,0,1) : float3(0,1,0);</span><br><span class="line">                float3 rightDir = normalize(cross(upDir, normalDir));</span><br><span class="line">                upDir = normalize(cross(normalDir, rightDir)); //更新正确的上方向</span><br><span class="line"></span><br><span class="line">                // 将坐标变换到新的正交基坐标系</span><br><span class="line">                float3 centerOffs = v.vertex.xyz - center;</span><br><span class="line">                float3 localPos = center + rightDir * centerOffs.x + upDir * centerOffs.y + normalDir * centerOffs.z;</span><br><span class="line"></span><br><span class="line">                o.pos = UnityObjectToClipPos(localPos);</span><br><span class="line"></span><br><span class="line">                o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);</span><br><span class="line">                </span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            fixed4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                fixed4 c = tex2D(_MainTex, i.uv);</span><br><span class="line">                c.rgb *= _Color.rgb;</span><br><span class="line">                return c;</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    FallBack &quot;Transparent/VertexLit&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>广告牌效果。<br>左图显示了摄像机和5个广告牌之间的位置关系，摄像机是从斜上方向下观察它们的。<br>中间的图显示了当Vertical Restraints属性为1，即固定法线方向为观察视角时所得到的效果，可以看出，所有的广告牌都完全面朝摄像机。<br>右图显示了当Vertical Restraints属性为0，即固定指向上的方向为(0, 1, 0)时所得到的效果，可以看出，广告牌虽然最大限度地面朝摄像机，但其指向上的方向并未发生改变<br>
+<img src="http://static.zybuluo.com/candycat/bndvgjiho7jr1zpercpxh6iu/billboard.png" alt="image"></p>
+<h6 id="注意事项">注意事项</h6>
+<ul>
+<li>取消批处理会导致一定的性能下降，增加了DrawCall。要尽量避免显式使用模型空间下的一些绝对位置和方向进行运算，在广告牌这个例子中可以利用顶点颜色来存储每个顶点到锚点的距离。</li>
+<li>顶点动画的物体阴影投射是不带动画的（使用Fallback为Diffuse等），除非重新定义ShadowCasterPass，或者干脆用Transparent/VertexLit不要阴影。</li>
+</ul>
+<p>以下对原有河流动画新增ShadowCasterPass</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">//V2F_SHADOW_CASTER,TRANSFER_SHADOW_CASTER_NORMALOFFSET,SHADOW_CASTER_FRAGMENT三剑客</span><br><span class="line">Pass</span><br><span class="line">&#123;</span><br><span class="line">    Tags &#123;&quot;LightMode&quot;=&quot;ShadowCaster&quot;&#125;</span><br><span class="line">    CGPROGRAM</span><br><span class="line">    #pragma vertex vert;</span><br><span class="line">    #pragma fragment frag;</span><br><span class="line">    #pragma multi_compile_shadowcaster</span><br><span class="line">    #include &quot;UnityCG.cginc&quot;</span><br><span class="line">    </span><br><span class="line">    float _Magnitude;</span><br><span class="line">    float _Frequency;</span><br><span class="line">    float _InWaveLength;</span><br><span class="line">    float _Speed;</span><br><span class="line">    </span><br><span class="line">    struct a2v</span><br><span class="line">    &#123;</span><br><span class="line">        float4 vertex : POSITION;</span><br><span class="line">        float4 texcoord : TEXCOORD0;</span><br><span class="line">        float3 normal : NORMAL;</span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    struct v2f</span><br><span class="line">    &#123;</span><br><span class="line">        V2F_SHADOW_CASTER;</span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    v2f vert(a2v v)</span><br><span class="line">    &#123;</span><br><span class="line">        v2f o;</span><br><span class="line">        float4 offset;</span><br><span class="line">        offset.yzw = float3(0.0, 0.0, 0.0);</span><br><span class="line">        offset.x = sin(_Frequency * _Time.y + v.vertex.x * _InWaveLength + v.vertex.y *_InWaveLength</span><br><span class="line">             + v.vertex.z * _InWaveLength) * _Magnitude;</span><br><span class="line">        v.vertex = v.vertex + offset;</span><br><span class="line">        </span><br><span class="line">        TRANSFER_SHADOW_CASTER_NORMALOFFSET(o)</span><br><span class="line">        </span><br><span class="line">        return o;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    fixed4 frag(v2f i) : SV_Target</span><br><span class="line">    &#123;</span><br><span class="line">        SHADOW_CASTER_FRAGMENT(i)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    ENDCG</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/95d61eab/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity Shader入门精要-章节12 屏幕后处理效果</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/b409fafc/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity Shader入门精要-章节10 高级纹理</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形-2.7 LDR与HDR | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形-2.7 LDR与HDR</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-02-02T13:42:53.000Z" itemprop="datePublished">2023-02-02</time>
+          </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="基本概念">基本概念</h2>
+<h5 id="LDR">LDR</h5>
+<ul>
+<li>全称：Low Dynamic Range</li>
+<li>8位精度（0-255）</li>
+<li>单通道0-1</li>
+<li>常用LDR图片存储的格式有jpg/png等</li>
+<li>常用DCC工具中的拾色器、一般的图片、电脑屏幕都是LDR</li>
+</ul>
+<h5 id="HDR">HDR</h5>
+<ul>
+<li>全称：High Dynamic Range</li>
+<li>远高于8位精度</li>
+<li>单通道可以超过1</li>
+<li>常用HDR图片存储的格式有hdr/tif/exr/raw等（其中很多是相机常用格式）</li>
+<li>HDRI、真实世界</li>
+</ul>
+<h5 id="补充">补充</h5>
+<ul>
+<li>
+<p>Dynamic Range（动态范围）= 最高亮度/最低亮度</p>
+</li>
+<li>
+<p>ToneMapping：将超高的动态范围（HDR）转换到我们日常显示的屏幕上的低动态范围（LDR）的过程</p>
+</li>
+<li>
+<p>生活中的动态范围：</p>
+<ul>
+<li>因为不同的厂家生产的屏幕亮度（物理）实际上是不统一的，那么我们在说LDR时，它是一个0到1范围的值，对应到不同的屏幕上就是匹配当前屏幕的最低亮度 0 和最高亮度 1</li>
+<li>自然界中的亮度差异是非常大的。例如，蜡烛的光强度大约为15，而太阳光的强度大约为10w。这中间的差异是非常大的，有着超级高的动态范围。</li>
+<li>我们日常使用的屏幕，其最高亮度是经过一系列经验积累的，所以使用、用起来不会对眼睛有伤害；但自然界中的，比如我们直视太阳时，实际上是会对眼睛产生伤害的。</li>
+</ul>
+</li>
+<li>
+<p>相机是如何将HDR映射到LDR的</p>
+<ul>
+<li>首先将曝光值进行计算，映射到相机可以感应的范围</li>
+<li>受光圈、快门、传感器的灵敏度等影响</li>
+<li>然后把这个值输入为线性的值，存储到图片中（一般为raw格式）</li>
+<li>之后会经过一个变化（LUT），通过白平衡、色彩校正、色调映射、伽马校正这个过程，最后的结果烘焙成LUT（pbr中LUT的图，就是这个过程的结果）</li>
+<li>每个相机厂商的LUT格式不太一样。</li>
+</ul>
+</li>
+</ul>
+<h5 id="为什么需要HDR">为什么需要HDR</h5>
+<p>更好的色彩，更高的动态范围和更丰富的细节,  并且有效的防止画面过曝</p>
+<p>超过亮度值1的色彩也能很好的表现，像素光亮度变得正常，视觉传达更加真实</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_196bf72455c7701125fcab3153741a5a.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_196bf72455c7701125fcab3153741a5a.png"></p>
+<p>HDR才有超过1的数值，才有光晕（bloom）的效果，高质量的bloom能体现画面的渲染品质</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_2e54b9ee50e8038b977818848b7ef57f.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_2e54b9ee50e8038b977818848b7ef57f.png"></p>
+<h5 id="HDR图资源站">HDR图资源站</h5>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.hdrlabs.com/sibl/archive.html">http://www.hdrlabs.com/sibl/archive.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.openfootage.net/hdri-panorama/">https://www.openfootage.net/hdri-panorama/</a></li>
+</ul>
+<h2 id="Unity中的HDR">Unity中的HDR</h2>
+<h5 id="Camera-HDR设置">Camera-HDR设置</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4579e4dfa12083df1e696c72c2497dee.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4579e4dfa12083df1e696c72c2497dee.png"></p>
+<ul>
+<li>将场景渲染为 HDR 图像缓冲区</li>
+<li>屏幕后处理：Bloom &amp; Tonemapping</li>
+<li>在ToneMapping过程中，会把HDR转换为LDR</li>
+<li>LDR图像发送给显示器</li>
+</ul>
+<h5 id="Lightmap的HDR设置">Lightmap的HDR设置</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_b740f4aa196ee1232138d4d4817ae308.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_b740f4aa196ee1232138d4d4817ae308.png"></p>
+<ul>
+<li>选择High Quality将启用HDR光照贴图的支持，选择Normal Quality将切换为使用RGBM编码</li>
+<li>RGBM编码：将颜色存储在RGB通道中，将乘数（M）存储在Alpha通道中</li>
+</ul>
+<h5 id="拾色器的HDR设置">拾色器的HDR设置</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_8bcaeda3d91bd235e74beb8541438719.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_8bcaeda3d91bd235e74beb8541438719.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_af7bc1bfc178dac0b58a277417f0eb8c.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_af7bc1bfc178dac0b58a277417f0eb8c.png"></p>
+<ul>
+<li>如果将Property的颜色参数的前边加上[HDR]就会将其标识为HDR</li>
+<li>颜色设置为HDR，那么拾色器中就会出现一个Intensity的滑条用来调整强度</li>
+<li>滑条每增加1，提供的光强度增加一倍</li>
+</ul>
+<h5 id="HDR优缺点">HDR优缺点</h5>
+<ul>
+<li>
+<p>优点</p>
+<ul>
+<li>画面中亮度超过1的部分不会被截掉，增加了亮部的细节，减少了曝光</li>
+<li>减少画面暗部的色阶感</li>
+<li>更好的支持bloom效果</li>
+</ul>
+</li>
+<li>
+<p>缺点</p>
+<ul>
+<li>渲染速度慢，需要更多显存</li>
+<li>不支持硬件抗锯齿</li>
+<li>部分低端手机不支持</li>
+</ul>
+</li>
+</ul>
+<h2 id="HDR与Bloom">HDR与Bloom</h2>
+<ul>
+<li>
+<p>Bloom用来表现光晕的效果，提高画面的表现力</p>
+</li>
+<li>
+<p>实现过程：</p>
+<ul>
+<li>渲染出原图</li>
+<li>计算超过某个阈值的高光像素</li>
+<li>对高光的像素进行高斯模糊</li>
+<li>然后叠加光晕、成图</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_422ace5214ccc97bdaca0059d250bdcd.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_422ace5214ccc97bdaca0059d250bdcd.png"></p>
+</li>
+<li>
+<p>Unity中的Bloom过程</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4c2447dd5367bb5ccdae956b2cf73bdb.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4c2447dd5367bb5ccdae956b2cf73bdb.png"></p>
+<ul>
+<li>详细后面课程会提</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/339443207">https://zhuanlan.zhihu.com/p/339443207</a></li>
+<li><a target="_blank" rel="noopener" href="https://catlikecoding.com/unity/tutorials/advanced-rendering/bloom">https://catlikecoding.com/unity/tutorials/advanced-rendering/bloom</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="HDR与ToneMapping">HDR与ToneMapping</h2>
+<h5 id="ToneMapping概念">ToneMapping概念</h5>
+<p>在显示器上表现更高动态范围的颜色，将HDR转换为LDR的过程（映射关系为色调映射）</p>
+<p>下图为直接用线性的亮度映射效果不佳，不符合真实世界规律，一般所有的映射最后都是通过一个s曲线来实现</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4b64b8877bc2e4f481f5df94f067c201.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4b64b8877bc2e4f481f5df94f067c201.png"></p>
+<h5 id="ACES曲线">ACES曲线</h5>
+<ul>
+<li>Academy Color Encording System学院颜色编码系统</li>
+<li>是最流行、最被广泛使用的ToneMapping映射曲线</li>
+<li>效果：对比度提高，能很好的保留暗部和亮部的细节</li>
+<li>之后在这个基础上再进行调色</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_af20f68d6b3d405724545a106b71b07a.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_af20f68d6b3d405724545a106b71b07a.png"></p>
+<h5 id="其他类型的ToneMapping曲线">其他类型的ToneMapping曲线</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_47678dcc977f3eda694a9815bd2c237d.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_47678dcc977f3eda694a9815bd2c237d.png"></p>
+<h5 id="LUT（Lookup-Table）">LUT（Lookup Table）</h5>
+<ul>
+<li>感觉像素映射，也可以说是滤镜，通过LUT，你可以将一组RGB值输出为另一组RGB值，从而改变画面的曝光与色彩（傅老师的课用过，以及做卡渲的时候）</li>
+<li>和ToneMapping不同，LUT是在LDR之间做变化。 而ToneMapping是对HDR做变换的。</li>
+<li>可以在PS中调整LUT，导出的LUT作为滤镜调整画面<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_415aa62d5b4780b2a18b3120cfa34c70.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_415aa62d5b4780b2a18b3120cfa34c70.png"></li>
+</ul>
+<h2 id="参考资料来源">参考资料来源</h2>
+<ul>
+<li>《Unity Shader入门精要》</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/57897827">https://docs.unity.cn/cn/current/Manual/HDR.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/57897827">https://zhuanlan.zhihu.com/p/91390940</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/57897827">https://zhuanlan.zhihu.com/p/80253409</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/57897827">https://zhuanlan.zhihu.com/p/21983679</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/57897827">http://www.openexr.org/</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/57897827">http://www.hdrlabs.com/sibl/archive.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/66518450">https://zhuanlan.zhihu.com/p/66518450</a></li>
+<li><a target="_blank" rel="noopener" href="https://learnopengl.com/PBR/IBL/Diffuse-irradiance">https://learnopengl.com/PBR/IBL/Diffuse-irradiance</a></li>
+<li><a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/05%20Advanced%20Lighting/06%20HDR">https://learnopengl-cn.github.io/05 Advanced Lighting/06 HDR</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/21983679">https://zhuanlan.zhihu.com/p/21983679</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/421398402">https://zhuanlan.zhihu.com/p/421398402</a></li>
+<li>大佬笔记
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/vz02zt">https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/vz02zt</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43210334/article/details/117415250">https://blog.csdn.net/qq_43210334/article/details/117415250</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/zohar-jpfbj/tiacmz/sxo4g0">https://www.yuque.com/zohar-jpfbj/tiacmz/sxo4g0</a>?</li>
+<li><a target="_blank" rel="noopener" href="https://xzyw7.github.io/post/1_JYIZ9Hm/">https://xzyw7.github.io/post/1_JYIZ9Hm/</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="作业">作业</h2>
+<h5 id="结合先行版基础渲染光照介绍（一）试试IBL在HDR和LDR的区别">结合先行版基础渲染光照介绍（一）试试IBL在HDR和LDR的区别</h5>
+<p>使用了Unity的IBL技术试了下HDR、LDR贴图的不同（后续用split sum试试）</p>
+<p>左侧HDR，右侧LDR</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_33a15ab8666f081a2f318676292ce7a5.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_33a15ab8666f081a2f318676292ce7a5.png"></p>
+<p>可以明显看出星体和行星带部分HDR会比LDR效果更亮一些，符合我们现实观察天体的效果，也增强了画面表现力、宽容度。</p>
+<p>使用不同的mipmap层级，HDR保留的细节会多一点，毕竟精度更高。目前用的是和先行版_Gloss计算层级，下面是PBR中用粗糙度控制</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">float3 reflectDirWS = reflect(-viewWS,normalWS);</span><br><span class="line">roughness = roughness * (1.7 - 0.7 * roughness); </span><br><span class="line">float MidLevel = roughness * 6;</span><br><span class="line">//不同等级mipmap采样</span><br><span class="line">float4 specColor = SAMPLE_TEXTURECUBE_LOD(_CubeMap,sampler_CubeMap,reflectDirWS,MidLevel);</span><br></pre></td></tr></table></figure>
+<h5 id="补充下各个ToneMapping实现">补充下各个ToneMapping实现</h5>
+<ul>
+<li>
+<p>Reinhard tone mapping</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">float3 ReinhardToneMapping(float3 color, float adapted_lum)</span><br><span class="line">&#123;</span><br><span class="line">    const float MIDDLE_GREY = 1;</span><br><span class="line">    color *= MIDDLE_GREY / adapted_lum;</span><br><span class="line">    return color / (1.0f + color);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>CryEngine2的做法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">float3 CEToneMapping(float3 color, float adapted_lum)</span><br><span class="line">&#123;</span><br><span class="line">    return 1 - exp(-adapted_lum * color);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>Filmic tone mapping</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">float3 F(float3 x)</span><br><span class="line">&#123;</span><br><span class="line">    const float A = 0.22f;</span><br><span class="line">    const float B = 0.30f;</span><br><span class="line">    const float C = 0.10f;</span><br><span class="line">    const float D = 0.20f;</span><br><span class="line">    const float E = 0.01f;</span><br><span class="line">    const float F = 0.30f;</span><br><span class="line"></span><br><span class="line">    return ((x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F)) - E / F;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">float3 Uncharted2ToneMapping(float3 color, float adapted_lum)</span><br><span class="line">&#123;</span><br><span class="line">    const float WHITE = 11.2f;</span><br><span class="line">    return F(1.6f * adapted_lum * color) / F(WHITE);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>ACES</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">float3 ACESToneMapping(float3 color, float adapted_lum)</span><br><span class="line">&#123;</span><br><span class="line">	const float A = 2.51f;</span><br><span class="line">	const float B = 0.03f;</span><br><span class="line">	const float C = 2.43f;</span><br><span class="line">	const float D = 0.59f;</span><br><span class="line">	const float E = 0.14f;</span><br><span class="line"></span><br><span class="line">	color *= adapted_lum;</span><br><span class="line">	return (color * (A * color + B)) / (color * (C * color + D) + E);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/5f747fab/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-2.5 Bump Map 凹凸映射</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/465804e3/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-2.6 伽马校正</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形 2.7.2 GPU硬件架构 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形 2.7.2 GPU硬件架构</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-02-28T07:48:05.000Z" itemprop="datePublished">2023-02-28</time>
+          </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="相关问题与回答">相关问题与回答</h2>
+<p><em>下列问题回答建立在目前对图形学的浅薄理解，以及阅读完参考文章与课程的基础上，不一定正确，如有错误👏🏻欢迎指出</em></p>
+<h4 id="GPU是如何与CPU协调工作的？">GPU是如何与CPU协调工作的？</h4>
+<p>大体流程如下图：<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302281835320.png" alt=""></p>
+<ol>
+<li>
+<p>将主存的处理数据复制到显存中。</p>
+</li>
+<li>
+<p>CPU指令驱动GPU。</p>
+</li>
+<li>
+<p>GPU中的每个运算单元并行处理。此步会从显存存取数据。</p>
+</li>
+<li>
+<p>GPU将显存结果传回主存。</p>
+</li>
+</ol>
+<p>从硬件角度上分析：</p>
+<ul>
+<li>CPU与GPU的交流就是通过MMIO进行的。CPU 通过 MMIO 访问 GPU 的寄存器状态。</li>
+<li>DMA传输大量的数据就是通过MMIO进行命令控制的。</li>
+<li>I/O端口可用于间接访问MMIO区域</li>
+<li>CPU发出的命令流（command stream）被提交到硬件单元，也就是GPU Channel</li>
+<li>每个GPU Channel关联一个context，而一个GPU Context可以有多个GPU channel</li>
+</ul>
+<p>从程序开发角度：</p>
+<ul>
+<li>我们会编写与C++等语言类似的用于GPU的语言（GLSL、HLSL、CGSL），也就是shader</li>
+<li>在CPU通过编译器将shader转成面向机器的二进制指令（二进制指令可转译成汇编代码，方便阅读调试）</li>
+<li>CPU端将shader二进制指令经由PCI-e推送到GPU端</li>
+<li>GPU在执行代码时，会用Context将指令分成若干Channel推送到各个Core的存储空间</li>
+<li><em>补充一点：CPU和GPU存在是否共享内存的两种架构–分离式和耦合式，分离式如上诉所说用PCI-e总线通讯，耦合式会有一些小差异</em></li>
+</ul>
+<h4 id="GPU也有缓存机制吗？有几层？它们的速度差异多少？">GPU也有缓存机制吗？有几层？它们的速度差异多少？</h4>
+<p>和CPU类似，也有多级缓存机构，同理也有Cache Miss的问题</p>
+<p>课上提到Mipmap一方面是为了解决纹理下采样闪烁问题（即远处由于近大远小的关系一个像素可能匹配纹理多个纹素，导致像素与像素直接差距巨大），另一方面纹理读取时会多读取周围部分，如果差距过大，容易cache miss，需要重新去读取纹理，从而增加带宽消耗。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001709237-945454718.png" alt=""></p>
+<p>一般为这几层缓存：寄存器、L1缓存、L2缓存、GPU显存、系统显存。</p>
+<table>
+<thead>
+<tr>
+<th>储存类型</th>
+<th>寄存器</th>
+<th>共享内存</th>
+<th>L1缓存</th>
+<th>L2缓存</th>
+<th>纹理、常量缓存</th>
+<th>全局内存</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>访问周期</td>
+<td>1</td>
+<td>1-32</td>
+<td>1-32</td>
+<td>32-64</td>
+<td>400-600</td>
+<td>400-600</td>
+</tr>
+</tbody>
+</table>
+<h4 id="GPU的渲染流程有哪些阶段？它们的功能分别是什么？">GPU的渲染流程有哪些阶段？它们的功能分别是什么？</h4>
+<p>从渲染流水线看（具体作用看之前笔记）：<br>
+应用阶段-几何阶段-图元装配阶段-光栅化阶段-逐片元操作-后处理阶段</p>
+<p>从GPU逻辑管线看（以Fermi家族为例）：<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001228274-379363267.png" alt=""></p>
+<ol>
+<li>程序通过图形API(DX、GL、WEBGL)发出drawcall指令，指令会被推送到驱动程序，驱动会检查指令的合法性，然后会把指令放到GPU可以读取的Pushbuffer中。</li>
+<li>经过一段时间或者显式调用flush指令后，驱动程序把Pushbuffer的内容发送给GPU，GPU通过主机接口（Host Interface）接受这些命令，并通过前端（Front End）处理这些命令。</li>
+<li>在图元分配器(Primitive Distributor)中开始工作分配，处理indexbuffer中的顶点产生三角形分成批次(batches)，然后发送给多个GPCs。这一步的理解就是提交上来n个三角形，分配给这几个GPC同时处理。<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906000842367-1857714844.png" alt=""></li>
+<li>在GPC中，每个SM中的Poly Morph Engine负责通过三角形索引(triangle indices)取出三角形的数据(vertex data)，即图中的Vertex Fetch模块。</li>
+<li>在获取数据之后，在SM中以32个线程为一组的线程束(Warp)来调度，来开始处理顶点数据。Warp是典型的单指令多线程（SIMT，SIMD单指令多数据的升级）的实现，也就是32个线程同时执行的指令是一模一样的，只是线程数据不一样，这样的好处就是一个warp只需要一个套逻辑对指令进行解码和执行就可以了，芯片可以做的更小更快，之所以可以这么做是由于GPU需要处理的任务是天然并行的。</li>
+<li>SM的warp调度器会按照顺序分发指令给整个warp，单个warp中的线程会锁步(lock-step)执行各自的指令，如果线程碰到不激活执行的情况也会被遮掩(be masked out)。被遮掩的原因有很多，例如当前的指令是if(true)的分支，但是当前线程的数据的条件是false，或者循环的次数不一样（比如for循环次数n不是常量，或被break提前终止了但是别的还在走），因此在shader中的分支会显著增加时间消耗，在一个warp中的分支除非32个线程都走到if或者else里面，否则相当于所有的分支都走了一遍，线程不能独立执行指令而是以warp为单位，而这些warp之间才是独立的。</li>
+<li>warp中的指令可以被一次完成，也可能经过多次调度，例如通常SM中的LD/ST(加载存取)单元数量明显少于基础数学操作单元。</li>
+<li>由于某些指令比其他指令需要更长的时间才能完成，特别是内存加载，warp调度器可能会简单地切换到另一个没有内存等待的warp，这是GPU如何克服内存读取延迟的关键，只是简单地切换活动线程组。为了使这种切换非常快，调度器管理的所有warp在寄存器文件中都有自己的寄存器。这里就会有个矛盾产生，shader需要越多的寄存器，就会给warp留下越少的空间，就会产生越少的warp，这时候在碰到内存延迟的时候就会只是等待，而没有可以运行的warp可以切换。<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001241355-608845528.png" alt=""></li>
+<li>一旦warp完成了vertex-shader的所有指令，运算结果会被Viewport Transform模块处理，三角形会被裁剪然后准备栅格化，GPU会使用L1和L2缓存来进行vertex-shader和pixel-shader的数据通信<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001250059-1971914812.png" alt=""></li>
+<li>接下来这些三角形将被分割，再分配给多个GPC，三角形的范围决定着它将被分配到哪个光栅引擎(raster engines)，每个raster engines覆盖了多个屏幕上的tile，这等于把三角形的渲染分配到多个tile上面。也就是像素阶段就把按三角形划分变成了按显示的像素划分了。<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001300961-1313843419.png" alt=""></li>
+<li>SM上的Attribute Setup保证了从vertex-shader来的数据经过插值后是pixel-shade是可读的。</li>
+<li>GPC上的光栅引擎(raster engines)在它接收到的三角形上工作，来负责这些这些三角形的像素信息的生成（同时会处理裁剪Clipping、背面剔除和Early-Z剔除）。</li>
+<li>32个像素线程将被分成一组，或者说8个2x2的像素块，这是在像素着色器上面的最小工作单元，在这个像素线程内，如果没有被三角形覆盖就会被遮掩，SM中的warp调度器会管理像素着色器的任务。</li>
+<li>接下来的阶段就和vertex-shader中的逻辑步骤完全一样，但是变成了在像素着色器线程中执行。 由于不耗费任何性能可以获取一个像素内的值，导致锁步执行非常便利，所有的线程可以保证所有的指令可以在同一点。<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001313351-1662028341.png" alt=""></li>
+<li>最后一步，现在像素着色器已经完成了颜色的计算还有深度值的计算，在这个点上，我们必须考虑三角形的原始api顺序，然后才将数据移交给ROP(render output unit，渲染输入单元)，一个ROP内部有很多ROP单元，在ROP单元中处理深度测试，和framebuffer的混合，深度和颜色的设置必须是原子操作，否则两个不同的三角形在同一个像素点就会有冲突和错误。</li>
+</ol>
+<h4 id="Early-Z技术是什么？发生在哪个阶段？这个阶段还会发生什么？">Early-Z技术是什么？发生在哪个阶段？这个阶段还会发生什么？</h4>
+<p>Early就是提前进行一次深度测试，减少overdraw的影响，提高渲染性能。</p>
+<p>发生在光栅化与像素着色器之间。</p>
+<p>Early-Z剔除的最小单位不是1像素，而是​<strong>像素块</strong>​（pixel quad，2x2个像素）<br>
+像素块的好处是能方便计算mipmap层级（通过ddx、ddy），同时也能精简SM的架构、减少硬件单元数量和尺寸。<br>
+但同时像素块可能会激化OverDraw的影响，比如下图三个有效像素却需要用到12个像素来绘制。<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001659282-1154417522.png" alt=""></p>
+<p>使Early-Z失效：</p>
+<ul>
+<li>开启了AlphaTest</li>
+<li>shader里有discard/clip指令</li>
+<li>关闭深度测试</li>
+</ul>
+<p>Early-Z技术会导致一个问题：​<strong>深度数据冲突</strong>​（depth data hazard），可以再写入深度值之前再次与frameBuffer的值做一次对比来解决。</p>
+<p>Early-Z不能完全避免overdraw，且容易失效，TBR移动架构上提出了HSR等手段来加强</p>
+<h4 id="SIMD和SIMT是什么？它们的好处是什么？co-issue呢？">SIMD和SIMT是什么？它们的好处是什么？co-issue呢？</h4>
+<p>SIMD: Single Instrument Multiple Data，单指令多数据;<br>
+一条指令可以处理多维向量的数据，原来的多条指令用一条指令即可处理完。<br>
+<em>比如对向量进行运算，以前需要对xyzw每个维度一条指令</em></p>
+<p>SIMT: Single Instrument Multiple Threads，单指令多线程。<br>
+单个SM中的多个Core同时处理同一指令，并且每个Core存取的数据可以是不同的即a、b 、c的值可以不一样。<br>
+<em>在SIMD基础上增加了多Core支持</em></p>
+<p>co-issue是为了尽可能充分利用SIMD，将低维向量合并成Vector4以提高ALU的利用率。<br>
+<em>一次指令可以处理四个维度数据，但shader中可能只需要处理单个通道，使用co-issue可以合并多条指令，提高单指令利用率</em></p>
+<h4 id="GPU是并行处理的么？若是，硬件层是如何设计和实现的？">GPU是并行处理的么？若是，硬件层是如何设计和实现的？</h4>
+<p>GPU就是为了并行处理而设计的。是基于数据的并行处理。</p>
+<p>程序员编写的shader是在SM上完成的。每个SM包含许多为线程执行数学运算的Core（核心）。例如，一个线程可以是顶点或像素着色器调用。这些Core和其它单元由Warp Scheduler驱动，Warp Scheduler管理一组32个线程作为Warp（线程束）并将要执行的指令移交给Dispatch Units。</p>
+<p>而从SIMD、SIMT等技术看都是方便并行计算而诞生的。</p>
+<h4 id="GPC、TPC、SM是什么？Warp又是什么？它们和Core、Thread之间的关系如何？">GPC、TPC、SM是什么？Warp又是什么？它们和Core、Thread之间的关系如何？</h4>
+<p>GPC: Graphics Processor Cluster，图形处理簇;</p>
+<p>TPC: Texture Processor Cluster，纹理处理簇;</p>
+<p>SM:Stream Multiprocessor，流多处理器;</p>
+<p>Warp：线程束，GPU并行计算的最小粒度;</p>
+<p>1个GPU可以有多个GPC，1个GPC可以有多个TPC，1个TPC可以有多个SM。</p>
+<p>每个SM包含许多Core。他们由Warp Scheduler驱动，其Warp Scheduler管理一组32个Threads</p>
+<h4 id="顶点着色器（VS）和像素着色器（PS）可以是同一处理单元吗？为什么？">顶点着色器（VS）和像素着色器（PS）可以是同一处理单元吗？为什么？</h4>
+<p>在早期的GPU，顶点着色器和像素着色器的硬件结构是独立的，它们各有各的寄存器、运算单元等部件。这样很多时候，会造成顶点着色器与像素着色器之间任务的不平衡。</p>
+<p>为了解决VS和PS之间的不平衡，DirectX10引入了统一着色器架构（Unified shader Architecture）。用了此架构的GPU，VS和PS用的都是相同的Core。也就是，同一个Core既可以是VS又可以是PS。</p>
+<h4 id="像素着色器（PS）的最小处理单位是1像素吗？为什么？会带来什么影响？">像素着色器（PS）的最小处理单位是1像素吗？为什么？会带来什么影响？</h4>
+<p><strong>像素块</strong>​（pixel quad，2x2个像素）</p>
+<p>在像素着色器中，会将相邻的四个像素作为不可分隔的一组，送入同一个SM内4个不同的Core。</p>
+<p>像素块的好处是能方便计算mipmap层级（通过ddx、ddy），同时也能精简SM的架构、减少硬件单元数量和尺寸。</p>
+<p>但同时像素块可能会激化OverDraw的影响，比如下图三个有效像素却需要用到12个像素来绘制。<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/1617944-20190906001659282-1154417522.png" alt=""></p>
+<h4 id="Shader中的if、for等语句会降低渲染效率吗？为什么？">Shader中的if、for等语句会降低渲染效率吗？为什么？</h4>
+<p>大多数情况会，</p>
+<p>SM的warp调度器会按照顺序分发指令给整个warp，单个warp中的线程会锁步(lock-step)执行各自的指令，如果线程碰到不激活执行的情况也会被遮掩(be masked out)。被遮掩的原因有很多，例如当前的指令是if(true)的分支，但是当前线程的数据的条件是false，或者循环的次数不一样（比如for循环次数n不是常量，或被break提前终止了但是别的还在走），因此在shader中的分支会显著增加时间消耗，在一个warp中的分支除非32个线程都走到if或者else里面，否则相当于所有的分支都走了一遍，线程不能独立执行指令而是以warp为单位，而这些warp之间才是独立的。</p>
+<p>动态分支即有条件不一致的情况，需要等所有分支线路走完，再根据条件输出结果，导致alu利用效率不高，如果warp内只有一个需要额外分支，就导致其他线程再等待计算。</p>
+<p>而静态分支是虽然有if语句，但输入的数据一致，所有线程走向同一个分支，此时就不会降低效率。</p>
+<h4 id="如下图，渲染相同面积的图形，三角形数量少（左）的还是数量多（右）的效率更快？为什么？">如下图，渲染相同面积的图形，三角形数量少（左）的还是数量多（右）的效率更快？为什么？</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_49793a735b053af96febcb6694dd439e.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_49793a735b053af96febcb6694dd439e.png"></p>
+<p>三角形数量少的效率更快，顶点数目越多，携带的顶点数据也多，与CPU的交互也多（数据传输、指令）</p>
+<p>同时更多的三角形也可能带来更多的overdraw</p>
+<h4 id="GPU-Context是什么？有什么作用？">GPU Context是什么？有什么作用？</h4>
+<p>类似CPU中进程上下文，管理着运行指令和数据状态等。<br>
+当一组context因访问缓存或内存而延迟时（读取纹理等），调度器可以激活下一组context进行工作，从而避免堵塞，可以高效利用上ALU单元，越多Context可用就越可以提升运算单元的吞吐量。</p>
+<h4 id="造成渲染瓶颈的问题很可能有哪些？该如何避免或优化它们？">造成渲染瓶颈的问题很可能有哪些？该如何避免或优化它们？</h4>
+<ul>
+<li>CPU和GPU的数据交换
+<ul>
+<li>合批手段</li>
+<li>减少顶点数、面数</li>
+<li>避免每帧提交Buffer数据（动画、粒子系统）</li>
+<li>启用GPU Instance</li>
+<li>LOD功能</li>
+<li>使用SRP Batch减少set pass call</li>
+</ul>
+</li>
+<li>overdraw问题
+<ul>
+<li>确保Early-Z生效</li>
+<li>移动端使用HSR之类手段</li>
+<li>减少透明物体使用</li>
+</ul>
+</li>
+<li>shader执行效率
+<ul>
+<li>避免if、Switch等分支语句</li>
+<li>避免for循环语句，特别是循环次数可变</li>
+<li>减少特殊复杂数学函数调用</li>
+</ul>
+</li>
+</ul>
+<h2 id="关键词">关键词</h2>
+<p>GPU架构中常有以下模块（忘了就多回顾文章）</p>
+<ul>
+<li>GPC</li>
+<li>TPC</li>
+<li>Thread</li>
+<li>SM、SMX、SMM</li>
+<li>Warp</li>
+<li>SP</li>
+<li>CORE</li>
+<li>ALU</li>
+<li>FPU</li>
+<li>SFU</li>
+<li>ROP</li>
+<li>Load/Store Unit</li>
+<li>L1 Cache</li>
+<li>L2 Cache</li>
+<li>Memory</li>
+<li>Register File</li>
+</ul>
+<h2 id="优化建议：">优化建议：</h2>
+<ul>
+<li><strong>尽量使用自己扩展的几何实例化代替unity提供的静态合批，动态合批，前者将合并mesh增加的vbo内存占用，后者则会增加cpu端的耗时开销。</strong></li>
+<li><strong>尽量去减少顶点数与三角形面数，前者减少顶点着色器的运算，另外减少gpu显存中frameData的内存存储，后者减少片段着色器的消耗</strong></li>
+<li><strong>避免每帧提交buffer的数据，比如unity的cpu版本的粒子系统，可使用gpu版本的粒子系统，将修改数据移动至gpu端，另外特别提醒的就是尽量避免大片的透明粒子特效，这将造成严重的overdraw</strong></li>
+<li><strong>减少渲染状态的设置与获取，例如在Update中获取设置shader的属性或者公共变量，因为前面我们说到cpu是通过mmio获取寄存器数据，这将耗费更多的时间周期</strong></li>
+<li><strong>3D物体应使用LOD减少处理的顶点与面数消耗，开启mipmap减少贴图缓存命中的丢失</strong></li>
+<li><strong>避免alphatest的使用，会造成earlyZ失效</strong></li>
+<li><strong>避免三角面过小，这会加剧过度绘制的情况，也就是前面提到的一个三角形只占3个像素点，却使用了12个线程去计算像素值，然后遮蔽其余9个的计算结果。</strong></li>
+<li><strong>在寄存器数量与变体中寻找平衡，使用if变量达成静态分支，取代变体，一方面可以减少变体数量，另一方面也可以使得URP中的SRP Batch更高效合批</strong></li>
+<li><strong>避免动态的判断分支，也就是Shader计算中if true 和 false 都会走的情况</strong></li>
+<li><strong>减少复杂函数的调用，因为我们从硬件架构上就可以看出特殊函数处理单元是远远少于正常计算的单元的</strong></li>
+</ul>
+<h2 id="参考文章">参考文章</h2>
+<ul>
+<li>课程地址：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1aM4y1g75f">https://www.bilibili.com/video/BV1aM4y1g75f</a></li>
+<li>课程PPT：<a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DUUJkRFZUbUhYeEdq">https://docs.qq.com/slide/DUUJkRFZUbUhYeEdq</a></li>
+<li>深入GPU硬件架构及运行机制：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/timlly/p/11471507.html">https://www.cnblogs.com/timlly/p/11471507.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/32928016">【《Real-Time Rendering 3rd》 提炼总结】(十二) 渲染管线优化方法论：从瓶颈定位到优化策略</a></li>
+<li>计算机组成原理 — GPU 图形处理器:<a target="_blank" rel="noopener" href="https://www.cnblogs.com/grj001/p/12223429.html">https://www.cnblogs.com/grj001/p/12223429.html</a></li>
+<li>NVIDIA GPU 架构梳理:<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/394352476">https://zhuanlan.zhihu.com/p/394352476</a></li>
+<li>大佬笔记1：<a target="_blank" rel="noopener" href="https://www.yuque.com/xiaohen-ecwjj/vegbg9/xzfv8x#BP50l">https://www.yuque.com/xiaohen-ecwjj/vegbg9/xzfv8x#BP50l</a></li>
+<li>大佬笔记2：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/anesu/p/15807749.html#/c/subject/p/15807749.html">https://www.cnblogs.com/anesu/p/15807749.html#/c/subject/p/15807749.html</a></li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/c8ba751/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 4.4 抗锯齿概论</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/b846b8e2/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 4.3 实时阴影介绍</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

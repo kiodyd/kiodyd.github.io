@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>《Unity性能优化》-- 2. 资源导入优化 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">《Unity性能优化》-- 2. 资源导入优化</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-04-03T07:14:16.000Z" itemprop="datePublished">2023-04-03</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-07-14T09:03:59.236Z" itemprop="dateUpdated">2024-07-14</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/Unity/">🏷️ Unity</a></li>
+  
+    <li><a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">🏷️ 性能优化</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="资源类型与导入">资源类型与导入</h2>
+<ul>
+<li>外部导入资源
+<ul>
+<li>模型网格Mesh</li>
+<li>纹理</li>
+<li>音乐音效</li>
+<li>字体</li>
+<li>动画</li>
+<li>视频</li>
+</ul>
+</li>
+<li>内部创建资源
+<ul>
+<li>Prefab</li>
+<li>Animation Controller</li>
+<li>Timeline</li>
+<li>RenderTexture</li>
+<li>ParticleSystem</li>
+<li>VFX</li>
+</ul>
+</li>
+<li>内部创建资源也需要考虑不同平台设置以及第三方package导入</li>
+</ul>
+<h2 id="资源设置检查">资源设置检查</h2>
+<ul>
+<li>Unity UPR 工具：<a target="_blank" rel="noopener" href="https://upr.unity.cn">https://upr.unity.cn</a></li>
+<li>这里用的是Asset Checker</li>
+<li>在UPR后台看资源检测报告</li>
+<li>报告会给出一系列优化建议，下面篇章会解读这些建议的作用</li>
+</ul>
+<h2 id="Audio导入优化">Audio导入优化</h2>
+<ul>
+<li>双通道音频如果左右声道一致，建议开启Force To Mono选项来节省内存（会变成单声道）</li>
+<li>建议导入未压缩的wav格式音频，通过unity内针对不同平台的压缩方法控制压缩率
+<ul>
+<li>大多数移动平台选用Vorbis格式</li>
+<li>苹果平台对Mp3格式有优化，不循环的音频也可以选mp3</li>
+<li>简短常用音效可以用ADPCM格式，虽然压缩率不高，但解码速度很快</li>
+<li>PCM为未压缩格式</li>
+</ul>
+</li>
+<li>移动平台采样率不宜过高，会徒增内存和文件占用（推荐22050hz），unity内可以覆盖采样率</li>
+<li>音频加载类型
+<ul>
+<li>Decompress On Load，一般建议压缩音频后大小小于200kb的音效文件使用</li>
+<li>Compressed in Memory，一般建议对于复杂音效，大小大于200kb，长度超过5秒的音效使用</li>
+<li>Streaming，一般推荐背景音乐文件或长度较长的音效文件，不容易卡顿</li>
+</ul>
+</li>
+<li>Audio Source组件当需要静音时可以直接销毁，减少内存占用，而不是简单设置音量为0</li>
+<li>优化音频文件一般可以节省内存占用和安装包文件大小，对性能影响较小（stream加载会增加一点点cpu开销）</li>
+</ul>
+<details>
+<summary>优化前后真机对比（Android）</summary>
+<ul>
+    <li>Apk包体由原来的560.7M下降到544.6M</li>
+    <li>Audio部分的内存由76.1M下降到6.9M</li>
+    <li>CPU开销由2.5%左右上升到5%左右，这是由于部分音频资源才用了Streaming模式加载</li>
+</ul>
+</details>
+<h2 id="Model导入设置检查与优化">Model导入设置检查与优化</h2>
+<h3 id="Unity模型导入流程">Unity模型导入流程</h3>
+<p><img src="https://github.com/lwwhb/Unity2022_SUNTAIL_Stylized_Fantasy_Village_Optimization/raw/main/Documents/Pics/2.png" alt=""></p>
+<h3 id="DCC中模型导出">DCC中模型导出</h3>
+<ul>
+<li>Unity 支持多种标准和专有模型文件格式（DCC）。Unity 内部使用 .fbx 文件格式作为其导入链。最佳做法尽可能使用 .fbx 文件格式，并且不应在生产中使用专有文件格式。</li>
+<li>优化原始导入模型文件，删除不需要的数据
+<ul>
+<li>统一单位</li>
+<li>导出的网格必须是多边形拓扑网格，不能是贝塞尔曲线、样条曲线、NURBS、NURMS、细分曲面等</li>
+<li>烘培Deformers，在导出之前，确保变形体被烘培到网格模型上，如骨骼形变烘培到蒙皮权重上</li>
+<li>不建议模型使用到的纹理随模型导出，会降低引擎导入资源效率以及资源目录变得难管理</li>
+<li>如果你需要导入blend shape normals，必须要指定光滑组smooth groups</li>
+<li>DCC导出面板设置, 不建议携带场景信息导出，如不建议导出摄像机、灯光、材质等信息，因为这些的信息与Unity内默认都不同。除非你自己为某DCC做过自定义导出插件。</li>
+</ul>
+</li>
+</ul>
+<h3 id="原始模型文件对性能的影响点-美术制作开发标准">原始模型文件对性能的影响点(美术制作开发标准)</h3>
+<ul>
+<li>最小化面数（尽量不要通过增加面数来加强细节），不要使用微三角形（在编辑器中多观察，指的是一个三角面只包含个位数像素，如果出现了需要用lod或让美术进行调节），分布尽量均匀
+<ul>
+<li>对性能的影响：微三角面会增加绘制的三角形数量，从而增加GPU的工作量，降低渲染性能。</li>
+<li>对内存的影响：微三角面需要占用更多的内存空间，因为它会增加网格数据的大小。</li>
+<li>对贴图的影响：微三角面会使得UV贴图变得更加复杂，导致UV贴图的失真和变形。</li>
+<li>对物理引擎的影响：微三角面会对物理引擎的性能和稳定性造成影响。</li>
+</ul>
+</li>
+<li>合理的网络拓扑和平滑组，尽可能形成闭包，而不是没有焊接的面去组合。会导致产生额外的三角形和边，以及可能会引起引擎烘焙错误</li>
+<li>尽量少的使用材质个数</li>
+<li>尽可能少的使用蒙皮网格</li>
+<li>尽可能少的骨骼数量</li>
+<li>FK与IK节点分离，导出时删除IK骨骼节点，因为unity不支持</li>
+</ul>
+<h3 id="模型导入设置中的一些选项">模型导入设置中的一些选项</h3>
+<ul>
+<li>Scene中关于Import的选项，一般没有特殊需求可以不开启</li>
+<li>Meshes网格设置
+<ul>
+<li>Mesh Compression，会节省磁盘空间，但不会节省内存空间，适合激进的情况，需要观察开启后是否正常运行，开启此选项要尽可能使模型制作规范，最好是闭包模型</li>
+<li>Read/White，开启后会增加一个副本，一份在内存一份在显存，只有需要运行时修改模型才建议开启，skinmesh也需要开启（否则动画会出问题）</li>
+<li>Optimize Mesh和Generate Colliders一般保持默认，除非要禁止优化或者需要网格级别碰撞</li>
+</ul>
+</li>
+<li>Geometry设置
+<ul>
+<li>Index Format ：如果确认网格顶点数不超过65535，可以使用十六位索引</li>
+<li>Normal、Tangents相关设置：印象中与法线光滑有关，如果要模型描边可以用。不需要法线、切线时可以关闭</li>
+<li>光照第二套uv生成：如果不需要光照烘焙可以关闭</li>
+</ul>
+</li>
+</ul>
+<h3 id="模型优化">模型优化</h3>
+<ul>
+<li>尽可能的将网格合并到一起</li>
+<li>尽可能使用共享材质</li>
+<li>不要使用网格碰撞体</li>
+<li>不必要不要开启网格读写</li>
+<li>使用合理的LOD级别</li>
+<li>Skin Weights受骨骼影响个过多</li>
+<li>合理压缩网格</li>
+<li>不需要rigs和BlendShapes尽量关闭</li>
+<li>如果可能，禁用法线或切线</li>
+<li>多套模型</li>
+</ul>
+<h3 id="FBX部分问题解读">FBX部分问题解读</h3>
+<ul>
+<li>其中两项建议与模型动画有关，而测试项目中所有模型资源都不涉及动画，可以将Rig标签下的Animation Type设置为None，并关闭Animation标签下的Import Animations选项，设置Materials标签中的Material Creation Mode为None.</li>
+<li>开启Project Settings——&gt;Player——&gt;Optimization下的Vertex Compression与Optimize Mesh Data选项
+<ul>
+<li>Vertex Compression：设置每个通道的顶点压缩，可为位置、光照贴图uv之外的数据启用</li>
+<li>Optimize Mesh Data：根据网格使用的材质删除不需要的数据，如材质如果没有使用法线、颜色、uv等信息</li>
+</ul>
+</li>
+</ul>
+<details>
+<summary>优化成果</summary>
+<ul>
+    <li>包体大小前后没变化，依然是544.6M</li>
+    <li>运行时模型内存优化前为422.9M，优化后为400.5M，相差的22M来自于运行时CombinedMesh开销的节省。后期运行时模型资源优化才是我们的重点。</li>
+</ul>
+</details>
+<h2 id="纹理导入设置与优化">纹理导入设置与优化</h2>
+<h3 id="Texture基础概念介绍">Texture基础概念介绍</h3>
+<h4 id="纹理类型">纹理类型</h4>
+<table>
+<thead>
+<tr>
+<th>类型（*号为常用）</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>*Default</td>
+<td>默认的纹理类型格式，绝大多数资源使用这个</td>
+</tr>
+<tr>
+<td>*Normal map</td>
+<td>法线贴图，可将颜色通道转换为适合实时法线贴图格式</td>
+</tr>
+<tr>
+<td>Editor GUI and Legacy GUI</td>
+<td>在编辑器GUI控件上使用纹理请选择此类型</td>
+</tr>
+<tr>
+<td>*Sprite(2D and UI)</td>
+<td>在2D游戏中使用的精灵(Sprite)或UGUI使用的纹理请选择此类型</td>
+</tr>
+<tr>
+<td>Cursor</td>
+<td>鼠标光标自定义纹理类型</td>
+</tr>
+<tr>
+<td>Cookie</td>
+<td>用于光照Cookie剪影类型的纹理</td>
+</tr>
+<tr>
+<td>*Lightmap</td>
+<td>光照贴图类型的纹理，编码格式取决于不同的平台（平台不支持或设置不对可能会导致精度丢失）</td>
+</tr>
+<tr>
+<td>*Single Channel</td>
+<td>如果原始图片文件只有一个通道，请选择此类型，可以节省纹理内存开销</td>
+</tr>
+</tbody>
+</table>
+<h4 id="纹理大小">纹理大小</h4>
+<blockquote>
+<p>现代显卡一般要求纹理长宽为2的幂次方，unity默认会将其转为最小2的幂次方大小。<br>
+纹理的大小会影响内存和显存的占用，以及gpu采样纹理时的性能、cpu加载和带宽造成影响</p>
+</blockquote>
+<p>选择合适纹理大小应尽量遵循以下经验：</p>
+<ul>
+<li>不同平台、不同硬件配置选择不同的纹理大小，Unity下可以采用bundle变体设置多套资源、通过Mipmap限制不同平台加载不同level层级的贴图。</li>
+<li>根据纹理用途的不同选择不同的纹理加载方式，如流式纹理加载Texture Streaming、稀疏纹理Sparse Texture、虚拟纹理VirtualTexture等方式。</li>
+<li>不能让美术人员通过增加纹理大小的方式增加细节，可以选择细节贴图DetailMap或增加高反差保留的方式。</li>
+<li>在不降低视觉效果的情况下尽量减小贴图大小，最好的方式是纹理映射的每一个纹素的大小正好符合屏幕上显示像素的大小，如果纹理小了会造成欠采样，纹理显示模糊，如果纹理大了会造成过采样，纹理显示噪点。这一点做到完美平衡很难保障。
+<ul>
+<li>builtin管线可以充分利用Unity编辑器下SceneView-&gt;DrawMode-&gt;Mipmap来查看在游戏摄像机视角下哪些纹理过采样，哪些纹理欠采样，进而来调整纹理大小。</li>
+<li>urp暂不支持，未来可能也许会放在Rendering debuger window里</li>
+</ul>
+</li>
+</ul>
+<h4 id="纹理颜色空间">纹理颜色空间</h4>
+<ul>
+<li>默认大多数图像处理工具都会使用sRGB颜色空间处理和导出纹理。但如果你的纹理不是用作颜色信息的话，那就不要使用sRGB空间，如金属度贴图、粗糙度贴图、高度图或者法线贴图等。一旦这些纹理使用sRGB空间会造成视觉表现错误。</li>
+<li>这部分与伽马校正有关</li>
+</ul>
+<h4 id="纹理压缩">纹理压缩</h4>
+<ul>
+<li>
+<p>纹理压缩是指图像压缩算法，保持贴图视觉质量的同时，尽量减小纹理数据的大小。默认情况下我们的纹理原始格式采用PNG或TGA这类通用文件格式，但与专用图像格式相比他们访问和采样速度都比较慢，无法通用GPU硬件加速，同时纹理数据量大，占用内存较高。所以在渲染中我们会采用一些硬件支持的纹理压缩格式，如ASTC 、ETC、ETC2、DXT等。（可以看一下技术美术百人计划相关章节）</p>
+</li>
+<li>
+<p>如下图为未压缩、ETC2、ASTC6x6三种格式文件大小对比，我们可以看到在质量相差不大的情况下ASTC6x6压缩下大小可以减少到接近未压缩的十分之一。合理设置可以节省极大内存和空间<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304031824286.png" alt=""></p>
+</li>
+</ul>
+<h4 id="纹理图集">纹理图集</h4>
+<p>纹理图集是一系列小纹理图像的集合，Unity可以使多个网格对象对应一张纹理贴图，默认支持SpriteAtlas，但复杂模型还是需要美术同学在dcc软件中做好uv展开和uv映射</p>
+<ul>
+<li>
+<p>优点：</p>
+<ul>
+<li>一是采用共同纹理图集的多个静态网格资源可以进行静态合批处理，减少DrawCall调用次数。</li>
+<li>二是纹理图集可以减少碎纹理过多，因为他们打包在一个图集里，通过压缩可以更有效的利用压缩，降低纹理的内存成本和冗余数据。</li>
+</ul>
+</li>
+<li>
+<p>缺点</p>
+<ul>
+<li>美术需要合理规划模型，并且要求模型有相同的材质着色器，或需要制作通道图去区分不同材质。制作和修改成本较高。</li>
+</ul>
+</li>
+</ul>
+<h4 id="纹理过滤">纹理过滤</h4>
+<p>这部分可以看下GAMES101相关内容，往下递增性能开销成本上升，需要合适选择</p>
+<table>
+<thead>
+<tr>
+<th>过滤方式</th>
+<th>具体作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nearest Point Filtering</td>
+<td>临近点采样过滤最简单、计算量最小的纹理过滤形式，但在近距离观察时，纹理会呈现块状。</td>
+</tr>
+<tr>
+<td>Bilinear Filtering</td>
+<td>双线性采样过滤会对临近纹素采样并插值化处理，对纹理像素进行着色。双线性过滤会让像素看上去平滑渐变，但近距离观察时，纹理会变得模糊。</td>
+</tr>
+<tr>
+<td>Trilinear Filtering</td>
+<td>三线性过滤除与双线性过滤相同部分外，还增加了Mipmap等级之间的采样差值混合，用来平滑过度消除Mipmap之间的明显变化。</td>
+</tr>
+<tr>
+<td>Anisotropic Filtering</td>
+<td>各向异性过滤可以改善纹理在倾斜角度下的视觉效果，跟适合用于地表纹理。</td>
+</tr>
+</tbody>
+</table>
+<h4 id="纹理Mipmap">纹理Mipmap</h4>
+<p>Mipmap纹理</p>
+<ul>
+<li>
+<p>逐级减低分辨率来保存纹理副本。相当于生成了纹理LOD，渲染纹理时，将根据像素在屏幕中占据的纹理空间大小选择合适的Mipmap级别进行采样。是进行Hierarchical-Z Cull的前提条件</p>
+</li>
+<li>
+<p>优点：</p>
+<ul>
+<li>GPU不需要在远距离上对对象进行全分辨率纹理采样，因此可以提高纹理采样性能。</li>
+<li>同时也解决了远距离下的过采样导致的噪点问题，提高的纹理渲染质量。</li>
+</ul>
+</li>
+<li>
+<p>缺点：</p>
+<ul>
+<li>由于Mipmap纹理要生成低分辨率副本，会造成额外的内存开销。多1/3</li>
+<li>可以使用unity的Mipmap streaming功能，在运行时限制只采样某个级别以下的纹理，进行不同设备的不同适配</li>
+</ul>
+</li>
+</ul>
+<h4 id="Texture-Shape">Texture Shape</h4>
+<ul>
+<li>2D 最常用的2D纹理，默认选项</li>
+<li>Cube 一般用于天空和与反射探针，默认支持Default、Normal、Single Channel几种类型纹理，可以通过Assets &gt; Create &gt; Legacy &gt; Cubemap生成，也可以通过C#代码 Camera.RenderToCubemap在脚本中生成</li>
+<li>2D Array 2D纹理数组，可以极大提高大量相同大小和格式的纹理访问效率，但需要特定平台支持或特定图形api支持，可以通过引擎SystemInfo.supports2DArrayTextures 接口运行时查看是否支持。</li>
+<li>3D 通过纹理位图方式存储或传递一些3D结构话数据，一般用于体积仿真，如雾效、噪声、体积数据、距离场、动画数据等信息，可以外部导入，也可运行时程序化创建。</li>
+</ul>
+<h4 id="Alpha-Source">Alpha Source</h4>
+<p>默认选择Input Texture Alpha就好，如果确定不使用原图中的Alpha通道，可以选择None。另外From Gray Scale我们一般不会选用</p>
+<h4 id="Alpha-Is-Transparency">Alpha Is Transparency</h4>
+<p>指定Alpha通道是否开启半透明，如果位图像素不关心是否要半透明可以不开启此选项。这样Alpha信息只需要占1bit。节省内存</p>
+<h4 id="Ignore-Png-file-gamma">Ignore Png file gamma</h4>
+<p>是否忽略png文件中的gamma属性，这个选项是否忽略取决于png文件中设置不同gamma属性导致的显示不正常，一般原图制作流程没有特殊设置，这个选项一般默认就好。</p>
+<h4 id="Read-Write">Read/Write</h4>
+<p>开启此选项会导致内存量增加一倍，默认我们都是不开启，除非你的脚本逻辑中需要动态读写该纹理时需要打开此选项。</p>
+<h4 id="Streaming-Mipmaps">Streaming Mipmaps</h4>
+<p>一般是默认</p>
+<h4 id="Virtual-Texture-Only">Virtual Texture Only</h4>
+<p>一般是默认</p>
+<h4 id="Generate-Mip-Maps">Generate Mip Maps</h4>
+<ul>
+<li>什么时候不需要生成MipMaps？
+<ul>
+<li>2D场景</li>
+<li>固定视角，摄像机无法缩放远近</li>
+</ul>
+</li>
+<li>Border Mip Maps 默认不开启，只有当纹理的是Light Cookies类型时，开启此选项来避免colors bleeding现象导致颜色渗透到较低级别的Mip Level纹理边缘上</li>
+<li>MipMap Filtering
+<ul>
+<li>Box 最简单，随尺寸减小，Mipmap纹理变得平滑模糊</li>
+<li>Kaiser，避免平滑模糊的锐化过滤算法。</li>
+</ul>
+</li>
+<li>Mip Maps Preserve Coverage，只有需要纹理在开启mipmap后也需要做Alpha Coverage时开启。默认不开启。</li>
+<li>Fadeout MipMaps, 纹理Mipmap随Mip层级淡化为灰色，一般不开启，只有在雾效较大时开启不影响视觉效果。</li>
+</ul>
+<h4 id="选择合适纹理过滤的最佳经验：">选择合适纹理过滤的最佳经验：</h4>
+<ul>
+<li>使用双线性过滤平衡性能和视觉质量。</li>
+<li>有选择地使用三线性过滤，因为与双线性过滤相比，它需要更多的内存带宽。</li>
+<li>使用双线性和 2x 各向异性过滤，而不是三线性和 1x 各向异性过滤，因为这样做不仅视觉效果更好，而且性能也更高。</li>
+<li>保持较低的各向异性级别。仅对关键游戏资源使用高于 2 的级别。</li>
+</ul>
+<h4 id="各平台的默认纹理压缩格式">各平台的默认纹理压缩格式</h4>
+<p><a target="_blank" rel="noopener" href="https://docs.unity3d.com/Manual/class-TextureImporterOverride.html">更详细的请查阅官方文档</a></p>
+<p><img src="https://github.com/lwwhb/Unity2022_SUNTAIL_Stylized_Fantasy_Village_Optimization/raw/main/Documents/Pics/44.png" alt=""></p>
+<h4 id="其他可能有问题的纹理类型">其他可能有问题的纹理类型</h4>
+<ul>
+<li>纹理图集大小设置不合理，图集利用率低。</li>
+<li>纹理生命周期不一致，应尽量将生命周期接近的打在小纹理图集中（如果纹理过大的话）</li>
+<li>大量只有颜色差异的图片，避免重复纹理，可以采用分离变化区域贴图？</li>
+<li>UI背景贴图而不采用9宫格缩放的图，会使内存激增</li>
+<li>纯色图没有使用Single Channel</li>
+<li>不合理的半透明UI（粒子特效也要小心），占据大量屏幕区域，造成Overdraw开销</li>
+<li>大量2D序列帧动画，而且图片大，还不打图集</li>
+<li>不合理的通道图利用方案，多把通道利用上。</li>
+<li>大量渐变色贴图，没有采用1像素过渡图，也不采用Single Channel, 粒子特效中较为常见。可以将贴图替换成曲线数据或采用单像素梯度纹理来减少内存开销和加载开销</li>
+</ul>
+<details>
+<summary>优化成果</summary>
+<ul>
+    <li>包体大小缩小了140MB左右</li>
+    <li>Memory profiler 内存快照 纹理占用内存减少170MB左右</li>
+    <li>profiler 真机运行情况，整体内存减少150MB左右</li>
+    <li>profiler 真机运行情况，托管内存和显存也有成比例下降</li>
+    <li>profiler 真机运行情况，纹理资源个数减少50个左右，内存大小减少170MB左右</li>
+</ul>
+</details>
+<h2 id="Animation导入设置检查与优化">Animation导入设置检查与优化</h2>
+<h3 id="Rig标签页">Rig标签页</h3>
+<p><img src="https://github.com/lwwhb/Unity2022_SUNTAIL_Stylized_Fantasy_Village_Optimization/raw/main/Documents/Pics/5.png" alt=""></p>
+<h4 id="Animation-Type">Animation Type</h4>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>None</td>
+<td>无动画</td>
+</tr>
+<tr>
+<td>Legacy</td>
+<td>旧版动画（unity3.0之前），不要用</td>
+</tr>
+<tr>
+<td>Generic</td>
+<td>通用骨骼框架</td>
+</tr>
+<tr>
+<td>Humanoid</td>
+<td>人形骨骼框架</td>
+</tr>
+</tbody>
+</table>
+<p>选择原则：</p>
+<ul>
+<li>无动画选择None</li>
+<li>非人形动画选择Generic</li>
+<li>人形动画
+<ul>
+<li>人形动画需要Kinematices或Animation Retargeting（动画重定向）功能，或者没有有自定义骨骼对象时选择Humanoid Rig</li>
+<li>其他都选择Generic Rig，在骨骼数差不多的情况下，Generic Rig会比Humanoid Rig省30%甚至更多的CPU的时间。移动平台一般推荐这个，但骨骼数量要控制</li>
+</ul>
+</li>
+</ul>
+<h4 id="Skin-Weights">Skin Weights</h4>
+<p>骨骼动画蒙皮顶点最多同时受几根骨骼的影响。默认4根骨头，但对于一些不重要的动画对象可以减少到1根，节省计算量（足球游戏观众台观众），Quality可以控制不同画质这个选项的大小</p>
+<h4 id="Optimize-Bones">Optimize Bones</h4>
+<p>建议开启，在导入时自动剔除没有蒙皮顶点的骨骼</p>
+<h4 id="Optimize-Game-Objects">Optimize Game Objects</h4>
+<ul>
+<li>在Avatar和Animatior组件中删除导入游戏角色对象的变换层级结构，而使用Unity动画内部结构骨骼，消减骨骼transform带来的性能开销。可以提高角色动画性能</li>
+<li>但有些情况下会造成角色动画错误，这个选项可以尝试开启但要看表现效果而定</li>
+<li>注意如果你的角色是可以换装的，在导入时不要开启此选项，但在换装后在运行时在代码中通过调用AnimatorUtility.OptimizeTransformHierarchy接口仍然可以达到此选项效果</li>
+</ul>
+<h3 id="Animation标签页">Animation标签页</h3>
+<p><img src="https://github.com/lwwhb/Unity2022_SUNTAIL_Stylized_Fantasy_Village_Optimization/raw/main/Documents/Pics/55.png" alt=""></p>
+<h4 id="Bake-Animations">Bake Animations</h4>
+<p>只有使用3dsmax、maya等dcc软件原始文件时且要有布料、流体等烘焙动画此选项才生效。FBX则禁用这个选项</p>
+<h4 id="Resmple-Curves">Resmple Curves</h4>
+<p>将动画曲线重新采样为四元数数值，并为动画每帧生成一个新的四元数关键帧，仅当导入动画文件包含欧拉曲线时才会显示此选项</p>
+<h4 id="Anim-Compression">Anim.Compression</h4>
+<p>Unity动画无论压不压缩、重不重采样都会和dcc软件在表现上有所差异，取决于能不能看出来以及接受。</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Off</td>
+<td>不压缩,质量最高，内存消耗最大</td>
+</tr>
+<tr>
+<td>Keyframe Reduction</td>
+<td>减少冗余关键帧，减小动画文件大小和内存大小</td>
+</tr>
+<tr>
+<td>Keyframe Reduction and Compression</td>
+<td>减小关键帧的同时对关键帧存储数据进行压缩，只影响文件大小，内存和上一个选项一致</td>
+</tr>
+<tr>
+<td>Optimal</td>
+<td>仅适用于Generic与Humanoide动画类型，Unity自动决定如何进行压缩（紧缩式和流式数据压缩）</td>
+</tr>
+</tbody>
+</table>
+<h4 id="Rotation、Position、Scale-Error">Rotation、Position、Scale Error</h4>
+<p>默认是0.5，表示transition在千分之五的自适应区间内两帧数据都可以看作一致，可以进行Keyframe Reduction，减少冗余关键帧。与unity单位有关，如果1000m的单位距离下，千分之五就是5m，5m内的transition都被看作是相同帧，可能会影响动画表现，需要手动调整该选项，压缩与表现要权衡</p>
+<h4 id="Animation-Custom-Properties">Animation Custom Properties</h4>
+<p>导入用户自定义属性，一般对应DCC工具中的extraUserProperties字段中定义的数据</p>
+<h3 id="动画曲线数据信息">动画曲线数据信息</h3>
+<p><img src="https://github.com/lwwhb/Unity2022_SUNTAIL_Stylized_Fantasy_Village_Optimization/raw/main/Documents/Pics/555.png" alt=""></p>
+<p>动画优化时的重要数据</p>
+<table>
+<thead>
+<tr>
+<th>数据项</th>
+<th>信息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Curves Pos</td>
+<td>位置曲线</td>
+</tr>
+<tr>
+<td>Quaternion</td>
+<td>四元数曲线 Resample Curves开启会有</td>
+</tr>
+<tr>
+<td>Euler</td>
+<td>欧拉曲线</td>
+</tr>
+<tr>
+<td>Scale</td>
+<td>缩放曲线</td>
+</tr>
+<tr>
+<td>Muscles</td>
+<td>肌肉曲线，Humanoid类型下会有</td>
+</tr>
+<tr>
+<td>Generic</td>
+<td>一般属性动画曲线，如颜色，材质等</td>
+</tr>
+<tr>
+<td>PPtr</td>
+<td>精灵动画曲线，一般2D系统下会有</td>
+</tr>
+<tr>
+<td>Curves Total</td>
+<td>曲线总数，数量越大性能越差</td>
+</tr>
+<tr>
+<td>Constant</td>
+<td>优化为常数的曲线，error设置越大常数曲线越多，常数曲线一般不参与采样，越大说明优化程度越大</td>
+</tr>
+<tr>
+<td>Dense</td>
+<td>使用了密集数据（线性插值后的离散值）存储</td>
+</tr>
+<tr>
+<td>Stream</td>
+<td>使用了流式数据（插值的时间和切线数据）存储</td>
+</tr>
+</tbody>
+</table>
+<h3 id="动画文件导入设置优化后信息查看原则">动画文件导入设置优化后信息查看原则</h3>
+<ol>
+<li>看效果差异（与原始制作动画差异是否明显）</li>
+<li>看曲线数量（总曲线数量与各种曲线数显，常量曲线比重大更好）</li>
+<li>看动画文件大小（以移动平台为例，动画文件在小几百k或更少为合理，查过1M以上的动画文件考虑是否进行了合理优化）</li>
+</ol>
+<h2 id="其他资源导入与优化">其他资源导入与优化</h2>
+<h3 id="TrueTypeFontImporter">TrueTypeFontImporter</h3>
+<p>支持TTF和OTF字体文件格式导入<br>
+<img src="https://github.com/lwwhb/Unity2022_SUNTAIL_Stylized_Fantasy_Village_Optimization/raw/main/Documents/Pics/10-0.png" alt=""></p>
+<ul>
+<li>Rendering Mode：告诉unity使用字体渲染的哪种平滑模式
+<ul>
+<li>默认情况下使用smooth，是动态字体使用最快的模式</li>
+</ul>
+</li>
+<li>Character：指定字符集
+<ul>
+<li>Dynamic表示在运行时渲染字体字符集</li>
+<li>Custom Set可以在导入的字体中选择想要的字符</li>
+</ul>
+</li>
+<li>Include Font Data 一般和动态字体配合使用
+<ul>
+<li>勾选后导入的字体文件会随app一起输出</li>
+<li>如果是使用系统字不勾此选项可节省包体和内存</li>
+</ul>
+</li>
+<li>Font Names：类似Fall CallBack，如果找不到对应字符会在这个列表的字体寻找</li>
+<li>References To Other Fonts In Project：选择项目内的其他字体作为后备字体</li>
+<li>可以使用TMP工具和Custom Font创建自定义静态字体资源</li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/ea6d1a86/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">《Unity性能优化》-- 99. Unity工作流</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/a7f4980f/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">《Unity性能优化》-- 1. 初探项目</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

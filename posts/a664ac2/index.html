@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形-2.2 模型与材质基础 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形-2.2 模型与材质基础</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-01-16T07:00:00.000Z" itemprop="datePublished">2023-01-16</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-07-14T09:03:59.229Z" itemprop="dateUpdated">2024-07-14</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <p>求知若饥，虚心若愚</p>
+<span id="more"></span>
+<h2 id="图形渲染管线">图形渲染管线</h2>
+<p><em><strong>这里只列出和本节相关的part，详细的可看第一节</strong></em><br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161137828.png" alt=""></p>
+<ul>
+<li>蓝色背景是渲染管线中可编程部分</li>
+<li>顶点着色器：一般对顶点携带信息进行加工计算，传递给下一部分着色用。但也可以直接在这里着色，效果和性能视顶点数量而定</li>
+<li>片元着色器：使用光栅化插值后的信息进行着色（shading）计算，可以做各种复杂着色效果</li>
+</ul>
+<h2 id="模型">模型</h2>
+<h5 id="实现原理">实现原理</h5>
+<p>点-&gt;线-&gt;面-&gt;体</p>
+<h5 id="UV">UV</h5>
+<ul>
+<li>作用：帮助将一张图无缝贴在任意3d模型的表面，这个过程叫纹理映射。</li>
+<li>需要将3维物体的表面降维成2d图片，通常会用到拓扑的方法，关键难点是如何无缝衔接。</li>
+<li>uv：上述提到的2d图片展开在一个坐标系中，坐标轴分布为u和v。该坐标通常由建模软件计算并存储在模型文件中。</li>
+<li>渲染管线通过顶点携带的信息获取，其范围在0-1。表示该3d模型某顶点可以在一张纹理对应的uv坐标采样到某种关联信息。</li>
+<li>展开后的UV在SP（Subtance Painter）中绘制贴图（漫反射贴图，法线贴图，高度贴图，金属度贴图，AO贴图等）</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/image.png" alt=""></p>
+<h5 id="一个模型包含的信息">一个模型包含的信息</h5>
+<p><strong>以下以OBJ文件为例子</strong><br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161358596.png" alt=""></p>
+<ul>
+<li>v：顶点坐标数据（模型空间下xyz坐标）</li>
+<li>vt：纹理坐标（水平方向是U，垂直方向是V，范围0-1之间）</li>
+<li>vn：顶点法线单位向量</li>
+<li>f：面，将每个顶点对应的纹理、法线联系起来，并三个顶点组成一个面。（这里重复利用了相同信息）</li>
+<li>这些信息都可以在顶点着色器中顶点传入的信息获取</li>
+</ul>
+<p><strong>OBJ和FBX格式对比:</strong><br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/fbx_obj.png" alt=""></p>
+<h2 id="材质">材质</h2>
+<h5 id="为什么需要材质">为什么需要材质</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/matterialBall.png" alt=""></p>
+<ul>
+<li>在现实世界里，每个物体会对光产生不同的反应。</li>
+<li>比如说，钢看起来通常会比陶瓷花瓶更闪闪发光，木头箱子也不会像钢制箱子那样对光产生很强的反射。</li>
+<li>每个物体对镜面高光也有不同的反应。</li>
+<li>有些物体反射光的时候不会有太多的散(Scatter)，因而产生一个较小的高光点</li>
+<li>而有些物体则会散射很多，产生一个有着更大半径的高光点</li>
+</ul>
+<h5 id="漫反射">漫反射</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161418615.png" alt=""></p>
+<ul>
+<li>漫反射是最容易模拟的模型。比如现实中的石头，水泥，砖块等。(光栅模拟简单，但光追时需要发射的光线又是最多的)</li>
+<li>最简单的Lambertian很简单粗暴的认为光线均匀的反射出去</li>
+<li>基于物理的话要考虑能量守恒，入射的Radiance和出射的Radiance相等</li>
+<li>BRDF形状理论上应该为半圆</li>
+</ul>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=C_%7Bdiff%7D%20%3D%20C_%7Bbase%7D%20%5Ccdot%20C_%7Blight%7D%20%5Ccdot%20max%280%2C%20dot(%5Cvec%7Blight%7D%2C%20%5Cvec%7Bnormal%7D%29)%0A" /></p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line">// 提供一个基于URP的简单兰伯特光照模型</span><br><span class="line">// 出自https://www.yuque.com/u12120868/md8ze7/ivprsr</span><br><span class="line">Shader &quot;Custom/Lambert&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _MainTex(&quot;基础贴图&quot;,2D) = &quot;white&quot;&#123;&#125;</span><br><span class="line">        _BaseColor(&quot;基础颜色&quot;,Color) = (1,1,1,1)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;RenderPipeline&quot; = &quot;UniversalPipeline&quot;</span><br><span class="line">            &quot;RenderType&quot; = &quot;Opaque&quot;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        LOD 200</span><br><span class="line"></span><br><span class="line">        HLSLINCLUDE</span><br><span class="line">        #include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl&quot;</span><br><span class="line">        #include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl&quot;</span><br><span class="line"></span><br><span class="line">        CBUFFER_START(UnityPerMaterials)</span><br><span class="line">        float4 _MainTex_ST;</span><br><span class="line">        half4 _BaseColor;</span><br><span class="line">        CBUFFER_END</span><br><span class="line"></span><br><span class="line">        TEXTURE2D_X(_MainTex);</span><br><span class="line">        SAMPLER(sampler_MainTex);</span><br><span class="line"></span><br><span class="line">        struct a2v</span><br><span class="line">        &#123;</span><br><span class="line">            float4 positionOS : POSITION;</span><br><span class="line">            float2 texcoord : TEXCOORD;</span><br><span class="line">            float4 normalOS : NORMAL;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        struct v2f</span><br><span class="line">        &#123;</span><br><span class="line">            float4 positionWS : SV_POSITION;</span><br><span class="line">            float3 normalWS : TEXCOORD0;</span><br><span class="line">            float2 texcoord : TEXCOORD1;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        ENDHLSL</span><br><span class="line"></span><br><span class="line">        UsePass &quot;Universal Render Pipeline/Lit/ShadowCaster&quot;</span><br><span class="line">        Pass </span><br><span class="line">        &#123;</span><br><span class="line">            Tags</span><br><span class="line">            &#123;</span><br><span class="line">                &quot;LightMode&quot; = &quot;UniversalForward&quot;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            HLSLPROGRAM</span><br><span class="line">            #pragma vertex vert </span><br><span class="line">            #pragma fragment frag </span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line"></span><br><span class="line">                o.positionWS = TransformObjectToHClip(v.positionOS.xyz);</span><br><span class="line">                o.normalWS = TransformObjectToWorldNormal(v.normalOS.xyz,true);</span><br><span class="line">                o.texcoord = TRANSFORM_TEX(v.texcoord,_MainTex);</span><br><span class="line"></span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            real4 frag(v2f o) : SV_TARGET</span><br><span class="line">            &#123;</span><br><span class="line">                real4 baseTex = SAMPLE_TEXTURE2D_X(_MainTex,sampler_MainTex,o.texcoord) * _BaseColor;</span><br><span class="line">                Light myLight = GetMainLight();</span><br><span class="line">                float3 ligntDir = normalize(myLight.direction);</span><br><span class="line">                half4 lightColor = half4(myLight.color,1);</span><br><span class="line">                </span><br><span class="line">                /*兰伯特光照*/</span><br><span class="line">                float lightAtten = saturate(dot(o.normalWS,ligntDir));</span><br><span class="line">                </span><br><span class="line">                /*半兰伯特光照*/</span><br><span class="line">                //float lightAtten = saturate(dot(o.normalWS,ligntDir)) * 0.5 + 0.5;</span><br><span class="line"></span><br><span class="line">                return baseTex * lightAtten * lightColor;</span><br><span class="line">            &#125;</span><br><span class="line">            ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="镜面反射">镜面反射</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161423939.png" alt=""></p>
+<ul>
+<li>光滑镜面反射。</li>
+<li>镜面反射就是将入射光线根据表面法线进行反射，并且只有在反射方向有能量，其他方向能量均为0</li>
+<li>BRDF形状为一条直线</li>
+<li>视角方向越接近出射方向，高光越亮。其中pow函数只是用来拟合，控制高光的大小。</li>
+<li>Blinn-Phong则是计算法线和半程向量的接近程度</li>
+</ul>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=C_%7Bspecular%7D%20%3D%20%20pow%28saturate(dot(%5Cvec%7BReflDir%7D%2C%20%5Cvec%7BViewDir%7D%29)%2C%2032)%20%5Ccdot%20C_%7BLight%7D%3B%20%0A" /></p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line">// 提供一个基于URP的phong | blinn-phong 光照模型</span><br><span class="line">// 出自https://www.yuque.com/u12120868/md8ze7/ivprsr</span><br><span class="line">Shader &quot;Custom/Blinn-Phong&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _DiffuseColor(&quot;DiffuseColor&quot;,Color) = (1,1,1,1)</span><br><span class="line">        [HDR]_SpecularColor(&quot;SpecularColor&quot;,Color) = (1,1,1,1)</span><br><span class="line">        _SpecularGloss(&quot;SpecularGloss&quot;,Range(8.0,256)) = 10</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;RenderPipeline&quot; = &quot;UniversalPipeline&quot;</span><br><span class="line">            &quot;RenderType&quot; = &quot;Opaque&quot;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        LOD 200</span><br><span class="line"></span><br><span class="line">        HLSLINCLUDE</span><br><span class="line">        #include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl&quot;</span><br><span class="line">        #include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl&quot;</span><br><span class="line"></span><br><span class="line">        CBUFFER_START(UnityPerMetrials)</span><br><span class="line">        half4 _DiffuseColor;</span><br><span class="line">        half4 _SpecularColor;</span><br><span class="line">        float _SpecularGloss;</span><br><span class="line">        CBUFFER_END</span><br><span class="line"></span><br><span class="line">        struct a2v</span><br><span class="line">        &#123;</span><br><span class="line">            float4 positionOS : POSITION;</span><br><span class="line">            float4 normalOS : NORMAL;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        struct v2f</span><br><span class="line">        &#123;</span><br><span class="line">            float4 positionWS : SV_POSITION;</span><br><span class="line">            float3 viewDir : TEXCOORD0;</span><br><span class="line">            float3 normalWS : TEXCOORD1;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        ENDHLSL</span><br><span class="line"></span><br><span class="line">        Pass </span><br><span class="line">        &#123;</span><br><span class="line">            Tags</span><br><span class="line">            &#123;</span><br><span class="line">                &quot;LightMode&quot;=&quot;UniversalForward&quot;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            HLSLPROGRAM</span><br><span class="line">            #pragma vertex vert </span><br><span class="line">            #pragma fragment frag </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line"></span><br><span class="line">                o.positionWS = TransformObjectToHClip(v.positionOS.xyz);</span><br><span class="line">                o.normalWS = TransformObjectToWorldNormal(v.normalOS.xyz,true);</span><br><span class="line"></span><br><span class="line">                o.viewDir = normalize(_WorldSpaceCameraPos.xyz - TransformObjectToWorld(v.positionOS.xyz));</span><br><span class="line"></span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            real4 frag(v2f i) : SV_TARGET</span><br><span class="line">            &#123;</span><br><span class="line">                Light myLight = GetMainLight();</span><br><span class="line">                float3 lightDir = normalize(myLight.direction);</span><br><span class="line">                half4 lightColor = half4(myLight.color,1.0);</span><br><span class="line">                float halfLambert = (saturate(dot(i.normalWS.xyz,lightDir)) * 0.5 + 0.5);</span><br><span class="line"></span><br><span class="line">                half3 halfDir = normalize(i.viewDir + lightDir);</span><br><span class="line"></span><br><span class="line">                half4 diffuseColor = lightColor * _DiffuseColor * halfLambert;</span><br><span class="line"></span><br><span class="line">                // float3 reflectDir = normalize(2 * dot(i.normalWS.xyz,lightDir) * i.normalWS.xyz - lightDir);</span><br><span class="line"></span><br><span class="line">                half4 specularColor = lightColor * _SpecularColor * pow(saturate(dot(i.normalWS,halfDir)),_SpecularGloss);</span><br><span class="line"></span><br><span class="line">                return specularColor + diffuseColor;</span><br><span class="line">            &#125;</span><br><span class="line">            ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="粗糙镜面反射">粗糙镜面反射</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161432835.png" alt=""></p>
+<ul>
+<li>法线偏移较小。反射依然集中在一个区域。</li>
+<li>形成磨砂的质感</li>
+<li>BRDF为花瓣形状(lobe)</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161434925.png" alt=""></p>
+<h5 id="折射">折射</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161434904.png" alt=""></p>
+<ul>
+<li>对于玻璃这种电介质，除了反射之外还有根据物体的折射率折射一部分光线进入物体之中</li>
+<li>需要入射介质和进入介质两个折射率，以及对应的角度</li>
+<li>反射和折射能量的多少是根据菲尼尔(Fresnel)定律决定</li>
+<li>完整的Fresnel计算通常比较麻烦，实时渲染常用拟合后曲线加速计算</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">R = refract(View, Normal, ration);</span><br><span class="line">ReflColor = tex2D(skybox, R);</span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161436816.png" alt=""></p>
+<h5 id="粗糙镜面折射">粗糙镜面折射</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161439592.png" alt=""></p>
+<ul>
+<li>这种材质在现实中的例子就是各种毛玻璃</li>
+<li>比起粗糙镜面反射，粗糙镜面折射中有一部分光可以透过去发生折射</li>
+</ul>
+<h5 id="多层材质">多层材质</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161440902.png" alt=""></p>
+<ul>
+<li>比如涂了清漆的木地板</li>
+<li>自身的材质+表面新增一层材质叠加</li>
+<li>单一的微表面BRDF模型很难模拟这种效果</li>
+</ul>
+<h5 id="次表面散射">次表面散射</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161442578.png" alt=""></p>
+<ul>
+<li>半透明的物体。例如玉石、蜡烛、牛奶、皮肤</li>
+<li>光进入皮肤后与照亮了毛细血管，因此在明暗分界的位置，反射出的红光就更容易被看到</li>
+<li>详见GAMES101-P18</li>
+</ul>
+<h5 id="多层皮肤模型">多层皮肤模型</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161446659.png" alt=""></p>
+<ul>
+<li>皮肤可以看成三层：油脂，表皮，真皮。</li>
+<li>油脂层直接把光反射出去，所以皮肤上才出现高光</li>
+<li>未被反射的光通过折射进入子表面层，进入该层后，部分被吸收和散射</li>
+<li>再从皮肤中入射点附近出射点射出从而形成次表面散射效果</li>
+</ul>
+<h5 id="改变材质表面">改变材质表面</h5>
+<ul>
+<li>现实世界中不存在完美平滑的表面，因此需要对模型表面的法线进行扰动。</li>
+<li>其中一个方法是使用法线贴图。</li>
+<li>漫反射，高光，折射。都与法线有关，因此改变法线，就能改变其光照计算结果</li>
+<li>虽然材质特别重要，但是没有一个好的模型，依然不会有好的效果。</li>
+<li>有时候模型就能表现出它的金属感，布料感。材质在这些基础上就能给人一个更加直观的感受。</li>
+<li>要在性能和效果之间平衡与取舍</li>
+</ul>
+<h2 id="模型数据在渲染中的作用">模型数据在渲染中的作用</h2>
+<h5 id="纹理动画">纹理动画</h5>
+<h6 id="概念">概念</h6>
+<ul>
+<li>UV坐标动画或UV平移的含义是，水平（U）和/或垂直（V）移动纹理的UV坐标，以产生复杂动画的错觉。</li>
+<li>在渲染管线中，修改模型的UV信息，使得采样贴图时，发生位移而产生运动效果</li>
+<li>一般出于性能考虑（顶点数和依赖纹理读取），在顶点着色器中偏移uv，片段着色器采样结果</li>
+</ul>
+<h6 id="例子">例子</h6>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/111.gif" alt=""></p>
+<ul>
+<li>
+<p>光照计算：利用法线贴图，改变反射与折射的朝向。（法线的改变导致反射折射信息计算变换）<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161502397.png" alt=""></p>
+</li>
+<li>
+<p>背面画面采样：改变UV采样点的位置，产生动画效果<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161502778.png" alt=""></p>
+</li>
+</ul>
+<h5 id="顶点动画">顶点动画</h5>
+<ul>
+<li>顶点动画就是在顶点着色器中对模型的顶点进行进行操作（一般是修改位置）进而产生动画效果。</li>
+<li>顶点着色器计算的是模型的每一个顶点，每个顶点的数据是不同的</li>
+<li>因此同一个计算公式在不同的顶点上，计算出来的结果也是不同的</li>
+<li>顶点动画需要一定数量的顶点，效果才会比较明显（可以配合曲面细分着色器）</li>
+<li>一个顶点传入顶点shader，顶点shader控制顶点位置时，所有的顶点都会进行一样的算法。</li>
+<li>在一些三维软件中，动画的K帧也是顶点动画</li>
+</ul>
+<h5 id="顶点颜色">顶点颜色</h5>
+<ul>
+<li>
+<p>在渲染时，影响输出结果。控制颜色范围</p>
+<ul>
+<li>可以用来实现顶点色达到一定的值，就做阴影。</li>
+<li>也可以使用模型的顶点色作为mask使用</li>
+</ul>
+</li>
+<li>
+<p>因四边面在cg软件或者游戏引擎中本质上还是三角面组合而成，所以在绘制时会出现三角形的分界</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161513873.png" alt=""></p>
+</li>
+<li>
+<p>三角形内像素点的色彩会在光栅化时进行插值混合。</p>
+<ul>
+<li>详细过程可以看GAMES101-P9</li>
+<li>三角形所在平面任意点（x，y）都可用重心坐标三顶点（α β γ）的线性组合表示</li>
+<li>重心坐标不能保证投影后不变，所以三维情况下要先找到重心坐标再插值</li>
+<li>通过当前像素点周围三个顶点的顶点颜色、法线、纹理坐标，进行插值获取当前像素点的对应属性<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161518041.png" alt=""><br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161520749.png" alt=""></li>
+</ul>
+</li>
+</ul>
+<h5 id="顶点法线与面法线">顶点法线与面法线</h5>
+<h6 id="不同">不同</h6>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161522113.png" alt=""></p>
+<ul>
+<li>面法线也是顶点法线，只是存储的方式有所差异</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161522217.png" alt=""></p>
+<ul>
+<li>当前像素点的法线是通过周围顶点法线插值获得的，而从下图中可以明显看到面法线与顶点法线因为方向不同，插值结果也不同。其中面法线三个点共用一个法线。</li>
+</ul>
+<h6 id="原理">原理</h6>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161525679.png" alt=""></p>
+<ul>
+<li>（面法线）未使用平滑时，三角形三个顶点共用一个法线。那么插值时，因为三个顶点的法线相同，所以插值的结果相同。</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161525498.png" alt=""></p>
+<ul>
+<li>（顶点法线）使用平滑后，一个顶点一个法线。三角形三个顶点的法线也就不相同。插值结果，也就会不同。</li>
+</ul>
+<h2 id="扩展：NPR中的描边">扩展：NPR中的描边</h2>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301161527792.png" alt=""></p>
+<ul>
+<li>在NPR渲染中。通常在顶点着色器中，将顶点往法线方向偏移。然后再片段着色器中直接输出一个颜色，达到描边的效果。</li>
+<li>BackFacing描边时，线条之间断开就是因为没有使用顶点法线（没有进行平滑着色）</li>
+</ul>
+<h2 id="引用">引用</h2>
+<ul>
+<li>课程PPT：<a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DUUpqWVdnekJIak9I">https://docs.qq.com/slide/DUUpqWVdnekJIak9I</a></li>
+<li>LearnOpenGL</li>
+<li>知乎：文刀秋二（基于物理着色）</li>
+<li>冯乐乐《Unity Shader 入门精要》</li>
+<li>B站：闫令琪现代计算机图形学入门 GAMES101</li>
+<li>顶点颜色的使用：<a target="_blank" rel="noopener" href="https://www.ddove.com/edu/chapter/8123.html">https://www.ddove.com/edu/chapter/8123.html</a></li>
+<li>大佬笔记：
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/fxvhxl">https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/fxvhxl</a> （结尾光滑组部分需要加深理解）</li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/u12120868/md8ze7/ivprsr">https://www.yuque.com/u12120868/md8ze7/ivprsr</a></li>
+</ul>
+</li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/5fe99a62/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-2.3 常用函数介绍</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/2e26c1da/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-2.1 色彩空间</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

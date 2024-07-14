@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形-1.2 数学基础 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形-1.2 数学基础</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-01-06T12:33:00.000Z" itemprop="datePublished">2023-01-06</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-07-14T09:03:59.228Z" itemprop="dateUpdated">2024-07-14</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <p>求知若饥，虚心若愚</p>
+<span id="more"></span>
+<h2 id="1-2-1-向量基础">1.2.1 向量基础</h2>
+<h5 id="摸下🐟，放上大佬的笔记，以及向量相关的其他课程">摸下🐟，放上大佬的笔记，以及向量相关的其他课程</h5>
+<ul>
+<li>课程PPT: <a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DUHFDQ2FCa0tOQlFt">https://docs.qq.com/slide/DUHFDQ2FCa0tOQlFt</a></li>
+<li>爱渲染的镜子: <a target="_blank" rel="noopener" href="https://www.yuque.com/u12120868/md8ze7/pg2d9b">https://www.yuque.com/u12120868/md8ze7/pg2d9b</a></li>
+<li>线性代数的本质 - 系列合集: <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1ys411472E/">https://www.bilibili.com/video/BV1ys411472E/</a></li>
+</ul>
+<h5 id="关于向量的几何意义">关于向量的几何意义</h5>
+<ul>
+<li>向量的标准化normalize，在图形学中十分常用，用来得到只有方向信息且长度为1的向量，比如法线、灯光方向、视角方向等等</li>
+<li>向量与标量的计算：只能乘除，不能加减。保持向量方向不变，放大或缩小向量的长度。印象中视差贴图有对向量进行放缩来启发式找到对应视点所在纹理的操作。</li>
+<li>点乘：结果为标量，视频中指其意在表明两个向量的“相似”程度，点乘结果越大，夹角越小，反之亦然。另一种通用理解是，向量对另一个向量的单位向量的投影，再乘上其模长，投影有正负以及长度从而能体现出“相似”程度。由于图形学中的向量很多都是单位向量，点乘也能用来求向量夹角的cos值，渲染方程中有体现。值得一提的是点乘符合交换律，即无论谁对谁投影其值都一样，几何上的推导和对偶性有关。</li>
+<li>叉乘：叉乘的结果仍是向量，方向与进行计算的两个向量两两垂直，长度为两向量围成的平行四边形的面积，这一块在<em>线性代数的本质</em>视频中有推导。不符合交换律，因为不同的顺序方向将不一样，方向还与左/右手坐标系的定义有关。常见的用法有计算副切线、判断一个点在不在三角形内部。</li>
+</ul>
+<h5 id="实现半兰伯特光照模型">实现半兰伯特光照模型</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301062114922.png" alt=""></p>
+<h2 id="1-2-2-矩阵运算">1.2.2 矩阵运算</h2>
+<h5 id="可供参考的笔记">可供参考的笔记</h5>
+<ul>
+<li>课程PPT: <a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DUGxvT0hHaFhWRFRQ">https://docs.qq.com/slide/DUGxvT0hHaFhWRFRQ</a></li>
+<li>爱渲染的镜子: <a target="_blank" rel="noopener" href="https://www.yuque.com/u12120868/md8ze7/pg2d9b">https://www.yuque.com/u12120868/md8ze7/pg2d9b</a></li>
+<li>线性代数的本质 - 系列合集: <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1ys411472E/">https://www.bilibili.com/video/BV1ys411472E/</a></li>
+<li>GAMES101: <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1X7411F744/?p=3">https://www.bilibili.com/video/BV1X7411F744/?p=3</a></li>
+<li>Shader入门精要-章节4: <a target="_blank" rel="noopener" href="http://candycat1992.github.io/unity_shaders_book/unity_shaders_book_chapter_4.pdf">http://candycat1992.github.io/unity_shaders_book/unity_shaders_book_chapter_4.pdf</a></li>
+</ul>
+<h2 id="1-2-3-MVP矩阵运算">1.2.3 MVP矩阵运算</h2>
+<h5 id="参考链接">参考链接</h5>
+<ul>
+<li>爱渲染的镜子: <a target="_blank" rel="noopener" href="https://www.yuque.com/u12120868/md8ze7/cqkci3">https://www.yuque.com/u12120868/md8ze7/cqkci3</a></li>
+<li>GAMES101: <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1X7411F744?p=4">https://www.bilibili.com/video/BV1X7411F744?p=4</a></li>
+<li>图形学：正交/透视投影矩阵的推导（多个思路）: <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/554093703">https://zhuanlan.zhihu.com/p/554093703</a></li>
+<li>图形学投影矩阵推导: <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1ZY41157TR">https://www.bilibili.com/video/BV1ZY41157TR</a></li>
+<li>课程PPT: <a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DUFphVk1ZZkRPREtO">https://docs.qq.com/slide/DUFphVk1ZZkRPREtO</a></li>
+</ul>
+<h5 id="不同的坐标系">不同的坐标系</h5>
+<ul>
+<li>模型空间：以模型自身为原点的局部坐标系。</li>
+<li>世界空间：一个场景（舞台）有个中心点，即原点，在场景中的物体都有一个关于那个原点的相对坐标，称为世界坐标系。</li>
+<li>视觉空间（观察空间）：以摄像机为原点的坐标系，描述场景中的物体相对于摄像机的关系，从而来判断画面的远近、遮挡、是否显示等关系。<em>需要注意的是视觉空间一般是右手坐标系。</em></li>
+<li>裁剪空间：为投影做准备，进行投影矩阵（裁剪矩阵）变换后，通过坐标值与w分量的对比，舍弃掉不在视锥体范围的顶点，会在交界处生成新的顶点。</li>
+<li>屏幕空间：先进行透视除法到NDC坐标，最后屏幕映射到屏幕坐标系（与分辨率大小有关），得到的xy坐标即和屏幕上显示的位置一致，保留z分量来进行深度测试。</li>
+<li>需要注意的一点是通常的变换操作有缩放、旋转、平移，由于这三种变换都是相对于原点来说，所以不同顺序的组合会导致不同的结果，我们通常约定要按缩放-旋转-平移来进行变换，避免出现不想要的结果。顺序之所以重要，原因之一就是像旋转和缩放这样的转换是相对于坐标系原点进行的。 缩放以原点为中心的对象产生的结果不同于缩放远离原点的对象所产生的结果。 同样，旋转以原点为中心的对象产生的结果不同于旋转远离原点的对象所产生的结果。</li>
+<li>关于旋转矩阵的一种思路（来自3Blue1Brown）：变换基坐标系，假设原坐标系是(1,0)(0,1)，可以在原坐标系找到x轴y轴变换后的向量(cosa,sina)(-sina,cosa)，如果以变换后xy轴形成一个新坐标系，那么其实某个点的表示还是(x,y)，因为坐标系变了，里面的点也跟着变，而原表达式不变。而通过变换后的xy轴向量可以得到新坐标系到原坐标系变换的矩阵（将x轴坐标写在第0列，y轴坐标写在第1列），新坐标系的点通过坐标系变换矩阵就可以得到变换后在原坐标系中的位置。</li>
+</ul>
+<h5 id="坐标系变换">坐标系变换</h5>
+<ul>
+<li>model transform，相当于拍照时将每个物体找好合适位置并摆Poss（旋转和缩放）</li>
+<li>view transform，相当于拍照时相机找好角度去拍
+<ul>
+<li>有个约定俗成的事情，将相机变换到坐标系原点，且相机的xyz轴和世界的xyz轴对齐（右手系是-z），对其他物体也进行这个变换（相对运动），这样比较方便理解</li>
+<li>先进行平移变换到原点，再进行旋转对齐坐标轴。但相机变换到世界坐标轴不好写，可以反过来写世界坐标轴变换到相机坐标轴，再通过逆变换得到矩阵。（由于是正交矩阵，逆矩阵可以通过转置矩阵得到）</li>
+</ul>
+</li>
+<li>projection transform，相当于拍照时按下快门成像（推导出自GAMES101-4）
+<ul>
+<li>
+<p>orthography projection，将观察空间映射到 <img src="https://math.now.sh?inline=%5B-1%2C1%5D%5E3" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/> 标准立方体中，矩阵如下（右手系），一般来说通过view变换已经在原点了，然后再进行缩放变换（所以通常view和projection一起进行，称为viewing变换）。这里需要注意右手系和左手系，n和f谁大谁小可能不一样，z分量需要注意符号</p>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=%5Cbegin%7Bmatrix%7D%0A%5Cfrac%7B2%7D%7Br-l%7D%260%260%26-%5Cfrac%7Br%2Bl%7D%7B2%7D%5C%5C%0A0%26%5Cfrac%7B2%7D%7Bt-b%7D%260%26-%5Cfrac%7Bt%2Bb%7D%7B2%7D%5C%5C%0A0%260%26%5Cfrac%7B2%7D%7Bn-f%7D%26-%5Cfrac%7Bn%2Bf%7D%7B2%7D%5C%5C%0A0%260%260%261%5C%5C%0A%5Cend%7Bmatrix%7D%0A" /></p></li>
+<li>
+<p>perspective projection，将平截头体这种观察空间映射到 <img src="https://math.now.sh?inline=%5B-1%2C1%5D%5E3" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/> 标准立方体中，直接写比较困难，可以分解成两步，第一步先将平截头体变成长方体，第二步再进行正交投影。第一步变换中，我们约束两个事情，近平面的点经过变换后保持不变，远平面的中心点经过变换后也保持不变。<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301111205098.png" alt=""><br>
+通过相似三角形观察到，xy如何变换<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301111206285.png" alt=""><br>
+通过上面对xy的变换初步得到矩阵，此时还有四个未知数<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301111207103.png" alt=""><br>
+应用我们上面提到的两个约定，解方程得到四个未知数<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301111209825.png" alt=""><br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301111209952.png" alt=""><br>
+得到透视到正交的变换矩阵后，再进行正交投影即可得到透视投影矩阵<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301111211952.png" alt=""></p>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=%5Cbegin%7Bvmatrix%7D%0A%5Cfrac%7B2%7D%7Br-l%7D%260%260%26-%5Cfrac%7Br%2Bl%7D%7B2%7D%5C%5C%0A0%26%5Cfrac%7B2%7D%7Bt-b%7D%260%26-%5Cfrac%7Bt%2Bb%7D%7B2%7D%5C%5C%0A0%260%26%5Cfrac%7B2%7D%7Bn-f%7D%26-%5Cfrac%7Bn%2Bf%7D%7B2%7D%5C%5C%0A0%260%260%261%5C%5C%0A%5Cend%7Bvmatrix%7D%20*%20%0A%5Cbegin%7Bvmatrix%7D%0An%260%260%260%5C%5C%0A0%26n%260%260%5C%5C%0A0%260%26n%2Bf%26-nf%5C%5C%0A0%260%261%260%5C%5C%0A%5Cend%7Bvmatrix%7D%0A" /></p></li>
+</ul>
+</li>
+</ul>
+<h2 id="提供一个光栅化的动画演示">提供一个光栅化的动画演示</h2>
+<p><a target="_blank" rel="noopener" href="http://www.zhihu.com/zvideo/1347581841478709248">www.zhihu.com/zvideo/1347581841478709248</a></p>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/73f6d29c/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-1.3 纹理的秘密</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/2c156965/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-1.1 渲染流水线</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

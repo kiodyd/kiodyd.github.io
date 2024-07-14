@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形 4.4 抗锯齿概论 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形 4.4 抗锯齿概论</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-03-01T02:54:03.000Z" itemprop="datePublished">2023-03-01</time>
+          </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="锯齿是怎么产生的">锯齿是怎么产生的</h2>
+<h3 id="现象描述">现象描述</h3>
+<p>图形渲染中的锯齿是指在渲染结果图像上颜色剧烈变化的区域出现锯齿状一样的斑纹的现象。在图像色彩边缘线上，由于边缘两边的颜色差异很大，这样的现象特别明显。<s>也有人称它为被狗啃了一样。</s></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/clipboard_f5fafb11b668b132c88d34fb62734a05.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/clipboard_f5fafb11b668b132c88d34fb62734a05.png"></p>
+<h3 id="锯齿产生的根本原因">锯齿产生的根本原因</h3>
+<blockquote>
+<p>推荐文章：<br>
+GAMES101 L-6：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1X7411F744?p=6">https://www.bilibili.com/video/BV1X7411F744?p=6</a><br>
+采样相关知识：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/392738085">https://zhuanlan.zhihu.com/p/392738085</a></p>
+</blockquote>
+<p>图形学的根本过程是一个把图形转化成图像的过程，该过程是一个连续信号经过采样转化成离散信号的过程，之所以产生锯齿现象是因为信号的离散性被人眼识别出来。</p>
+<p>抗锯齿就是通过一些手段去重构丢失的信号。我们通常用的抗锯齿算法实际上是降低锯齿，并非消除锯齿。</p>
+<p>锯齿是因为不同频率信号之间转换之后造成的数据失真，因此锯齿现象也被称为走样（Aliasing）。</p>
+<p>为了减少失真，一种理所应当的抗锯齿思路就是增加采样频率，而另一种思路是由于频率变化快的地方失真越严重，即边缘处（从视觉上也是如此），所以可以通过后处理手段将边缘识别出来再模糊叠加回原画面的手段。</p>
+<h2 id="常见的抗锯齿">常见的抗锯齿</h2>
+<h3 id="超采样抗锯齿">超采样抗锯齿</h3>
+<h4 id="SSAA超采样抗锯齿-Super-Sample-Anti-aliasing">SSAA超采样抗锯齿(Super Sample Anti-aliasing)</h4>
+<p>SSAA本质上是先渲染出一张面具为屏幕分辨率为N倍的图像，然后再通过降采样的方式输出最后的渲染图像，这样输出一个屏幕像素就对应原来N个采样点计算的屏幕大小的图像，这是理论上最完美的抗锯齿。基于GPU硬件实现</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/202203011120_8c44e9fb3f9e3b0202aaf2000398af58.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/202203011120_8c44e9fb3f9e3b0202aaf2000398af58.png"><br>
+上图中最右边有明显的锯齿，但是通过降采样一直输出到左边的话，这种锯齿感从肉眼来看的话就会明显地减弱。</p>
+<p>假设最终屏幕输出的分辨率是800x600,4xSSAA就会渲染到一个分辨率1600x1200的Buffer上，然后再把这个放大4倍的Buffer采样输出至800x600。这种做法在数学上是最完美的抗锯齿。但是缺点也很明显，计算量增大了4倍，render target的大小也涨了4倍。</p>
+<h3 id="MSAA一类的多重采样抗锯齿">MSAA一类的多重采样抗锯齿</h3>
+<h4 id="MSAA多重采样-Multi-sample-Anti-aliasing">MSAA多重采样(Multi sample Anti-aliasing)</h4>
+<p>MSAA是GPU在光栅化阶段对片段进行超采样，单个像素中的所有采样都决定像素中心点的着色结果，最后根据样本的覆盖率来计算像素最终颜色的方法。基于GPU硬件实现</p>
+<p>它的原理是这样的，在逐像素阶段，如果我们只布置一个采样点，虽然如下图左边三角形虽然占据了像素一部分，但是却没有包含中心采样点，那么不输出颜色，，反之如果我们布置了多个采样点的话，那么根据覆盖的样本的百分比来输出最终的颜色，就如下图右边所示。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_fa69aed96f6db855fd213cb3e40be7f9.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_fa69aed96f6db855fd213cb3e40be7f9.png"></p>
+<p>这种抗锯齿方式，布置的采样点越多越准确，但是随之计算的性能消耗也会增大。</p>
+<p>下面是MSAA抗锯齿输出的颜色示例：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_91499a4d660db47283e630e7c4c6a3bd.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_91499a4d660db47283e630e7c4c6a3bd.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_fef24c28d3758d17c82f8a49cc54baf0.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_fef24c28d3758d17c82f8a49cc54baf0.png"></p>
+<p>但是MSAA也有一些缺点：</p>
+<ol>
+<li>MSAA在与HDR一起使用时可能会产生问题，必须进行专门处理。</li>
+<li>由于MSAA是在光栅化阶段对图元进行超采样，因此它只能解决几何走样现象(即物体轮廓地锯齿)，不能解决着色走样(高光闪点)问题。</li>
+<li>延迟渲染无法支持MSAA。</li>
+</ol>
+<p><strong>PiexlShader后产生的锯齿：</strong></p>
+<ul>
+<li>在通用渲染管线中，vs执行之后ps执行之前，这个区间进行的操作叫作光栅化，所以上述操作对于ps执行后产生的锯齿是没有任何效果的，例如：高频高光，部分显示物体如树叶，草这些，也需要抗锯齿。</li>
+<li>这些物体的边缘是在执行ps计算时对贴图的alpha值进行采样后得到的，所以光栅化阶段得到的coverage mask 对这些物体无效。</li>
+<li>对于这些物体，要想知道他们的边缘，只能在执行ps时做​workaroud，即alpha to coverage，简单来说就是在执行ps时，对alpha值和AlphaTest的Clip Value 进行比较，根据插值修改该像素的coverage mask。</li>
+</ul>
+<p><strong>Alpha-To Coverage A2C</strong></p>
+<ul>
+<li>在渲染一些需要镂空的物体（树叶，草等）时，我们经常会用到alpha test来实现镂空效果</li>
+<li>通过A2C可以实现alpha test边缘半透明过渡效果。当覆盖测试和深度测试通过后，如果开启了A2C则还会进行一次概率测试，图形硬件会根据SV_Target输出的 alpha 值，再做一次概率判断，如果这次概率判定成功，才会写入颜色。</li>
+<li>例如，4个采样点，有2个通过了测试，SV_Target输出的alpha值为0.5，则很有可能只能1个采样点输入颜色，最终达到%50半透明效果。</li>
+<li>简单来说，通过A2C可以修改图元颜色的权重，从而达到抗锯齿，半透明过渡效果。<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/v2-a95979bba2210010bfd8dd234acecf81_b_e3f05181794aae190b31d0db46bf6595.gif" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/v2-a95979bba2210010bfd8dd234acecf81_b_e3f05181794aae190b31d0db46bf6595.gif"></li>
+</ul>
+<h4 id="CSAA覆盖采样抗锯齿-Coverage-Sampling-Anti-Aliasing">CSAA覆盖采样抗锯齿(Coverage Sampling Anti-Aliasing)</h4>
+<p>在MSAA的基础上，将用来计算Coverage的采样点与用来存储色彩的采样点进行分离，这样可以用较少的显存来存储较多的专门用来计算Coverage的采样点，让覆盖率计算的更加精确，从而提升视觉效果。从结果上看，CSAA在性能上比4x的MSAA稍微低一些，但也可以达到8x或16xMSAA的效果。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/202303011140_b6473b752a981f4941f55a34807ff38b.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/202303011140_b6473b752a981f4941f55a34807ff38b.png"></p>
+<h4 id="EQAA-Enhanced-Quality-Anti-Aliasing">EQAA(Enhanced Quality Anti-Aliasing)</h4>
+<p>EQAA（Enhanced Quality Anti-Aliasing），是 AMD 在其 GPU 产品中对 MSAA 的优化实现。在 EQAA 中，也采用了与 CSAA 相同的做法，将计算 Coverage 的采样点和计算 Color 的采样点分开存储，例如，4f8x EQAA 表示有4个颜色采样点并且总共8个采样点。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/202303011142_7227d4651414dddf20c81e9363ddcf0e.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/202303011142_7227d4651414dddf20c81e9363ddcf0e.png"></p>
+<p>EQAA与CSAA一样，也采用了Coverage与Color两种类型的采样点。另外EQAA还使用了一个表格来存储采样点的颜色、深度、模板数据，而在采样点上通过索引的方式引用表格中的数据。因为在单个像素中，采样点公用数据的几率非常大，因此这种方法可以节省大量的显存资源。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/202303011143_54d705c8b0c776cec0d29a09d930cf7e.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/202303011143_54d705c8b0c776cec0d29a09d930cf7e.png"></p>
+<h3 id="时域上的抗锯齿">时域上的抗锯齿</h3>
+<blockquote>
+<p>Temporal相关可以看<br>
+GAMES202 <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1YK4y1T7yY?p=12">https://www.bilibili.com/video/BV1YK4y1T7yY?p=12</a></p>
+</blockquote>
+<h4 id="TAA时间抗锯齿-Temporal-Anti-Aliasing">TAA时间抗锯齿(Temporal Anti-Aliasing)</h4>
+<p>TAA的核心思想是将点SSAA采样空间不同样本方法改成使用多个历史帧的渲染结果作为样本来达到类似SSAA的效果。它的实现需要N倍的显存空间，但是不需要额外的着色计算。</p>
+<p>实现思路如下：</p>
+<ol>
+<li>把多次采样的过程分布到每一帧中去，每一帧都平均前面几帧保存下来的数据。从下图可以看到将4次采样分布在4帧的运算中。</li>
+<li>每一帧会有一定的偏移，继承了MSAA采样。从下图可以看到每一帧的采样点的位置并不一样。</li>
+<li>用motion vector保存每帧移动的偏移。</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_175b8fdf756bff502c85d0c130a1c8a5.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_175b8fdf756bff502c85d0c130a1c8a5.png"></p>
+<p>在实际工程中，需要注意TAA带来的一些细节问题；</p>
+<ol>
+<li>因为灯光改变、遮挡改变、相机或场景运动所带来的历史帧中的样本失效问题。</li>
+<li>因为样本来自于多个历史帧而产生的画面收敛延迟(残影)的问题等等。</li>
+<li>HDR协同工作的问题。</li>
+</ol>
+<h4 id="TXAA">TXAA</h4>
+<p>TXAA 是 NVIDIA 在 GTX 600 及以上版本的显卡上基于传统 MSAA（CSAA？） 的基础上，引入了时间过滤器（TAA的思想）的硬件抗锯齿技术。TXAA 旨在减少时间性锯齿 (运动中的蠕动和闪烁)。 该技术集时间性过滤器、硬件抗锯齿以及定制的 CG 电影式抗锯齿解算法于一身。 要过滤屏幕上任意特定的像素，TXAA 需要使用像素内部和外部的采样以及之前帧中的采样，以便提供最高画质的过滤。 TXAA 在标准 2xMSAA 和 4xMSAA 的基础上改进了时间性过滤。 例如，在栅栏或植物上以及在运动画面中，TXAA 已经开始接近、有时甚至超过了其它高端专业抗锯齿算法的画质。TXAA 由于采用更高画质的过滤，因而与传统 MSAA 较低画质的过滤相比，图像更加柔和。</p>
+<h4 id="MFAA多帧采样抗锯齿-Multi-Frame-Sampled-Anti-Aliasing">MFAA多帧采样抗锯齿(Multi-Frame Sampled Anti-Aliasing)</h4>
+<p>Maxwell 架构提供了一种名为动态超分辨率（Dynamic Super Resolution，DSR）的技术，能在硬件上实现超采样。另外 Maxwell 将AA的样本数据存放在了 RAM 中（以前的架构都是将 AA 样本数据存储在 ROM中），从而提高了样本存储的灵活性和可编程性。借助这样的新的架构，实现了 MFAA。由于 RAM 中的数据是可以自由读写的，通过在时间和空间上交替 AA 样本的模式，MFAA 的样本在历史每帧（甚至同一帧的不同时刻）都可以不同。</p>
+<p>4x MFAA 的画质于 4x MSAA 相当，但只需要 2x MSSAA 相当的性能开销。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_6ae92bfe31d3a047dea13e32321e4dac.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_6ae92bfe31d3a047dea13e32321e4dac.png"></p>
+<h3 id="后处理抗锯齿">后处理抗锯齿</h3>
+<h4 id="FXAA快速近似抗锯齿-Fast-Approximate-Anti-Aliasing">FXAA快速近似抗锯齿(Fast Approximate Anti-Aliasing)</h4>
+<ul>
+<li>利用边缘检测有效的模糊混合。</li>
+<li>在后处理完成不依赖硬件支持。</li>
+</ul>
+<p>测试场景中对应的后处理图像：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_d2c84c49cdae92c4be2669b2dc5e988e.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_d2c84c49cdae92c4be2669b2dc5e988e.png"></p>
+<p>FXAA本质就是在后处理中对图像进行描边，然后对描边图像进行模糊，之后再与原图像进行混合。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_d496619a321c37d2ded29370099846ca.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_d496619a321c37d2ded29370099846ca.png"><br>
+相比于MSAA，FXAA的目标是速度更快、显存占用更低，还有着不会造成镜面模糊和亚像素模糊(表面渲染不足一个像素时的闪烁现象)的优势，而代价就是精度和质量上的损失。</p>
+<h4 id="MLAA形态学抗锯齿-morphological-Anti-Aliasing">MLAA形态学抗锯齿(morphological Anti-Aliasing)</h4>
+<p>它的基本思路是检测每帧图像的边缘(通常可对亮度、颜色、深度或者法线进行边缘检测)，然后对这些边缘进行模式识别，归类出Z、U、L三种形状，根据形状对边缘进行重新矢量化(re-vectorization)，并对边缘上的像素根据覆盖面积计算混合权重，将其与周围的颜色进行混合，从而达到平滑锯齿的目的。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/SKDSJHFSJDK_93d1222b7e5acc94e061d016b9eb8cef.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/SKDSJHFSJDK_93d1222b7e5acc94e061d016b9eb8cef.png"></p>
+<p>以下图为例详细说明。用绿色标记的线条为检测到的Z形边缘，从这些边缘我们可以推断出原始边缘的形状，即图中蓝色线条。这个过程叫重新矢量化。此时我们能够得知边缘附近每个像素被蓝色线条截断了百分之多少。根据此信息将当前像素与邻近像素的颜色混合，便能得到平滑的边缘。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/202303011151_fcda0122b9f906ead899a8d60f77fdc3.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/202303011151_fcda0122b9f906ead899a8d60f77fdc3.png"></p>
+<p>像素被蓝线截断面积的百分比（小于50%的部分）叫做权重因子。对于任一个边缘像素，要计算其权重因子，只需要知道d_left、d_right，以及两端交叉边的朝向（即边缘的形状，此处为Z形）即可。其中d_left和d_right为当前像素距离边缘两端的距离。得到权重因子a后，通过如下计算实现边缘平滑：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/202303011152_7266642b3d6642eac14c80edd68f0e7e.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/202303011152_7266642b3d6642eac14c80edd68f0e7e.png"></p>
+<p>为了节省计算资源，Jimenez为每种形状模式预计算了一张查找表（称作areaTex）以便快速获取权重因子，如下图所示：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/202303011153_3b3d7e1eed9297a082ac20cc4df73e76.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/202303011153_3b3d7e1eed9297a082ac20cc4df73e76.png"><br>
+注意贴图中的每个像素保存了两个数值（分别储存在R和G通道里），这两个数值分别代表当前像素及共享同一边缘的邻接像素的权重因子。</p>
+<p>以上是仅针对水平方向锯齿的情况，对于垂直方向的锯齿，处理方式类似。</p>
+<p>MLAA 天然的能与延迟着色完美配合，但它只能用来消除几何锯齿，不能消除着色锯齿。</p>
+<h4 id="SMAA增强型子像素形态学抗锯齿-Subpixel-Monorplogical-Anti-Aiasing">SMAA增强型子像素形态学抗锯齿(Subpixel Monorplogical Anti-Aiasing)</h4>
+<p>SMAA是思路是建立在Jimenez版MLAA的基础之上，但是每个步骤都经过了强化或者彻底的更新。</p>
+<p>Jimenez版MLAA的处理流程如下图所示：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/102161436294_2d2b5f7cc40d814c103a93009b7a7805.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/102161436294_2d2b5f7cc40d814c103a93009b7a7805.png"><br>
+分为三个步骤：</p>
+<ol>
+<li>边缘检测</li>
+<li>计算权重因子</li>
+<li>混合周围像素</li>
+</ol>
+<p>SMAA在（b）、（c）的基础上加入了针对尖锐几何特征的处理，并加入了对角线模式识别；在（d）中加入了对局部对比度的考虑；在（e）改善了距离搜索算法。</p>
+<h3 id="深度学习AA算法">深度学习AA算法</h3>
+<h4 id="DLSS深度学习超采样-Deep-Learning-Super-Samping">DLSS深度学习超采样(Deep Learning Super Samping)</h4>
+<p>DLSS（Deep Learning Super Sampling），深度学习超采样，是 NVIDIA 于 2018 年在 GeForce 20 系列的显卡上推出的一种基于深度学习算法进行图像缩放的技术。2020 年 NVIDIA 推出了 DLSS 2.0。</p>
+<p>这项技术在Turing架构中首次引入，它的工作原理是利用NVIDIA神经图形框架NGX，在超级计算机中以极低的帧率和每像素64个样本对数万张高分辨率的精美图像进行离线渲染，训练出一个深度神经网络。基于无数个小时的训练所获得的数据，网络就可以将分辨率较低的图像作为输入，构建高分辨率的精美图像。</p>
+<p>训练好网络后，NGX会通过Game Ready驱动程序和OTA更新将AI模型传递到GeForce RTX PC或笔记本电脑。并借助RTX GPU 中专用于AI计算的Tensor Core，DLSS网络可以与密集的3D游戏同时实时运行。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/DLSS_016751a67c0d2bb37bf41a5c3f85cdbf.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/DLSS_016751a67c0d2bb37bf41a5c3f85cdbf.png"></p>
+<h2 id="参考文章">参考文章</h2>
+<ul>
+<li>Anti-Aliasing 技术盘点：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/90982812">https://zhuanlan.zhihu.com/p/90982812</a></li>
+<li>主流抗锯齿方案详解（一）MSAA：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/415087003">https://zhuanlan.zhihu.com/p/415087003</a></li>
+<li>主流抗锯齿方案详解（三）FXAA：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/431384101">https://zhuanlan.zhihu.com/p/431384101</a></li>
+<li>图形学基础 - 着色 - 空间抗锯齿技术：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/363624370">https://zhuanlan.zhihu.com/p/363624370</a></li>
+<li>learnOpenGl：<a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/04%20Advanced%20OpenGL/11%20Anti%20Aliasing/">https://learnopengl-cn.github.io/04 Advanced OpenGL/11 Anti Aliasing/</a></li>
+<li>OpenGraphic：<a target="_blank" rel="noopener" href="https://github.com/Gforcex/OpenGraphic">https://github.com/Gforcex/OpenGraphic</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/wlgys8/SRPLearn/wiki/AntiAliasSummary">https://github.com/wlgys8/SRPLearn/wiki/AntiAliasSummary</a></li>
+<li>大佬笔记：
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/hejincan/shader/crqgt0#AEs8y">https://www.yuque.com/hejincan/shader/crqgt0#AEs8y</a></li>
+<li><a target="_blank" rel="noopener" href="https://note.youdao.com/ynoteshare/index.html?id=0d29a0458fbecb1b7a19e5fb67a535ab&amp;type=note&amp;_time=1677592220909">https://note.youdao.com/ynoteshare/index.html?id=0d29a0458fbecb1b7a19e5fb67a535ab&amp;type=note&amp;_time=1677592220909</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/xiaohen-ecwjj/vegbg9/aty2op#FBr5q">https://www.yuque.com/xiaohen-ecwjj/vegbg9/aty2op#FBr5q</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/6527chen/ldyt32/evyqwn">https://www.yuque.com/6527chen/ldyt32/evyqwn</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="作业">作业</h2>
+<h3 id="对比各个抗锯齿方案的优劣（效果，效率）">对比各个抗锯齿方案的优劣（效果，效率）</h3>
+<p>效果上SSAA毫无疑问最好，但是性能开销太大了<br>
+MSAA采样点上去了，效果也不错，但如果高分辨率情况下感觉优势不是很大，而且延迟渲染还不支持<br>
+后处理方案中SMAA效果挺不错的，性能消耗中规中矩，而FXAA虽然快但是有点糊了。<br>
+TAA效果不错，但如果画面频繁变换，可能会穿帮。</p>
+<p>放一张引用文章中的测试结果：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_9c2cf89d26ce1bc706b1f672049d7bc6.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_9c2cf89d26ce1bc706b1f672049d7bc6.png"></p>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/6f3d2e2b/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 3.72 command buffer及urp概述</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/876aa24b/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 2.7.2 GPU硬件架构</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

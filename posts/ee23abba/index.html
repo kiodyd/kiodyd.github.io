@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>Unity Shader入门精要-章节15 使用噪声 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">Unity Shader入门精要-章节15 使用噪声</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2022-10-25T14:33:00.000Z" itemprop="datePublished">2022-10-25</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-07-14T09:03:59.226Z" itemprop="dateUpdated">2024-07-14</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/">🏷️ Unity Shader入门精要</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <p>求知若饥，虚心若愚</p>
+<span id="more"></span>
+<blockquote>
+<p>向规则的事物里添加一些“杂乱无章”的效果往往会有意想不到的效果。而这些“杂乱无章”的效果来源就是噪声。</p>
+</blockquote>
+<h3 id="消融效果">消融效果</h3>
+<p><strong>消融（dissolve）</strong> 效果常见于游戏中的角色死亡、地图烧毁等效果。在这些效果中，消融往往从不同的区域开始，并向看似随机的方向扩张，最后整个物体都消失不见。</p>
+<p>原理：噪声纹理+透明度测试。对噪声纹理采样的结果和某个控制消融程度的阈值比较，如果小于阈值，就使用clip函数把它对应的像素裁剪掉，这部分就对应了“烧毁”的区域。而镂空区域边缘的烧焦效果则是将两种颜色混合，再用pow函数处理后，与原纹理颜色混合的结果。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Unity Shaders Learn/Chapter15/Dissolve&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _BurnAmount (&quot;Burn Amount&quot;, Range(0.0, 1.0)) = 0.0          // 消融程度</span><br><span class="line">        _LineWidth (&quot;Burn Line Width&quot;, Range(0.0, 0.2)) = 0.1       // 烧焦线宽</span><br><span class="line">        _MainTex (&quot;Base (RGB)&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _BumpMap (&quot;Normal Map&quot;, 2D) = &quot;bump&quot; &#123;&#125;</span><br><span class="line">        _BurnFirstColor (&quot;Burn First Color&quot;, Color) = (1,0,0,1)     // 火焰边缘颜色1</span><br><span class="line">        _BurnSecondColor (&quot;Burn Second Color&quot;, Color) = (1,0,0,1)   // 火焰边缘颜色2</span><br><span class="line">        _BurnMap (&quot;Burn Map&quot;, 2D) = &quot;white&quot; &#123;&#125;                      // 噪声纹理</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123;&quot;LightMode&quot; = &quot;ForwardBase&quot;&#125;</span><br><span class="line">            Cull Off    //消融后避免穿帮</span><br><span class="line">            </span><br><span class="line">            CGPROGRAM</span><br><span class="line">            #pragma vertex vert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line"></span><br><span class="line">            #pragma multi_compile_fwdbase</span><br><span class="line"></span><br><span class="line">            #include &quot;Lighting.cginc&quot;</span><br><span class="line">            #include &quot;AutoLight.cginc&quot;</span><br><span class="line"></span><br><span class="line">            fixed _BurnAmount;</span><br><span class="line">            fixed _LineWidth;</span><br><span class="line">            sampler2D _MainTex;</span><br><span class="line">            float4 _MainTex_ST;</span><br><span class="line">            sampler2D _BumpMap;</span><br><span class="line">            float4 _BumpMap_ST;</span><br><span class="line">            fixed4 _BurnFirstColor;</span><br><span class="line">            fixed4 _BurnSecondColor;</span><br><span class="line">            sampler2D _BurnMap;</span><br><span class="line">            float4 _BurnMap_ST;</span><br><span class="line"></span><br><span class="line">            struct a2v</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">                float4 tangent : TANGENT;</span><br><span class="line">                float4 texcoord : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float2 uvMainTex : TEXCOORD0;</span><br><span class="line">                float2 uvBumpMap : TEXCOORD1;</span><br><span class="line">                float2 uvBurnMap : TEXCOORD2;</span><br><span class="line">                float3 lightDir : TEXCOORD3;</span><br><span class="line">                float3 worldPos : TEXCOORD4;</span><br><span class="line">                SHADOW_COORDS(5)</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line">                o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">                o.uvMainTex = TRANSFORM_TEX(v.texcoord, _MainTex);</span><br><span class="line">                o.uvBumpMap = TRANSFORM_TEX(v.texcoord, _BumpMap);</span><br><span class="line">                o.uvBurnMap = TRANSFORM_TEX(v.texcoord, _BurnMap);</span><br><span class="line">                </span><br><span class="line">                TANGENT_SPACE_ROTATION;</span><br><span class="line">                o.lightDir = mul(rotation, ObjSpaceLightDir(v.vertex)).xyz;</span><br><span class="line">                </span><br><span class="line">                o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;</span><br><span class="line"></span><br><span class="line">                TRANSFER_SHADOW(o);</span><br><span class="line"></span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            fixed4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                fixed3 burn = tex2D(_BurnMap, i.uvBurnMap).rgb;</span><br><span class="line"></span><br><span class="line">                // 舍弃透明度测试不过的像素，结果来自噪声纹理的采样</span><br><span class="line">                clip(burn.r - _BurnAmount);</span><br><span class="line">                </span><br><span class="line">                fixed3 tangentLightDir = normalize(i.lightDir);</span><br><span class="line">                fixed3 tangentNormal = normalize(UnpackNormal(tex2D(_BumpMap, i.uvBumpMap)));</span><br><span class="line"></span><br><span class="line">                fixed3 albedo = tex2D(_MainTex, i.uvMainTex).rgb;</span><br><span class="line"></span><br><span class="line">                fixed3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz * albedo;</span><br><span class="line"></span><br><span class="line">                fixed3 diffuse = _LightColor0.rgb * albedo * saturate(dot(tangentLightDir, tangentNormal));</span><br><span class="line"></span><br><span class="line">                // 一减反转，在_LineWidth范围模拟烧焦的颜色变化</span><br><span class="line">                fixed t = 1 - smoothstep(0.0, _LineWidth, burn.r - _BurnAmount);</span><br><span class="line">                fixed3 burnColor = lerp(_BurnFirstColor, _BurnSecondColor, t);</span><br><span class="line">                burnColor = pow(burnColor, 5);  //为了让效果更接近烧焦的痕迹，使用pow</span><br><span class="line"></span><br><span class="line">                UNITY_LIGHT_ATTENUATION(atten, i, i.worldPos);</span><br><span class="line"></span><br><span class="line">                // 使用t混合烧焦颜色和原有颜色，step(0.0001, _BurnAmount)是为了_BurnAmount为0时完全消除消融效果</span><br><span class="line">                fixed3 finalColor = lerp(ambient + diffuse * atten, burnColor, t * step(0.0001, _BurnAmount));</span><br><span class="line">                return fixed4(finalColor, 1.0);</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        // 透明度测试或者顶点动画都要自己处理投射阴影</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123;&quot;LightMode&quot; = &quot;ShadowCaster&quot;&#125;</span><br><span class="line">            </span><br><span class="line">            CGPROGRAM</span><br><span class="line">            #pragma vertex vert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line"></span><br><span class="line">            #pragma multi_compile_shadowcaster</span><br><span class="line"></span><br><span class="line">            #include &quot;UnityCG.cginc&quot;</span><br><span class="line"></span><br><span class="line">            sampler2D _BurnMap;</span><br><span class="line">            float4 _BurnMap_ST;</span><br><span class="line">            fixed _BurnAmount;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                V2F_SHADOW_CASTER;</span><br><span class="line">                float2 uvBurnMap : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            v2f vert(appdata_base v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line"></span><br><span class="line">                TRANSFER_SHADOW_CASTER_NORMALOFFSET(o);</span><br><span class="line"></span><br><span class="line">                o.uvBurnMap = TRANSFORM_TEX(v.texcoord, _BurnMap);</span><br><span class="line"></span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            fixed4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                fixed3 burn = tex2D(_BurnMap, i.uvBurnMap).rgb;</span><br><span class="line">                clip(burn.r - _BurnAmount);</span><br><span class="line">                SHADOW_CASTER_FRAGMENT(i);</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    FallBack &quot;Diffuse&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<center>
+<img src="http://static.zybuluo.com/candycat/43pgznadojl5el7s23zpki7x/burn.png" />
+<p>箱子的消融效果</p>
+<img src="http://static.zybuluo.com/candycat/l8caf290oitxfnenqu38ed95/burn_noise.png" />
+<p>消融效果使用的噪声纹理</p>
+</center>
+<h3 id="水波效果">水波效果</h3>
+<p>在模拟实时水面的过程中，也会使用噪声纹理。此时噪声纹理会用作一个高度图，不断修改水面的法线方向。为了模拟水不断流动的效果，会使用和时间相关的变量来对噪声纹理进行采样，当得到法线信息后，再进行正常的反射+折射计算，得到最后的水面波动效果。</p>
+<p>下面会使用一个由噪声纹理得到的法线贴图，实现一个包含菲涅尔反射的水面效果。</p>
+<center>
+<img src="http://static.zybuluo.com/candycat/rgxn8cpsc4isivqouvbxtev7/water.png" />
+<p>包含菲涅耳反射的水面波动效果。在左图中，视角方向和水面法线的夹角越大，反射效果越强。在右图中，视角方向和水面法线的夹角越大，折射效果越强
+</p>
+</center>
+<ul>
+<li>和使用反射和折射模拟透明玻璃效果类似。</li>
+<li>使用立方体纹理（Cubemap）作为环境纹理，模拟反射。</li>
+<li>用GrabPass获取当前屏幕的渲染纹理，使用切线空间下的法线方向对像素的屏幕坐标进行偏移，再使用该坐标对渲染纹理进行屏幕采样，模拟近似的折射效果。</li>
+<li>但玻璃效果不一样的是使用噪声纹理来生成水波的法线，随着时间变化不断平移，模拟波光粼粼的效果。另外不使用定值来混合反射和折射颜色，而是用菲涅尔系数来动态决定混合系数：</li>
+</ul>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=fresnel%20%3D%20pow%281%20-%20max(0%2C%20v%20%5Ccdot%20n%29%2C%204)%0A" /></p><p>其中v和n分别对应了视角方向和法线方向，它们之间的夹角越小，fresnel值越小，反射越弱，折射越强。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Unity Shaders Learn/Chapter15/WaterWave&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Color (&quot;Main Color&quot;, Color) = (1,1,1,1)                        //水面颜色</span><br><span class="line">        _MainTex (&quot;Base (RGB)&quot;, 2D) = &quot;white&quot; &#123;&#125;                        //水面波纹材质纹理</span><br><span class="line">        _WaveMap (&quot;Wave Map&quot;, 2D) = &quot;bump&quot; &#123;&#125;                           //噪声纹理生成的法线纹理</span><br><span class="line">        _Cubemap (&quot;Environment Cubemap&quot;, Cube) = &quot;_Skybox&quot; &#123;&#125;           //模拟反射的立方体纹理</span><br><span class="line">        _WaveXSpeed (&quot;Wave Horizontal Speed&quot;, Range(-0.1, 0.1)) = 0.01  //控制法线纹理在X方向的平移速度</span><br><span class="line">        _WaveYSpeed (&quot;Wave Verticle Speed&quot;, Range(-0.1, 0.1)) = 0.01    //控制法线纹理在Y方向的平移速度</span><br><span class="line">        _Distortion (&quot;Distortion&quot;, Range(0, 100)) = 10                  //控制模拟折射时图像的扭曲程度</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags &#123;&quot;Queue&quot;=&quot;Transparent&quot; &quot;RenderType&quot;=&quot;Opaque&quot;&#125;</span><br><span class="line">        GrabPass &#123;&quot;_RefractionTex&quot;&#125;</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            CGPROGRAM</span><br><span class="line">            #include &quot;UnityCG.cginc&quot;</span><br><span class="line"></span><br><span class="line">            #pragma vertex vert;</span><br><span class="line">            #pragma fragment frag;</span><br><span class="line">            </span><br><span class="line">            fixed4 _Color;</span><br><span class="line">            sampler2D _MainTex;</span><br><span class="line">            float4 _MainTex_ST;</span><br><span class="line">            sampler2D _WaveMap;</span><br><span class="line">            float4 _WaveMap_ST;</span><br><span class="line">            samplerCUBE _Cubemap;</span><br><span class="line">            fixed _WaveXSpeed;</span><br><span class="line">            fixed _WaveYSpeed;</span><br><span class="line">            float _Distortion;</span><br><span class="line">            sampler2D _RefractionTex;</span><br><span class="line">            float4 _RefractionTex_TexelSize;</span><br><span class="line"></span><br><span class="line">            struct a2v</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float4 texcoord : TEXCOORD0;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">                float4 tangent : TANGENT;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float4 srcPos : TEXCOORD0;</span><br><span class="line">                float4 uv : TEXCOORD1;</span><br><span class="line">                float4 TtoW0 : TEXCOORD2;</span><br><span class="line">                float4 TtoW1 : TEXCOORD3;</span><br><span class="line">                float4 TtoW2 : TEXCOORD4;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line">                o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">                o.srcPos = ComputeGrabScreenPos(o.pos);</span><br><span class="line"></span><br><span class="line">                o.uv.xy = TRANSFORM_TEX(v.texcoord, _MainTex);</span><br><span class="line">                o.uv.zw = TRANSFORM_TEX(v.texcoord, _WaveMap);</span><br><span class="line"></span><br><span class="line">                float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;</span><br><span class="line">                float3 worldNormal = UnityObjectToWorldNormal(v.normal);</span><br><span class="line">                float3 worldTangent = UnityObjectToWorldDir(v.tangent.xyz);</span><br><span class="line">                float3 worldBinormal = cross(worldNormal, worldTangent) * v.tangent.w;</span><br><span class="line"></span><br><span class="line">                o.TtoW0 = float4(worldTangent.x, worldBinormal.x, worldNormal.x, worldPos.x);</span><br><span class="line">                o.TtoW1 = float4(worldTangent.y, worldBinormal.y, worldNormal.y, worldPos.y);</span><br><span class="line">                o.TtoW2 = float4(worldTangent.z, worldBinormal.z, worldNormal.z, worldPos.z);</span><br><span class="line"></span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            fixed4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                float3 worldPos = float3(i.TtoW0.w, i.TtoW1.w, i.TtoW2.w);</span><br><span class="line">                fixed3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPos));</span><br><span class="line"></span><br><span class="line">                // 对法线纹理采样两次是为了模拟两层交叉的水面波动效果</span><br><span class="line">                float2 speed = _Time.y * float2(_WaveXSpeed, _WaveYSpeed);</span><br><span class="line">                fixed3 bump1 = UnpackNormal(tex2D(_WaveMap, i.uv.zw + speed)).rgb;</span><br><span class="line">                fixed3 bump2 = UnpackNormal(tex2D(_WaveMap, i.uv.zw - speed)).rgb;</span><br><span class="line">                fixed3 bump = normalize(bump1 + bump2);</span><br><span class="line"></span><br><span class="line">                //_Distortion越大，偏移越大，水面背后的物体变形程度越大</span><br><span class="line">                float2 offset = bump.xy * _Distortion * _RefractionTex_TexelSize.xy;</span><br><span class="line">                //与z分量相乘是为了模拟深度越大，折射效果越大的效果</span><br><span class="line">                i.srcPos.xy = offset * i.srcPos.z + i.srcPos.xy;</span><br><span class="line">                fixed3 refrCol = tex2D(_RefractionTex, i.srcPos.xy/i.srcPos.w).rgb;</span><br><span class="line"></span><br><span class="line">                bump = normalize(half3(dot(i.TtoW0.xyz, bump), dot(i.TtoW1.xyz, bump), dot(i.TtoW2.xyz, bump)));</span><br><span class="line">                // 对主纹理也应用动画，模拟水波效果</span><br><span class="line">                fixed4 texColor = tex2D(_MainTex, i.uv.xy + speed);</span><br><span class="line">                // 计算反射颜色</span><br><span class="line">                fixed3 reflDir = reflect(-worldViewDir, bump);</span><br><span class="line">                fixed3 reflCol = texCUBE(_Cubemap, reflDir).rgb * texColor.rgb * _Color.rgb;</span><br><span class="line"></span><br><span class="line">                // 使用菲涅尔进行混合</span><br><span class="line">                fixed fresnel = pow(1 - saturate(dot(bump, worldViewDir)), 4);</span><br><span class="line">                fixed3 finalColor = reflCol * fresnel + refrCol * (1 - fresnel);</span><br><span class="line"></span><br><span class="line">                return fixed4(finalColor, 1);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            </span><br><span class="line">            ENDCG</span><br><span class="line">            </span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">    FallBack &quot;Diffuse&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>立方体纹理用之前的脚本生成。法线图可以从高度图生成（将贴图类型改为NormalMap，并勾选CreateFromGrayscale）。</p>
+<center>
+<img src="http://static.zybuluo.com/candycat/unuc9j0kp9fffr7jcnbowvzi/water_noise.png" />
+<p>水波效果使用的噪声纹理。左图：噪声纹理的灰度图。右图：由左图生成的法线纹理
+</p>
+</center>
+<h3 id="再谈全局雾效">再谈全局雾效</h3>
+<p>前面使用深度纹理实现了一种基于屏幕后处理的全局雾效，但它是基于高度的均匀雾效。有时我们希望可以模拟一种不均匀的雾效，同时让雾不断飘动，使雾看起来更加飘渺，这可以通过噪声纹理来实现。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br></pre></td><td class="code"><pre><span class="line">using UnityEngine;</span><br><span class="line"></span><br><span class="line">namespace Unity_Shaders_Learn</span><br><span class="line">&#123;</span><br><span class="line">    public class FogWithNoise : PostEffectsBase</span><br><span class="line">    &#123;</span><br><span class="line">        public Shader fogShader;</span><br><span class="line">        </span><br><span class="line">        private Material _fogMaterial;</span><br><span class="line">        public Material FogMaterial</span><br><span class="line">        &#123;</span><br><span class="line">            get</span><br><span class="line">            &#123;</span><br><span class="line">                _fogMaterial = CheckShaderAndCreateMaterial(fogShader, _fogMaterial);</span><br><span class="line">                return _fogMaterial;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        private Camera _camera;</span><br><span class="line">        private Transform _cameraTrans;</span><br><span class="line"></span><br><span class="line">        [Header(&quot;雾的浓度&quot;), Range(0.1f, 3.0f)] public float fogDensity = 1.0f;</span><br><span class="line">        [Header(&quot;雾的颜色&quot;)] public Color fogColor = Color.white;</span><br><span class="line">        [Header(&quot;雾的起始高度&quot;)] public float fogStart = 0.0f;</span><br><span class="line">        [Header(&quot;雾的终止高度&quot;)] public float fogEnd = 2.0f;</span><br><span class="line">        </span><br><span class="line">        [Header(&quot;噪声纹理&quot;)] public Texture noiseTexture;</span><br><span class="line">        [Header(&quot;噪声纹理在X方向的移动速度&quot;), Range(-0.5f, 0.5f)]</span><br><span class="line">        public float fogXSpeed = 0.1f;</span><br><span class="line">        [Header(&quot;噪声纹理在Y方向的移动速度&quot;), Range(-0.5f, 0.5f)]</span><br><span class="line">        public float fogYSpeed = 0.1f;</span><br><span class="line">        [Header(&quot;噪声程度&quot;), Range(0.0f, 3.0f)] public float noiseAmount = 1.0f;</span><br><span class="line">        private void Awake()</span><br><span class="line">        &#123;</span><br><span class="line">            _camera = GetComponent&lt;Camera&gt;();</span><br><span class="line">            _cameraTrans = _camera.transform;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        private void OnEnable()</span><br><span class="line">        &#123;</span><br><span class="line">            _camera.depthTextureMode |= DepthTextureMode.Depth;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        private void OnDisable()</span><br><span class="line">        &#123;</span><br><span class="line">            _camera.depthTextureMode &amp;= ~DepthTextureMode.Depth;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        private void OnRenderImage(RenderTexture src, RenderTexture dest)</span><br><span class="line">        &#123;</span><br><span class="line">            if (FogMaterial == null)</span><br><span class="line">            &#123;</span><br><span class="line">                Graphics.Blit(src, dest);</span><br><span class="line">                return;</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            Matrix4x4 frustumCorners = Matrix4x4.identity;</span><br><span class="line"></span><br><span class="line">            float near = _camera.nearClipPlane;</span><br><span class="line">            float aspect =  _camera.aspect;</span><br><span class="line">            float fov = _camera.fieldOfView;</span><br><span class="line"></span><br><span class="line">            float halfHeight = near * Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad);</span><br><span class="line">            Vector3 toTop = _cameraTrans.up * halfHeight;</span><br><span class="line">            Vector3 toRight = _cameraTrans.right * halfHeight * aspect;</span><br><span class="line">                </span><br><span class="line">            Vector3 forward = _cameraTrans.forward;</span><br><span class="line">            Vector3 topLeft = forward * near + toTop - toRight;</span><br><span class="line">            float scale = topLeft.magnitude / near;</span><br><span class="line">            </span><br><span class="line">            topLeft.Normalize();</span><br><span class="line">            topLeft *= scale;</span><br><span class="line"></span><br><span class="line">            Vector3 topRight = forward * near + toTop + toRight;</span><br><span class="line">            topRight.Normalize();</span><br><span class="line">            topRight *= scale;</span><br><span class="line"></span><br><span class="line">            Vector3 bottomRight = forward * near - toTop + toRight;</span><br><span class="line">            bottomRight.Normalize();</span><br><span class="line">            bottomRight *= scale;</span><br><span class="line"></span><br><span class="line">            Vector3 bottomLeft = forward * near - toTop - toRight;</span><br><span class="line">            bottomLeft.Normalize();</span><br><span class="line">            bottomLeft *= scale;</span><br><span class="line">            </span><br><span class="line">            frustumCorners.SetRow(0, bottomLeft);</span><br><span class="line">            frustumCorners.SetRow(1, bottomRight);</span><br><span class="line">            frustumCorners.SetRow(2, topRight);</span><br><span class="line">            frustumCorners.SetRow(3, topLeft);</span><br><span class="line">            </span><br><span class="line">            FogMaterial.SetMatrix(&quot;_FrustumCornersRay&quot;, frustumCorners);</span><br><span class="line">            </span><br><span class="line">            FogMaterial.SetFloat(&quot;_FogDensity&quot;, fogDensity);</span><br><span class="line">            FogMaterial.SetColor(&quot;_FogColor&quot;, fogColor);</span><br><span class="line">            FogMaterial.SetFloat(&quot;_FogStart&quot;, fogStart);</span><br><span class="line">            FogMaterial.SetFloat(&quot;_FogEnd&quot;, fogEnd);</span><br><span class="line">            </span><br><span class="line">            FogMaterial.SetTexture(&quot;_NoiseTex&quot;, noiseTexture);</span><br><span class="line">            FogMaterial.SetFloat(&quot;_FogXSpeed&quot;, fogXSpeed);</span><br><span class="line">            FogMaterial.SetFloat(&quot;_FogYSpeed&quot;, fogYSpeed);</span><br><span class="line">            FogMaterial.SetFloat(&quot;_NoiseAmount&quot;, noiseAmount);</span><br><span class="line">            </span><br><span class="line">            Graphics.Blit(src, dest, FogMaterial);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Unity Shaders Learn/Chapter15/FogWithNoise&quot; &#123;</span><br><span class="line">	Properties &#123;</span><br><span class="line">		_MainTex (&quot;Base (RGB)&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">		_FogDensity (&quot;Fog Density&quot;, Float) = 1.0</span><br><span class="line">		_FogColor (&quot;Fog Color&quot;, Color) = (1,1,1,1)</span><br><span class="line">		_FogStart (&quot;Fog Start&quot;, Float) = 0.0</span><br><span class="line">		_FogEnd (&quot;Fog End&quot;, Float) = 1.0</span><br><span class="line">		_NoiseTex (&quot;Noise Texture&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">		_FogXSpeed (&quot;Fog Horizontal Speed&quot;, Float) = 0.1</span><br><span class="line">		_FogYSpeed (&quot;Fog Verticle Speed&quot;, Float) = 0.1</span><br><span class="line">		_NoiseAmount (&quot;Noise Amount&quot;, Float) = 1</span><br><span class="line">	&#125;</span><br><span class="line">	SubShader &#123;</span><br><span class="line">		CGINCLUDE</span><br><span class="line"></span><br><span class="line">		#include &quot;UnityCG.cginc&quot;</span><br><span class="line"></span><br><span class="line">		float4x4 _FrustumCorners;</span><br><span class="line">		sampler2D _MainTex;</span><br><span class="line">		half4 _MainTex_TexelSize;</span><br><span class="line">		sampler2D _CameraDepthTexture;</span><br><span class="line">		half _FogDensity;</span><br><span class="line">		fixed4 _FogColor;</span><br><span class="line">		float _FogStart;</span><br><span class="line">		float _FogEnd;</span><br><span class="line">		sampler2D _NoiseTex;</span><br><span class="line">		half _FogXSpeed;</span><br><span class="line">		half _FogYSpeed;</span><br><span class="line">		half _NoiseAmount;</span><br><span class="line"></span><br><span class="line">		struct v2f</span><br><span class="line">		&#123;</span><br><span class="line">			float4 pos : SV_POSITION;</span><br><span class="line">			half2 uv : TEXCOORD0;</span><br><span class="line">			half2 uv_depth : TEXCOORD1;</span><br><span class="line">			// 在顶点着色器中计算顶点（面片只有四个顶点）到相机（视角）位置的偏移向量，通过插值从而在片元着色器也能访问</span><br><span class="line">			float4 interpolatedRay : TEXCOORD2; </span><br><span class="line">		&#125;;</span><br><span class="line"></span><br><span class="line">		v2f vert(appdata_img v)</span><br><span class="line">		&#123;</span><br><span class="line">			v2f o;</span><br><span class="line">			o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">			o.uv = v.texcoord;</span><br><span class="line">			</span><br><span class="line">			o.uv_depth = v.texcoord;</span><br><span class="line">			#if UNITY_UV_STARTS_AT_TOP</span><br><span class="line">			if (_MainTex_TexelSize.y &lt; 0)</span><br><span class="line">			&#123;</span><br><span class="line">				o.uv_depth.y = 1 - o.uv_depth.y;</span><br><span class="line">			&#125;</span><br><span class="line">			#endif</span><br><span class="line"></span><br><span class="line">			// 虽然用了很多if，但考虑到只有四个顶点，可以忽略不计</span><br><span class="line">			int index = 0;</span><br><span class="line">			if (v.texcoord.x &lt; 0.5 &amp;&amp; v.texcoord.y &lt; 0.5)</span><br><span class="line">			&#123;</span><br><span class="line">				index = 0;</span><br><span class="line">			&#125;else if(v.texcoord.x &gt; 0.5 &amp;&amp; v.texcoord.y &lt; 0.5)</span><br><span class="line">			&#123;</span><br><span class="line">				index = 1;</span><br><span class="line">			&#125;else if(v.texcoord.x &gt; 0.5 &amp;&amp; v.texcoord.y &gt; 0.5)</span><br><span class="line">			&#123;</span><br><span class="line">				index = 2;</span><br><span class="line">			&#125;else</span><br><span class="line">			&#123;</span><br><span class="line">				index = 3;</span><br><span class="line">			&#125;</span><br><span class="line">			#if UNITY_UV_STARTS_AT_TOP</span><br><span class="line">			if (_MainTex_TexelSize.y &lt; 0)</span><br><span class="line">			&#123;</span><br><span class="line">				index = 3 - index;</span><br><span class="line">			&#125;</span><br><span class="line">			#endif</span><br><span class="line"></span><br><span class="line">			o.interpolatedRay = _FrustumCorners[index];</span><br><span class="line"></span><br><span class="line">			return o;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		fixed4 frag(v2f i) : SV_Target</span><br><span class="line">		&#123;</span><br><span class="line">			float linearDepth = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv_depth));</span><br><span class="line">			float3 worldPos = _WorldSpaceCameraPos + i.interpolatedRay.xyz * linearDepth;</span><br><span class="line"></span><br><span class="line">			// 求噪音值</span><br><span class="line">			float2 speed = _Time.y * float2(_FogXSpeed, _FogYSpeed);</span><br><span class="line">			float noise = (tex2D(_NoiseTex, i.uv + speed).r - 0.5) * _NoiseAmount;</span><br><span class="line">			</span><br><span class="line">			// 套线性公式计算</span><br><span class="line">			float fogDensity = (_FogEnd - worldPos.y) / (_FogEnd - _FogStart);</span><br><span class="line">			fogDensity = saturate(fogDensity * _FogDensity * (1 + noise));</span><br><span class="line"></span><br><span class="line">			fixed4 finalColor = tex2D(_MainTex, i.uv);</span><br><span class="line">			finalColor.rgb = lerp(finalColor.rgb, _FogColor.rgb, fogDensity);</span><br><span class="line"></span><br><span class="line">			return finalColor;</span><br><span class="line">		&#125;</span><br><span class="line">		ENDCG</span><br><span class="line">		</span><br><span class="line">		Pass</span><br><span class="line">		&#123;</span><br><span class="line">			Cull Off ZWrite Off ZTest Always</span><br><span class="line">			CGPROGRAM</span><br><span class="line">			#pragma vertex vert</span><br><span class="line">			#pragma fragment frag</span><br><span class="line">			ENDCG</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	FallBack Off</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<center>
+<img src="http://static.zybuluo.com/candycat/dmrvnch1muikmc6f50sdwdho/fog.png" />
+<p>左图：均匀雾效。右图：使用噪声纹理后的非均匀雾效</p>
+<img src="http://static.zybuluo.com/candycat/kfctu0s78fl2pepr9h1hgjpo/fog_noise.jpg" />
+<p>本节使用的噪声纹理</p>
+</center>
+<h3 id="扩展阅读">扩展阅读</h3>
+<p>噪声纹理可以被认为是一种程序纹理（Procedure Texture），它们都是由计算机利用某些算法生成的。Perlin噪声可以用于生成更自然的噪声纹理，Worley噪声通常用于模拟石头、水、纸张等多孔噪声。</p>
+<ul>
+<li>Perlin噪声：<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Perlin_noise">https://en.wikipedia.org/wiki/Perlin_noise</a></li>
+<li>Worley噪声：<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Worley_noise">https://en.wikipedia.org/wiki/Worley_noise</a></li>
+<li>Understanding Perlin Noise：<a target="_blank" rel="noopener" href="http://adrianb.io/2014/08/09/perlinnoise.html">http://adrianb.io/2014/08/09/perlinnoise.html</a></li>
+<li>Worley1998年发表的论文中，有Worley噪声的算法和实现细节</li>
+<li>很多程序噪声在Unity中的实现：<a target="_blank" rel="noopener" href="http://scrawkblog.com/category/procedural-noise/">http://scrawkblog.com/category/procedural-noise/</a>  （博客貌似换地址？<a target="_blank" rel="noopener" href="https://github.com/Scrawk/Procedural-Noise">https://github.com/Scrawk/Procedural-Noise</a>   ）</li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/9ebc2fb9/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity Shader入门精要-章节16 Unity中的渲染优化技术</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/a217bcf7/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity Shader入门精要-章节14 非真实感渲染</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

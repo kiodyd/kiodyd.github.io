@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形 4.1 Bloom算法 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形 4.1 Bloom算法</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-02-21T07:12:15.000Z" itemprop="datePublished">2023-02-21</time>
+          </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="Bloom算法介绍">Bloom算法介绍</h2>
+<h4 id="快速预览效果">快速预览效果</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_e6dcbaebf8170231ac5ec56428d2858f.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_e6dcbaebf8170231ac5ec56428d2858f.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_b918bbd8b78b5c4c453dc24bbeeb6cd8.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_b918bbd8b78b5c4c453dc24bbeeb6cd8.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_9129657316741f73e5ff98767ab87799.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_9129657316741f73e5ff98767ab87799.png"></p>
+<p><em>亮的地方更亮了（这符合我对灯光效果的想象），还会向周围扩散</em></p>
+<h4 id="Bloom是什么">Bloom是什么</h4>
+<ul>
+<li>Bloom，也称辉光，是一种常见的屏幕效果</li>
+<li>模拟摄像机的一种图像效果，让画面中较亮的区域“扩散”到周围的区域中，造成一种朦胧的效果</li>
+<li>可以让物体具有真实的明亮效果</li>
+<li>可以实现光晕效果</li>
+</ul>
+<h4 id="Bloom的实现原理">Bloom的实现原理</h4>
+<h5 id="实现思路">实现思路</h5>
+<p>1.提取原图较亮区域（利用阈值）<br>
+2.模糊提取部分<br>
+3.与原图混合/叠加</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_382bc73f8bb5ab436e3c7d819509590c.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_382bc73f8bb5ab436e3c7d819509590c.png"></p>
+<h5 id="前置知识">前置知识</h5>
+<h6 id="HDR-和-LDR">HDR 和 LDR</h6>
+<ul>
+<li>
+<p>HDR和LDR分别是是高动态范围和低动态范围的缩写</p>
+</li>
+<li>
+<p>LDR</p>
+<ul>
+<li>jpg、png格式图片</li>
+<li>RGB通道范围在[0,1]</li>
+</ul>
+</li>
+<li>
+<p>HDR</p>
+<ul>
+<li>HDR、EXR格式图片</li>
+<li>可以超过1</li>
+<li>主要是因为我们生活的世界亮度差异很大，LDR的范围并不能描述所有的颜色亮度</li>
+<li>常与色调映射一起使用</li>
+</ul>
+</li>
+</ul>
+<h6 id="高斯模糊">高斯模糊</h6>
+<ul>
+<li>实现图像模糊的一种方式</li>
+<li>可以减少图像噪声、降低细节层次</li>
+<li>利用高斯核进行卷积运算，得到模糊的图像</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_cdb7d3bc98e76e0c3a7ccef7dd3aa758.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_cdb7d3bc98e76e0c3a7ccef7dd3aa758.png"></p>
+<h6 id="高斯核">高斯核</h6>
+<ul>
+<li>
+<p>通过高斯函数定义的卷积核</p>
+</li>
+<li>
+<p>核中心：(0,0)</p>
+</li>
+<li>
+<p>核大小：3x3（通常使用）</p>
+</li>
+<li>
+<p>标准方差σ：1.5</p>
+</li>
+<li>
+<p>计算步骤：</p>
+<ul>
+<li>将（x，y）带入公式中，计算出权重值，（权重值代表当前处理像素的影响程度，离中心越近权重越大）</li>
+<li>为了保证卷积后图像不变暗，需要对高斯核进行归一化处理（每个权重除以所有权重的和）<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_01ee1aaf7f8dc03f9fe7c4f6b6e51513.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_01ee1aaf7f8dc03f9fe7c4f6b6e51513.png"></li>
+</ul>
+</li>
+<li>
+<p>如果使用二维高斯核：</p>
+<ul>
+<li>计算量大，N×N的高斯核需要 N * N * W * H次纹理采样</li>
+</ul>
+</li>
+<li>
+<p>二维高斯核的可分离性</p>
+<ul>
+<li>二维高斯核可以拆成两个一维高斯核</li>
+<li>用两个一维高斯核先后对图像进行两次卷积操作</li>
+<li>采样次数变成2 * N * W * H，大大提高性能</li>
+<li>一维高斯核中包括了很多重复的权重（下例中0.0545，0.02442）</li>
+<li>下大小为5的高斯核，实际上只需要记录三个权重值即可（0.0545、0.2442、0.4026）<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/c3711cbb-f616-412f-a004-8663356b1a06_f39d0b5953f08f51248500b988a7316a.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/c3711cbb-f616-412f-a004-8663356b1a06_f39d0b5953f08f51248500b988a7316a.png"></li>
+</ul>
+</li>
+</ul>
+<h6 id="卷积">卷积</h6>
+<ul>
+<li>
+<p>一种常用的图像操作手段</p>
+</li>
+<li>
+<p>利用“卷积核”对图像的每个像素进行一系列操作</p>
+</li>
+<li>
+<p>​卷积核：</p>
+<ul>
+<li>通常是由四方形网格结构，该区域内每个放个都有一个权重值</li>
+</ul>
+</li>
+<li>
+<p>当我们对图像中的像素进行卷积时：</p>
+<ul>
+<li>会把卷积核的中心放置在该像素上</li>
+<li>翻转核之后再依次计算核中每个元素和其覆盖的图像像素值的乘积并求和</li>
+<li>得到的结果就是该位置的新像素值</li>
+<li><em>周围像素对该像素的影响</em></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/%E5%8D%B7%E7%A7%AF_34b5e8a2990b087c92a88043b4e805bb.gif" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/卷积_34b5e8a2990b087c92a88043b4e805bb.gif"></p>
+</li>
+</ul>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Vd4y1e7pj/">3Blue1Brown# 那么……什么是卷积？</a><br>
+<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1VV411478E">王木头学科学#卷积介绍部分</a></p>
+</blockquote>
+<h6 id="滤波">滤波</h6>
+<p>更详细需要去回顾GAMES101-L6</p>
+<p>从图像处理看，使用滤波可以抹掉特定频率的信号，从而实现模糊的效果。</p>
+<ul>
+<li>高通滤波：提取边缘（信号变化大的地方）</li>
+<li>低通滤波：模糊</li>
+</ul>
+<p>卷积定理：时域上的卷积就是频域上的乘积（时域上的乘积=频域上的卷积）</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_04f5426def1e9b4ebc2aa578132c3a4f.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_04f5426def1e9b4ebc2aa578132c3a4f.png"></p>
+<h2 id="Bloom算法应用">Bloom算法应用</h2>
+<h4 id="配合自发光效果">配合自发光效果</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_5fb1f7320baa4afb8620fcd1b2220814.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_5fb1f7320baa4afb8620fcd1b2220814.png"></p>
+<h4 id="配合粒子特效">配合粒子特效</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_9129657316741f73e5ff98767ab87799.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_9129657316741f73e5ff98767ab87799.png"></p>
+<h4 id="配合ToneMapping">配合ToneMapping</h4>
+<p>Bloom效果和ToneMapping结合可以较好的保留暗部和亮部的细节</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4242c4cfc43ecb19ba248278e931830c.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4242c4cfc43ecb19ba248278e931830c.png"></p>
+<h4 id="GodRay效果">GodRay效果</h4>
+<p>使用径向模糊代替高斯模糊，模拟光线往某个方向扩散的效果</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6babb38a8a74af81fa20476641623164.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6babb38a8a74af81fa20476641623164.png"></p>
+<p>GodRay配合ToneMapping</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_042da73f311dc84b0d83f821edab0789.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_042da73f311dc84b0d83f821edab0789.png"></p>
+<p>大佬关于GodRay不等距采样的想法</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_01fe9082d81fb500807e9476b4ca210a.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_01fe9082d81fb500807e9476b4ca210a.png"></p>
+<h2 id="Bloom算法实现">Bloom算法实现</h2>
+<p>基于Unity Builtin管线的实现方案（作业会给出URP方案）</p>
+<p>详细可以看入门精要12章，后期处理部分</p>
+<h4 id="C-代码部分">C#代码部分</h4>
+<p>用于屏幕后处理效果的一个基类，增加了检查当前平台是否支持功能，以及创建用于处理渲染纹理的材质</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line">using System;</span><br><span class="line">using System.Collections;</span><br><span class="line">using System.Collections.Generic;</span><br><span class="line">using UnityEngine;</span><br><span class="line"></span><br><span class="line">[ExecuteInEditMode]</span><br><span class="line">[RequireComponent(typeof(Camera))]</span><br><span class="line">public class PostEffectsBase : MonoBehaviour</span><br><span class="line">&#123;</span><br><span class="line">    protected void Start()</span><br><span class="line">    &#123;</span><br><span class="line">        CheckResource();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    protected void CheckResource()</span><br><span class="line">    &#123;</span><br><span class="line">        bool isSupported = CheckSupport();</span><br><span class="line">        if (isSupported == false)</span><br><span class="line">            NotSupported();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    protected void NotSupported()</span><br><span class="line">    &#123;</span><br><span class="line">        enabled = false;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    protected bool CheckSupport()</span><br><span class="line">    &#123;</span><br><span class="line">        if (SystemInfo.supportsImageEffects == false || SystemInfo.supportsRenderTextures == false)</span><br><span class="line">        &#123;</span><br><span class="line">            Debug.LogWarning(&quot;This Platform does not support image effects or render textures.&quot;);</span><br><span class="line">            return false;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        return true;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // Called when need to create the material used by this effect</span><br><span class="line">    protected Material CheckShaderAndCreateMaterial(Shader shader, Material material)</span><br><span class="line">    &#123;</span><br><span class="line">        if (shader == null)</span><br><span class="line">        &#123;</span><br><span class="line">            return null;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (shader.isSupported &amp;&amp; material &amp;&amp; material.shader == shader)</span><br><span class="line">        &#123;</span><br><span class="line">            return material;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (!shader.isSupported)</span><br><span class="line">        &#123;</span><br><span class="line">            return null;</span><br><span class="line">        &#125;</span><br><span class="line">        else</span><br><span class="line">        &#123;</span><br><span class="line">            material = new Material(shader)</span><br><span class="line">            &#123;</span><br><span class="line">                hideFlags = HideFlags.DontSave</span><br><span class="line">            &#125;;</span><br><span class="line">            return material ? material : null;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>具体调用OnRenderImage函数的脚本</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line">using System.Collections;</span><br><span class="line">using System.Collections.Generic;</span><br><span class="line">using UnityEngine;</span><br><span class="line"></span><br><span class="line">public class BloomTest : PostEffectsBase</span><br><span class="line">&#123;</span><br><span class="line">    public Shader bloomShader;//bloom test shader 需要用cs脚本给shader传数据</span><br><span class="line">    private Material bloomMaterial = null;</span><br><span class="line">    public Material material</span><br><span class="line">    &#123;</span><br><span class="line">        get</span><br><span class="line">        &#123;</span><br><span class="line">            //《入门精要》P245-246 //检查shader可用性，通过后返回使用该shader的材质，否则为null</span><br><span class="line">            bloomMaterial = CheckShaderAndCreateMaterial(bloomShader, bloomMaterial);</span><br><span class="line">            return bloomMaterial;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /* 《入门精要》P259-262 */</span><br><span class="line"></span><br><span class="line">    [Range(0, 4)]</span><br><span class="line">    public int iterations = 3;//高斯模糊迭代次数，数值越大越模糊</span><br><span class="line">    [Range(0.2f, 3.0f)]</span><br><span class="line">    public float blurSpread = 0.6f;//高斯模糊范围，数值越大越模糊</span><br><span class="line">    [Range(1, 8)]</span><br><span class="line">    public int downSample = 2;//降采样系数，控制渲染纹理的大小（render texture）,</span><br><span class="line">                              //数值越大，渲染纹理越小，处理模糊像素越少，但过大可能使图像像素化（渲染纹理太小）</span><br><span class="line">    [Range(0.0f, 4.0f)]//由于开启HDR，亮度范围可以超过1.0f</span><br><span class="line">    public float luminanceThreshold = 0.6f;//亮度阈值范围</span><br><span class="line"></span><br><span class="line">    //获取当前渲染图像（渲染纹理）     source原图         dest目标图像即模糊后图像</span><br><span class="line">    void OnRenderImage(RenderTexture src, RenderTexture dest)</span><br><span class="line">    &#123;</span><br><span class="line">        if(material != null)//检查材质是否可用</span><br><span class="line">        &#123;</span><br><span class="line">            material.SetFloat(&quot;_LuminanceThreshold&quot;, luminanceThreshold);//向材质传入亮度阈值</span><br><span class="line">            int rtW = src.width / downSample;//渲染纹理宽</span><br><span class="line">            int rtH = src.height / downSample;//渲染纹理高</span><br><span class="line"></span><br><span class="line">            RenderTexture buffer0 = RenderTexture.GetTemporary(rtW, rtH, 0);</span><br><span class="line">            buffer0.filterMode = FilterMode.Bilinear;//滤波（模糊）模式为双线性滤波</span><br><span class="line"></span><br><span class="line">            Graphics.Blit(src, buffer0, material, 0);//调用shader中第0个pass【程序中从0开始计数，其实就是第一个pass】</span><br><span class="line">                                                     //提取图像较亮区域，将结果保存在buffer0</span><br><span class="line"></span><br><span class="line">            for(int i=0; i &lt; iterations; i++)//高斯模糊操作</span><br><span class="line">            &#123;</span><br><span class="line">                material.SetFloat(&quot;_BlurSize&quot;, 1.0f + i * blurSpread);//高斯模糊范围</span><br><span class="line">                RenderTexture buffer1 = RenderTexture.GetTemporary(rtW, rtH, 0);</span><br><span class="line">                Graphics.Blit(buffer0, buffer1, material, 1);//调用pass1,垂直方向高斯模糊，渲染结果存入buffer1</span><br><span class="line"></span><br><span class="line">                RenderTexture.ReleaseTemporary(buffer0);//释放缓存,模糊后结果存入buffer1</span><br><span class="line">                buffer0 = buffer1;//buffer1结果存入(覆盖)buffer0</span><br><span class="line">                buffer1 = RenderTexture.GetTemporary(rtW, rtH, 0);//重新分配buffer1</span><br><span class="line">                Graphics.Blit(buffer0, buffer1, material, 2);//调用pass2,水平方向高斯模糊，渲染结果存入buffer1</span><br><span class="line"></span><br><span class="line">                RenderTexture.ReleaseTemporary(buffer0);//释放缓存,模糊后结果存入buffer1</span><br><span class="line">                buffer0 = buffer1;//重新分配buffer1</span><br><span class="line"></span><br><span class="line">                /*</span><br><span class="line">                 * 每次模糊使用结果为上次模糊的结果</span><br><span class="line">                 */</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            //for debug</span><br><span class="line">            // Graphics.Blit(buffer0,dest);//将高斯模糊循环注释，取消本行注释，可以观察pass0效果即截取亮度</span><br><span class="line">            </span><br><span class="line">            material.SetTexture(&quot;_Bloom&quot;, buffer0);//将buffer0（渲染纹理）数据传给shader</span><br><span class="line">            Graphics.Blit(src, dest, material, 3);// 调用pass3,将模糊结果与原图混合,并输出给dest最终结果</span><br><span class="line">            RenderTexture.ReleaseTemporary(buffer0);//释放缓存</span><br><span class="line">        &#125;</span><br><span class="line">        else</span><br><span class="line">        &#123;</span><br><span class="line">            Graphics.Blit(src, dest);//其他异常情况直接输出原图</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Shader-cg语言部分">Shader cg语言部分</h4>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Unlit/BloomTest&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        //属性名要与C#脚本传递数据时用的属性名一样</span><br><span class="line">        _MainTex (&quot;Base(RGB)&quot;, 2D) = &quot;white&quot; &#123;&#125;//原图，src渲染纹理</span><br><span class="line">        _Bloom (&quot;Bloom(RGB)&quot;, 2D) = &quot;black&quot; &#123;&#125;//Bloom，模糊后的渲染纹理，会和原图（_MainTex）叠加</span><br><span class="line">        _LuminanceThreshold (&quot;Luminance Threshold&quot;, Float) = 0.5//模糊的亮度阈值</span><br><span class="line">        _BlurSize (&quot;Blur Size&quot;, Float) = 1.0//模糊范围</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        CGINCLUDE</span><br><span class="line">        #include &quot;UnityCG.cginc&quot;</span><br><span class="line">        sampler2D _MainTex;</span><br><span class="line">        half4 _MainTex_TexelSize;</span><br><span class="line">        sampler2D _Bloom;</span><br><span class="line">        float _LuminanceThreshold;</span><br><span class="line">        float _BlurSize;</span><br><span class="line"></span><br><span class="line">		struct v2fExtractBright &#123;</span><br><span class="line">			float4 pos : SV_POSITION; </span><br><span class="line">			half2 uv : TEXCOORD0;</span><br><span class="line">		&#125;;	</span><br><span class="line">         </span><br><span class="line">		v2fExtractBright vertExtractBright(appdata_img v) &#123;//提取较亮区域顶点着色器</span><br><span class="line">			v2fExtractBright o;</span><br><span class="line">			o.pos = UnityObjectToClipPos(v.vertex);//坐标变换</span><br><span class="line">			o.uv = v.texcoord;	 //纹理坐标获取</span><br><span class="line">			return o;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">        fixed luminance(fixed4 color)&#123;//亮度计算函数，rgb -&gt; Brightness</span><br><span class="line">            return 0.2125 * color.r + 0.7154 * color.g + 0.0721 * color.b;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        fixed4 fragExtractBright(v2fExtractBright i) : SV_TARGET0 &#123;//提取较亮区域片元着色器</span><br><span class="line">            fixed4 c = tex2D(_MainTex, i.uv);//原图纹理采样</span><br><span class="line">            fixed val = clamp(luminance(c) - _LuminanceThreshold, 0.0, 1.0);//截取通过阈值的亮度</span><br><span class="line"></span><br><span class="line">            return c * val;//原图与截取结果的乘积得到图像亮区（没通过的亮度都变0了，那原图中相应区域的像素×0=0）</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">		struct v2fBlur &#123;</span><br><span class="line">			float4 pos : SV_POSITION;</span><br><span class="line">			half2 uv[5]: TEXCOORD0;//5x5 二维高斯核（最终会拆成两个一维5元素高斯核）</span><br><span class="line">		&#125;;</span><br><span class="line"></span><br><span class="line">        v2fBlur vertBlurVertical(appdata_img v)&#123;</span><br><span class="line">            v2fBlur o;</span><br><span class="line">            o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line"></span><br><span class="line">            half2 uv = v.texcoord;</span><br><span class="line">            //由于是垂直运算，所以是y方向</span><br><span class="line">            o.uv[0] = uv;//（0，0）</span><br><span class="line">            o.uv[1] = uv + float2(0.0, _MainTex_TexelSize.y * 1.0) * _BlurSize;//(0,1) 向上</span><br><span class="line">            o.uv[2] = uv - float2(0.0, _MainTex_TexelSize.y * 1.0) * _BlurSize;//(0,-1)向下</span><br><span class="line">            o.uv[3] = uv + float2(0.0, _MainTex_TexelSize.y * 2.0) * _BlurSize;//(0,2) 向上</span><br><span class="line">            o.uv[4] = uv - float2(0.0, _MainTex_TexelSize.y * 2.0) * _BlurSize;//(0,-2) 向下</span><br><span class="line">            </span><br><span class="line">            return o;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        v2fBlur vertBlurHorizontal(appdata_img v)&#123;</span><br><span class="line">            v2fBlur o;</span><br><span class="line">            o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">            //由于是水平运算，所以是x方向</span><br><span class="line">            half2 uv = v.texcoord;</span><br><span class="line">            o.uv[0] = uv;//（0，0）</span><br><span class="line">            o.uv[1] = uv + float2(_MainTex_TexelSize.x * 1.0, 0.0) * _BlurSize;//(1,0) 向右</span><br><span class="line">            o.uv[2] = uv - float2(_MainTex_TexelSize.x * 1.0, 0.0) * _BlurSize;//(-1,0) 向左</span><br><span class="line">            o.uv[3] = uv + float2(_MainTex_TexelSize.x * 2.0, 0.0) * _BlurSize;//(2,0) 向右</span><br><span class="line">            o.uv[4] = uv - float2(_MainTex_TexelSize.x * 2.0, 0.0) * _BlurSize;//(-2,0) 向左</span><br><span class="line"></span><br><span class="line">            return o;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">		fixed4 fragBlur(v2fBlur i) : SV_Target &#123;</span><br><span class="line">            float weight[3] = &#123;0.4026, 0.2442, 0.0545&#125;;//一维高斯函数的对称性&#123;0.0545,0.0242,0.4026, 0.2442, 0.0545&#125;</span><br><span class="line">			fixed3 sum = tex2D(_MainTex, i.uv[0]).rgb * weight[0];//存储模糊后像素值</span><br><span class="line"></span><br><span class="line">            //卷积运算</span><br><span class="line">            /*</span><br><span class="line">            第一次循环：uv[1]*weight[1]  uv[2]*weight[1]</span><br><span class="line">            第二次循环：uv[3]*weight[2]  uv[4]*weight[2]</span><br><span class="line">            */</span><br><span class="line">            for(int it = 1; it &lt; 3; it++)&#123;</span><br><span class="line">				sum += tex2D(_MainTex, i.uv[it*2-1]).rgb * weight[it];</span><br><span class="line">				sum += tex2D(_MainTex, i.uv[it*2]).rgb * weight[it];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            return fixed4(sum, 1.0);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">		struct v2fBloom &#123;</span><br><span class="line">			float4 pos : SV_POSITION; </span><br><span class="line">			half4 uv : TEXCOORD0;</span><br><span class="line">		&#125;;</span><br><span class="line"></span><br><span class="line">		v2fBloom vertBloom(appdata_img v) &#123;</span><br><span class="line">			v2fBloom o;</span><br><span class="line">			o.pos = UnityObjectToClipPos (v.vertex);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            /*</span><br><span class="line">            两个纹理坐标，储存在half4变量uv </span><br><span class="line">            xy分量：_MainTex 纹理</span><br><span class="line">            zw分量：_Bloom 纹理</span><br><span class="line">            */</span><br><span class="line">            o.uv.xy = v.texcoord;</span><br><span class="line">            o.uv.zw = v.texcoord;</span><br><span class="line"></span><br><span class="line">            #if UNITY_UV_STARTS_AT_TOP</span><br><span class="line">            if(_MainTex_TexelSize.y &lt; 0.0)//平台差异处理，详见《入门精要》P115 5.6.1 </span><br><span class="line">                o.uv.w = 1.0 - o.uv.w;</span><br><span class="line">            #endif</span><br><span class="line"></span><br><span class="line">            return o;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">		fixed4 fragBloom(v2fBloom i) : SV_Target &#123;</span><br><span class="line">            //return tex2D(_Bloom, i.uv.zw);//for debug 仅输出处理后图像</span><br><span class="line">			return tex2D(_MainTex, i.uv.xy) + tex2D(_Bloom, i.uv.zw);//原图与模糊图叠加</span><br><span class="line">		&#125; </span><br><span class="line"></span><br><span class="line">        ENDCG</span><br><span class="line"></span><br><span class="line">        ZTest Always Cull Off ZWrite Off//定义用于屏幕后处理的相关渲染状态：开启深度测试（Always）关闭剔除 关闭深度写入</span><br><span class="line">        Pass &#123; //Pass 0 : 提取较亮区域</span><br><span class="line">            CGPROGRAM</span><br><span class="line">			#pragma vertex vertExtractBright</span><br><span class="line">			#pragma fragment fragExtractBright</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Pass &#123;//Pass 1 : 垂直方向高斯模糊</span><br><span class="line">            CGPROGRAM</span><br><span class="line">			#pragma vertex vertBlurVertical  </span><br><span class="line">			#pragma fragment fragBlur</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Pass &#123;//Pass 2 : 水平方向高斯模糊</span><br><span class="line">            CGPROGRAM</span><br><span class="line">			#pragma vertex vertBlurHorizontal  </span><br><span class="line">			#pragma fragment fragBlur</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Pass &#123;//Pass 3 : 原图和bloom图混合（叠加）</span><br><span class="line">            CGPROGRAM</span><br><span class="line">			#pragma vertex vertBloom</span><br><span class="line">			#pragma fragment fragBloom</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/keijiro/KinoBloom">https://github.com/keijiro/KinoBloom</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/MarcusXie3D/FastBloomForMobiles">https://github.com/MarcusXie3D/FastBloomForMobiles</a></li>
+<li><a target="_blank" rel="noopener" href="https://learnopengl.com/Advanced-Lighting/Bloom">https://learnopengl.com/Advanced-Lighting/Bloom</a></li>
+<li>Unity Shader入门精要：12.5 Bloom效果</li>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Bloom_(shader_effect)">https://en.wikipedia.org/wiki/Bloom_(shader_effect)</a></li>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/High_dynamic_range">https://en.wikipedia.org/wiki/High_dynamic_range</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/76505536">https://zhuanlan.zhihu.com/p/76505536</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/125744132">高品质后处理：十种图像模糊算法的总结与实现</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/SnoopyNa2Co3/article/details/88075047">Unity 关于仿崩坏3部分Bloom（部分泛光）效果实现原理</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_39958112/article/details/110481008">unity 特效shader下载_二十：Unity 后处理 Bloom mask，基于深度和单个物件的Bloom</a></li>
+<li><a target="_blank" rel="noopener" href="https://cdn2.unrealengine.com/Resources/files/GDC2014_Next_Generation_Mobile_Rendering-2033767592.pdf">移动端Bloom优化</a></li>
+<li>大佬笔记：
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/euebim#ztEtf">https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/euebim#ztEtf</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/6527chen/ldyt32/yknxgb">https://www.yuque.com/6527chen/ldyt32/yknxgb</a></li>
+<li><a target="_blank" rel="noopener" href="https://xzyw7.github.io/post/OGITN9R02/">https://xzyw7.github.io/post/OGITN9R02/</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="作业">作业</h2>
+<h4 id="手动实现Bloom效果">手动实现Bloom效果</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_b6c6a4665818d560f2cd996ebd69a9bf.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_b6c6a4665818d560f2cd996ebd69a9bf.png"></p>
+<p>简单加了点Bloom，原图地球不是很亮，不敢拉太高。</p>
+<p>URP的方案是通过ScriptableRendererFeature来实现的，下面提供几篇参考文章。</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/161658349">https://zhuanlan.zhihu.com/p/161658349</a><br>
+<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/400858121">https://zhuanlan.zhihu.com/p/400858121</a></p>
+</blockquote>
+<p>值得一提的是有个bug找了半天，这里的_Bloom纹理是通过renderPass将RT缓冲传进来的，原先builtin是用的小写&quot;black&quot;，但在URP中一直传不过来很奇怪，改成大写就成功了，不知道有没有大佬知道原因。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Properties</span><br><span class="line">    &#123;</span><br><span class="line">        // 在属性面板中隐藏，名称是固定名称</span><br><span class="line">        [HideInInspector]_MainTex (&quot;Texture&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        // 以下变量与RenderPass中对应</span><br><span class="line">        //&quot;Black&quot;如果写成小写“black”,renderFeature 中的高亮渲染贴图会传不过来</span><br><span class="line">        _Bloom (&quot;Bloom (RGB)&quot;, 2D) = &quot;Black&quot; &#123;&#125;//高斯模糊后的结果</span><br><span class="line">        _LuminanceThreshold (&quot;Luminance Threshold&quot;, Float) = 0.5 //阈值</span><br><span class="line">		_BlurSize (&quot;Blur Size&quot;, Float) = 1.0 //模糊半径</span><br><span class="line">        _Intensity (&quot;Intensity&quot;, Float) = 1.0 //模糊强度</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>然后在帧调试器中发现Unity自己实现的bloom是先下采样再上采样，很神奇，下次研究下。<br>
+代码在Urp包的Runtime/Passes目录</p>
+<p>Volume面板显示</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[System.Serializable, VolumeComponentMenuForRenderPipeline(&quot;Custom/Bloom&quot;, typeof(UniversalRenderPipeline))]</span><br><span class="line">public class CustomBloom : VolumeComponent, IPostProcessComponent</span><br><span class="line">&#123;</span><br><span class="line">    public FloatParameter intensity = new FloatParameter(1.0f);</span><br><span class="line">    public ClampedIntParameter iterations = new ClampedIntParameter(3, 0, 4);</span><br><span class="line">    public ClampedIntParameter downSample = new ClampedIntParameter(2, 1, 8);</span><br><span class="line">    public ClampedFloatParameter blurSpread = new ClampedFloatParameter(0.6f, 0.2f, 3.0f);</span><br><span class="line">    public ClampedFloatParameter luminanceThreshold = new ClampedFloatParameter(0.6f, 0.0f, 4.0f);</span><br><span class="line">    public bool IsActive() =&gt; active;</span><br><span class="line">    public bool IsTileCompatible() =&gt; false;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>自定义ScriptableRendererFeature</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">public class CustomBloomRenderFeature : ScriptableRendererFeature</span><br><span class="line">&#123;</span><br><span class="line">    public RenderPassEvent passEvent = RenderPassEvent.BeforeRenderingPostProcessing;</span><br><span class="line">    [SerializeField] private Shader _Shader;</span><br><span class="line">    private Material _MatInstance;</span><br><span class="line">    private CustomBloomPass _bloomPass;</span><br><span class="line">    public override void Create()</span><br><span class="line">    &#123;</span><br><span class="line">        _bloomPass = new CustomBloomPass()</span><br><span class="line">        &#123;</span><br><span class="line">            renderPassEvent = passEvent</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)</span><br><span class="line">    &#123;</span><br><span class="line">        if(_Shader == null) return;</span><br><span class="line">        if (_MatInstance == null)</span><br><span class="line">            _MatInstance = CoreUtils.CreateEngineMaterial(_Shader);</span><br><span class="line">        RenderTargetIdentifier currentRT = renderer.cameraColorTarget;</span><br><span class="line">        _bloomPass.Setup(currentRT, _MatInstance);</span><br><span class="line">        renderer.EnqueuePass(_bloomPass);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>自定义RendererPass</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">public class CustomBloomPass : ScriptableRenderPass</span><br><span class="line">&#123;</span><br><span class="line">    //标签名，用于在帧调试器中显示缓冲区的名称</span><br><span class="line">    private RenderTargetIdentifier _RenderTexture;</span><br><span class="line">    private Material _Material;</span><br><span class="line">    private CustomBloom _Parameters;</span><br><span class="line">    private RenderTargetIdentifier _buffer1;</span><br><span class="line">    private RenderTargetIdentifier _buffer2;</span><br><span class="line">    const string _passTag = &quot;Custom Bloom Pass&quot;;</span><br><span class="line">    readonly int _bufferid1 = Shader.PropertyToID(&quot;bufferblur1&quot;);</span><br><span class="line">    readonly int _bufferid2 = Shader.PropertyToID(&quot;bufferblur2&quot;);</span><br><span class="line">    public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)</span><br><span class="line">    &#123;</span><br><span class="line">        // 获取Volume中的参数信息</span><br><span class="line">        VolumeStack stack = VolumeManager.instance.stack;</span><br><span class="line">        _Parameters = stack.GetComponent&lt;CustomBloom&gt;();</span><br><span class="line">        </span><br><span class="line">        // 根据该pass的tag信息来获取渲染命令(对象池)</span><br><span class="line">        CommandBuffer command = CommandBufferPool.Get(_passTag);</span><br><span class="line">        </span><br><span class="line">        // 向command中写入所有的渲染命令</span><br><span class="line">        Render(command, ref renderingData);</span><br><span class="line">        </span><br><span class="line">        // 执行命令，执行完毕后释放该命令，并一同释放已经使用过的tempRT</span><br><span class="line">        context.ExecuteCommandBuffer(command);</span><br><span class="line">        CommandBufferPool.Release(command);</span><br><span class="line">        command.ReleaseTemporaryRT(_bufferid1);</span><br><span class="line">        command.ReleaseTemporaryRT(_bufferid2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    private void Render(CommandBuffer command, ref RenderingData renderingData)</span><br><span class="line">    &#123;</span><br><span class="line">        if (_Parameters.IsActive() &amp;&amp; !renderingData.cameraData.isSceneViewCamera)</span><br><span class="line">        &#123;</span><br><span class="line">            _Material.SetFloat(&quot;_Intensity&quot;, _Parameters.intensity.value);</span><br><span class="line">            _Material.SetFloat(&quot;_LuminanceThreshold&quot;, _Parameters.luminanceThreshold.value);</span><br><span class="line">            </span><br><span class="line">            //获取目标相机的描述信息，创建一个结构体，里面有render texture各中信息，比如尺寸，深度图精度等等</span><br><span class="line">            RenderTextureDescriptor opaqueDesc = renderingData.cameraData.cameraTargetDescriptor;</span><br><span class="line">            int width = opaqueDesc.width / _Parameters.downSample.value;</span><br><span class="line">            int height = opaqueDesc.height / _Parameters.downSample.value;</span><br><span class="line">            </span><br><span class="line">            // 申请缓冲区</span><br><span class="line">            command.GetTemporaryRT(_bufferid1, width, height, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);</span><br><span class="line">            command.GetTemporaryRT(_bufferid2, width, height, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);</span><br><span class="line">            _buffer1 = new RenderTargetIdentifier(_bufferid1);</span><br><span class="line">            _buffer2 = new RenderTargetIdentifier(_bufferid2);</span><br><span class="line">            </span><br><span class="line">            // 第一个PASS，获取高亮区域</span><br><span class="line">            command.Blit(_RenderTexture, _buffer1, _Material, 0);</span><br><span class="line">            </span><br><span class="line">            // 高亮区域高斯模糊</span><br><span class="line">            for (int i = 0; i &lt; _Parameters.iterations.value; i++)</span><br><span class="line">            &#123;</span><br><span class="line">                _Material.SetFloat(&quot;_BlurSize&quot;, 1.0f + i * _Parameters.blurSpread.value);</span><br><span class="line">                </span><br><span class="line">                // 竖直方向模糊</span><br><span class="line">                command.Blit(_buffer1, _buffer2, _Material, 1);</span><br><span class="line"></span><br><span class="line">                // 水平方向模糊</span><br><span class="line">                command.Blit(_buffer2, _buffer1, _Material, 2);</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            // 混合原图和模糊结果</span><br><span class="line">            // _Material.SetTexture(&quot;_Bloom&quot;, _buffer1.Identifier()); //居然没有这个重载</span><br><span class="line">            command.SetGlobalTexture(&quot;_Bloom&quot;, _buffer1);</span><br><span class="line">            command.Blit(_RenderTexture, _buffer2, _Material, 3);</span><br><span class="line">            </span><br><span class="line">            // 将结果写回原图</span><br><span class="line">            command.Blit(_buffer2, _RenderTexture);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void Setup(RenderTargetIdentifier currentRT, Material matInstance)</span><br><span class="line">    &#123;</span><br><span class="line">        _RenderTexture = currentRT;</span><br><span class="line">        _Material = matInstance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Shader</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;URPLearn/BloomTest&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        // 在属性面板中隐藏，名称是固定名称</span><br><span class="line">        [HideInInspector]_MainTex (&quot;Texture&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        // 以下变量与RenderPass中对应</span><br><span class="line">        //&quot;Black&quot;如果写成小写“black”,renderFeature 中的高亮渲染贴图会传不过来</span><br><span class="line">        _Bloom (&quot;Bloom (RGB)&quot;, 2D) = &quot;Black&quot; &#123;&#125;//高斯模糊后的结果</span><br><span class="line">        _LuminanceThreshold (&quot;Luminance Threshold&quot;, Float) = 0.5 //阈值</span><br><span class="line">		_BlurSize (&quot;Blur Size&quot;, Float) = 1.0 //模糊半径</span><br><span class="line">        _Intensity (&quot;Intensity&quot;, Float) = 1.0 //模糊强度</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;RenderPipeline&quot;=&quot;UniversalRenderPipeline&quot;</span><br><span class="line">        &#125;</span><br><span class="line">        Cull off</span><br><span class="line">        ZWrite Off</span><br><span class="line">        ZTest Always</span><br><span class="line">        </span><br><span class="line">        HLSLINCLUDE</span><br><span class="line">        #include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl&quot;</span><br><span class="line"></span><br><span class="line">        TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);</span><br><span class="line">        TEXTURE2D(_Bloom); SAMPLER(sampler_Bloom);</span><br><span class="line">        </span><br><span class="line">        CBUFFER_START(UnityPerMaterial)</span><br><span class="line">        float4 _MainTex_TexelSize;</span><br><span class="line">        float _LuminanceThreshold;</span><br><span class="line">        float _BlurSize;</span><br><span class="line">        float _Intensity;</span><br><span class="line">        CBUFFER_END</span><br><span class="line"></span><br><span class="line">        struct Attributes</span><br><span class="line">        &#123;</span><br><span class="line">            float4 positionOS : POSITION;</span><br><span class="line">            half2 texcoord : TEXCOORD0;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        // 明亮度公式</span><br><span class="line">        //计算得到像素的亮度值</span><br><span class="line">		half luminance(half4 color) &#123;</span><br><span class="line">			return 0.2125 * color.r + 0.7154 * color.g + 0.0721 * color.b; </span><br><span class="line">		&#125;</span><br><span class="line">        </span><br><span class="line">        // ######第1个PASS使用数据######</span><br><span class="line">        struct v2fExtractBright</span><br><span class="line">        &#123;</span><br><span class="line">            float4 positionCS : SV_POSITION;</span><br><span class="line">            half2 uv : TEXCOORD0;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        v2fExtractBright vertExtractBright(Attributes IN)</span><br><span class="line">        &#123;</span><br><span class="line">            v2fExtractBright OUT;</span><br><span class="line">            OUT.positionCS = TransformObjectToHClip(IN.positionOS);</span><br><span class="line">            OUT.uv = IN.texcoord;</span><br><span class="line">            return  OUT;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        half4 fragExtractBright(v2fExtractBright IN) : SV_Target</span><br><span class="line">        &#123;</span><br><span class="line">            half4 c = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv);</span><br><span class="line"></span><br><span class="line">            // 计算亮度超过阈值部分的像素</span><br><span class="line">            half val = clamp(luminance(c) - _LuminanceThreshold, 0, 1);</span><br><span class="line">            return c * val;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        // ######第2/3个PASS使用数据######</span><br><span class="line">        struct v2fBlur</span><br><span class="line">        &#123;</span><br><span class="line">            float4 positionCS : SV_POSITION;</span><br><span class="line">            // 由于卷积核大小为5x5的二维高斯核可以拆分两个大小为5的一维高斯核</span><br><span class="line">        	// uv[0]存储了当前的采样纹理</span><br><span class="line">        	// uv[1][2][3][4]为高斯模糊中对邻域采样时使用的纹理坐标</span><br><span class="line">            half2 uv[5] : TEXCOORD0;</span><br><span class="line">        &#125;;</span><br><span class="line">        </span><br><span class="line">        v2fBlur vertBlurVertical(Attributes IN)</span><br><span class="line">        &#123;</span><br><span class="line">            v2fBlur OUT;</span><br><span class="line">            OUT.positionCS = TransformObjectToHClip(IN.positionOS);</span><br><span class="line">            half2 uv = IN.texcoord;</span><br><span class="line">            // 计算参与卷积的竖直方向像素UV坐标，与卷积核对应</span><br><span class="line">            OUT.uv[0] = uv;</span><br><span class="line">            OUT.uv[1] = uv + float2(0.0, _MainTex_TexelSize.y * 1.0) * _BlurSize;</span><br><span class="line">			OUT.uv[2] = uv - float2(0.0, _MainTex_TexelSize.y * 1.0) * _BlurSize;</span><br><span class="line">			OUT.uv[3] = uv + float2(0.0, _MainTex_TexelSize.y * 2.0) * _BlurSize;</span><br><span class="line">			OUT.uv[4] = uv - float2(0.0, _MainTex_TexelSize.y * 2.0) * _BlurSize;</span><br><span class="line">            return OUT;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        v2fBlur vertBlurHorizontal(Attributes IN)</span><br><span class="line">        &#123;</span><br><span class="line">            v2fBlur OUT;</span><br><span class="line">            OUT.positionCS = TransformObjectToHClip(IN.positionOS);</span><br><span class="line">            half2 uv = IN.texcoord;</span><br><span class="line">            // 计算参与卷积的水平方向像素UV坐标，与卷积核对应</span><br><span class="line">            OUT.uv[0] = uv;</span><br><span class="line">            OUT.uv[1] = uv + float2(_MainTex_TexelSize.x * 1.0, 0.0) * _BlurSize;</span><br><span class="line">			OUT.uv[2] = uv - float2(_MainTex_TexelSize.x * 1.0, 0.0) * _BlurSize;</span><br><span class="line">			OUT.uv[3] = uv + float2(_MainTex_TexelSize.x * 2.0, 0.0) * _BlurSize;</span><br><span class="line">			OUT.uv[4] = uv - float2(_MainTex_TexelSize.x * 2.0, 0.0) * _BlurSize;</span><br><span class="line">            return OUT;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        half4 fragBlur(v2fBlur IN) : SV_Target</span><br><span class="line">        &#123;</span><br><span class="line">            // 高斯核权重，这里使用5x5，但有重复部分就定义大小3的数组了</span><br><span class="line">            float weight[3] = &#123;0.4026, 0.2442, 0.0545&#125;;</span><br><span class="line"></span><br><span class="line">            half3 sum = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv[0]).rgb;</span><br><span class="line"></span><br><span class="line">            // 中间像素</span><br><span class="line">            sum *= weight[0];</span><br><span class="line"></span><br><span class="line">            // 进行卷积计算，具体看笔记的演示图</span><br><span class="line">            for (int it = 1; it &lt; 3; it++) &#123;</span><br><span class="line">				sum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv[it*2-1]).rgb * weight[it];</span><br><span class="line">				sum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv[it*2]).rgb * weight[it];</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">            return half4(sum, 1.0f);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        // ######第4个PASS使用数据######</span><br><span class="line">        struct v2fBloom</span><br><span class="line">        &#123;</span><br><span class="line">            float4 positionCS : SV_POSITION;</span><br><span class="line">            half4 uv : TEXCOORD0;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        v2fBloom vertBloom(Attributes IN)</span><br><span class="line">        &#123;</span><br><span class="line">            v2fBloom OUT;</span><br><span class="line">            OUT.positionCS = TransformObjectToHClip(IN.positionOS);</span><br><span class="line"></span><br><span class="line">            OUT.uv.xy = IN.texcoord;//_MainTex的纹理坐标</span><br><span class="line">            OUT.uv.zw = IN.texcoord;//_Bloom的纹理坐标</span><br><span class="line">            // 平台差异化处理</span><br><span class="line">        	//判断y是否小于0，如果是就进行翻转处理</span><br><span class="line">			#if UNITY_UV_STARTS_AT_TOP			</span><br><span class="line">			if (_MainTex_TexelSize.y &lt; 0.0)</span><br><span class="line">				OUT.uv.w = 1.0 - OUT.uv.w;</span><br><span class="line">			#endif</span><br><span class="line"></span><br><span class="line">            return OUT;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        half4 fragBloom(v2fBloom IN) : SV_Target</span><br><span class="line">        &#123;</span><br><span class="line">            half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv.xy);</span><br><span class="line">            half4 bloom = SAMPLE_TEXTURE2D(_Bloom, sampler_Bloom, IN.uv.zw);</span><br><span class="line">            return tex + bloom * _Intensity;</span><br><span class="line">        &#125;</span><br><span class="line">        ENDHLSL</span><br><span class="line">        </span><br><span class="line">        // 第一个Pass 提取画面中亮度高的区域</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            HLSLPROGRAM</span><br><span class="line">            #pragma vertex vertExtractBright</span><br><span class="line">            #pragma fragment fragExtractBright</span><br><span class="line">            ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        // 第二个Pass 竖直方向的高斯模糊</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            HLSLPROGRAM</span><br><span class="line">            #pragma vertex vertBlurVertical</span><br><span class="line">            #pragma fragment fragBlur</span><br><span class="line">            ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        // 第三个Pass 水平方向的高斯模糊</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            HLSLPROGRAM</span><br><span class="line">            #pragma vertex vertBlurHorizontal</span><br><span class="line">            #pragma fragment fragBlur</span><br><span class="line">            ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        // 第四个Pass 混合模糊后的高亮区域和原图</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            HLSLPROGRAM</span><br><span class="line">            #pragma vertex vertBloom</span><br><span class="line">            #pragma fragment fragBloom</span><br><span class="line">            ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="GodRay效果-2">GodRay效果</h4>
+<p>径向模糊介绍：</p>
+<ul>
+<li>径向模糊（Radial Blur）可以给画面带来很好的速度感，是各类游戏中后处理的常客，也常用于Sun Shaft等后处理特效中作为光线投射的模拟。</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302221139367.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302221140113.png" alt=""></p>
+<p>径向模糊的原理：</p>
+<ul>
+<li>首先选取一个径向轴心（Radial Center）</li>
+<li>然后将每一个采样点的uv基于此径向轴心进行偏移（offset）</li>
+<li>并进行一定次数的迭代采样</li>
+<li>最终将采样得到的RGB值累加，并除以迭代次数。</li>
+</ul>
+<p>shader部分</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;URPLearn/GodRayTest&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        // 在属性面板中隐藏，名称是固定名称</span><br><span class="line">        [HideInInspector]_MainTex (&quot;Texture&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        // 以下变量与RenderPass中对应</span><br><span class="line">        [HideInInspector]_BlurTex (&quot;Blur&quot;, 2D) = &quot;white&quot; &#123;&#125;			//径向模糊后的结果</span><br><span class="line">		_ViewPortLightPos (&quot;ViewPortLightPos&quot;, Vector) = (0,0,0,0)	//视角空间下光源位置</span><br><span class="line">        _Offsets (&quot;Offsets&quot;, Vector) = (0,0,0,0)					//采样偏移</span><br><span class="line">        _ColorThreshold (&quot;ColorThreshold&quot;, Vector) = (0,0,0,0)		//高亮部分阈值</span><br><span class="line">        _LightColor (&quot;LightColor&quot;, Color) = (1,1,1,1)				//光颜色</span><br><span class="line">        _LightFactor (&quot;LightFactor&quot;, Float) = 1						//光强度</span><br><span class="line">        _PowFactor (&quot;PowFactor&quot;, Float) = 1							//提取高亮结果Pow系数，用于适当降低颜色过亮的情况</span><br><span class="line">        _LightRadius (&quot;LightRadius&quot;, Float) = 1						//光源影响范围</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;RenderPipeline&quot;=&quot;UniversalRenderPipeline&quot;</span><br><span class="line">        &#125;</span><br><span class="line">        Cull off</span><br><span class="line">        ZWrite Off</span><br><span class="line">        ZTest Always</span><br><span class="line">        </span><br><span class="line">        HLSLINCLUDE</span><br><span class="line">        #include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl&quot;</span><br><span class="line">        #define RADIAL_SAMPLE_COUNT 7</span><br><span class="line">        </span><br><span class="line">        TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);</span><br><span class="line">        TEXTURE2D(_BlurTex); SAMPLER(sampler_BlurTex);</span><br><span class="line">        </span><br><span class="line">        CBUFFER_START(UnityPerMaterial)</span><br><span class="line">        float4 _MainTex_TexelSize;</span><br><span class="line">        float4 _BlurTex_TexelSize;</span><br><span class="line">        float4 _ViewPortLightPos;   //视角空间下光源位置</span><br><span class="line">        float4 _Offsets;            //采样偏移</span><br><span class="line">        float4 _ColorThreshold;     //高亮部分阈值</span><br><span class="line">        float4 _LightColor;         //光颜色</span><br><span class="line">        float  _LightFactor;        //光强度</span><br><span class="line">        float  _PowFactor;          //提取高亮结果Pow系数，用于适当降低颜色过亮的情况</span><br><span class="line">        float  _LightRadius;        //光源影响范围</span><br><span class="line">        CBUFFER_END</span><br><span class="line"></span><br><span class="line">        struct Attributes</span><br><span class="line">        &#123;</span><br><span class="line">            float4 positionOS : POSITION;</span><br><span class="line">            half2 texcoord : TEXCOORD0;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        // 明亮度公式</span><br><span class="line">        //计算得到像素的亮度值</span><br><span class="line">		half luminance(half3 color) &#123;</span><br><span class="line">			return 0.2125 * color.r + 0.7154 * color.g + 0.0721 * color.b; </span><br><span class="line">		&#125;</span><br><span class="line">        </span><br><span class="line">        // 提取亮部图像</span><br><span class="line">		struct v2fExtractBright</span><br><span class="line">		&#123;</span><br><span class="line">			float4 positionCS	: SV_POSITION;</span><br><span class="line">			float2 uv			: TEXCOORD0;</span><br><span class="line">		&#125;;</span><br><span class="line">	 </span><br><span class="line">		// 径向模糊</span><br><span class="line">		struct v2fRadialBlur</span><br><span class="line">		&#123;</span><br><span class="line">			float4 positionCS	: SV_POSITION;</span><br><span class="line">			float2 uv			: TEXCOORD0;</span><br><span class="line">			float2 blurOffset	: TEXCOORD1;</span><br><span class="line">		&#125;;</span><br><span class="line">	 </span><br><span class="line">		// 混合</span><br><span class="line">		struct v2fGodRay</span><br><span class="line">		&#123;</span><br><span class="line">			float4 positionCS	: SV_POSITION;</span><br><span class="line">			float2 uv			: TEXCOORD0;</span><br><span class="line">			float2 uv1			: TEXCOORD1;</span><br><span class="line">		&#125;;</span><br><span class="line"></span><br><span class="line">        // 提取亮部图像VS</span><br><span class="line">		v2fExtractBright vertExtractBright(Attributes IN)</span><br><span class="line">		&#123;</span><br><span class="line">			v2fExtractBright OUT;</span><br><span class="line">			OUT.positionCS = TransformObjectToHClip(IN.positionOS);</span><br><span class="line">			OUT.uv = IN.texcoord.xy;</span><br><span class="line">			// 平台差异化处理</span><br><span class="line">			#if UNITY_UV_STARTS_AT_TOP</span><br><span class="line">			if (_MainTex_TexelSize.y &lt; 0)</span><br><span class="line">				OUT.uv.y = 1 - OUT.uv.y;</span><br><span class="line">			#endif	</span><br><span class="line">			return OUT;</span><br><span class="line">		&#125;</span><br><span class="line">	 </span><br><span class="line">		// 提取亮部图像PS</span><br><span class="line">		half4 fragExtractBright(v2fExtractBright IN) : SV_Target</span><br><span class="line">		&#123;</span><br><span class="line">			half4 color = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv);</span><br><span class="line">			float distFromLight = length(_ViewPortLightPos.xy - IN.uv);</span><br><span class="line">			float distanceControl = saturate(_LightRadius - distFromLight);</span><br><span class="line"></span><br><span class="line">			// 仅当color大于设置的阈值的时候才输出</span><br><span class="line">			half4 thresholdColor = saturate(color - _ColorThreshold) * distanceControl;</span><br><span class="line">			float luminanceColor = luminance(thresholdColor.rgb);</span><br><span class="line">			luminanceColor = pow(luminanceColor, _PowFactor);</span><br><span class="line">			return half4(luminanceColor, luminanceColor, luminanceColor, 1);</span><br><span class="line">		&#125;</span><br><span class="line">	 </span><br><span class="line">		// 径向模糊VS</span><br><span class="line">		v2fRadialBlur vertRadialBlur(Attributes IN)</span><br><span class="line">		&#123;</span><br><span class="line">			v2fRadialBlur OUT;</span><br><span class="line">			OUT.positionCS = TransformObjectToHClip(IN.positionOS);</span><br><span class="line">			OUT.uv = IN.texcoord.xy;</span><br><span class="line"></span><br><span class="line">			// 径向模糊采样偏移值 * 沿光的方向权重</span><br><span class="line">			OUT.blurOffset = _Offsets * (_ViewPortLightPos.xy - OUT.uv);</span><br><span class="line"></span><br><span class="line">			return OUT;</span><br><span class="line">		&#125;</span><br><span class="line">	 </span><br><span class="line">		// 径向模拟PS</span><br><span class="line">		half4 fragRadialBlur(v2fRadialBlur IN) : SV_Target</span><br><span class="line">		&#123;</span><br><span class="line">			half4 color = half4(0,0,0,0);</span><br><span class="line">			//通过迭代，将采样得到的RGB值累加</span><br><span class="line">			for(int j = 0; j &lt; RADIAL_SAMPLE_COUNT; j++)   </span><br><span class="line">			&#123;	</span><br><span class="line">				color += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv.xy);</span><br><span class="line">				IN.uv.xy += IN.blurOffset; 	</span><br><span class="line">			&#125;</span><br><span class="line">			//最后除以迭代次数</span><br><span class="line">			return color / RADIAL_SAMPLE_COUNT;</span><br><span class="line">		&#125;</span><br><span class="line">	 </span><br><span class="line">		// 混合VS</span><br><span class="line">		v2fGodRay vertGodRay(Attributes IN)</span><br><span class="line">		&#123;</span><br><span class="line">			v2fGodRay OUT;</span><br><span class="line">			OUT.positionCS = TransformObjectToHClip(IN.positionOS);</span><br><span class="line">			OUT.uv.xy = IN.texcoord.xy;</span><br><span class="line">			OUT.uv1.xy = OUT.uv.xy;</span><br><span class="line">			#if UNITY_UV_STARTS_AT_TOP</span><br><span class="line">			if (_MainTex_TexelSize.y &lt; 0)</span><br><span class="line">				OUT.uv.y = 1 - OUT.uv.y;</span><br><span class="line">			#endif	</span><br><span class="line">			return OUT;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line"> 		// 混合PS</span><br><span class="line">		half4 fragGodRay(v2fGodRay IN) : SV_Target</span><br><span class="line">		&#123;</span><br><span class="line">			half4 ori = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv1);</span><br><span class="line">			half4 blur = SAMPLE_TEXTURE2D(_BlurTex, sampler_BlurTex, IN.uv);</span><br><span class="line">			return ori + _LightFactor * blur * _LightColor;</span><br><span class="line">		&#125;</span><br><span class="line">        ENDHLSL</span><br><span class="line">        </span><br><span class="line">        // 第一个Pass 提取高亮部分</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            HLSLPROGRAM</span><br><span class="line">            #pragma vertex vertExtractBright</span><br><span class="line">            #pragma fragment fragExtractBright</span><br><span class="line">            ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        // 第二个Pass 径向模糊</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            HLSLPROGRAM</span><br><span class="line">            #pragma vertex vertRadialBlur</span><br><span class="line">            #pragma fragment fragRadialBlur</span><br><span class="line">            ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        // 第三个Pass 将亮部图像与原图进行混合得到最终的GodRay效果</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            HLSLPROGRAM</span><br><span class="line">            #pragma vertex vertGodRay</span><br><span class="line">            #pragma fragment fragGodRay</span><br><span class="line">            ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>Pass中关键的模糊部分，提取和混合和Bloom大差不差</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// 通过循环迭代径向模糊</span><br><span class="line">for (int i = 0; i &lt; blurIteration; i++)</span><br><span class="line">&#123;</span><br><span class="line">    float offset = samplerOffset * (i * 2 + 1);</span><br><span class="line">    material.SetVector(&quot;_offsets&quot;, new Vector4(offset, offset, 0, 0));</span><br><span class="line">    Graphics.Blit(buffer0, buffer1, material, 1);</span><br><span class="line">    </span><br><span class="line">    offset = samplerOffset * (i * 2 + 2);</span><br><span class="line">    material.SetVector(&quot;_offsets&quot;, new Vector4(offset, offset, 0, 0));</span><br><span class="line">    Graphics.Blit(buffer1, buffer0, material, 1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="思考：如何实现bloom的mask功能？">思考：如何实现bloom的mask功能？</h4>
+<p>自己想了想最简单的是用一张额外的Mask记录（为了避免画面变亮，可以存储的alpha值越小，bloom效果越强烈）</p>
+<p>查阅了下，有几种方案</p>
+<ul>
+<li>用Alpha通道来作为Mask，乘上Bloom的结果</li>
+<li>半透明物体可能有问题，可以采用两个通道来存储原Alpha
+<ul>
+<li>第一个pass需要加ColorMask RGB（避免影响alpha存储）</li>
+<li>第二个pass需要加ColorMask A（避免影响第一个pass输出颜色）</li>
+</ul>
+</li>
+<li>用SRP渲染一张Mask图</li>
+<li>用Command-Buffer</li>
+<li>用模板测试</li>
+<li>直接用Mask图</li>
+<li>总结：
+<ul>
+<li>多用一张Mask图需要将标记物体渲染成Mask图，多一遍渲染开销，但好处是容易接入已有项目，后续维护成本低点</li>
+<li>使用Alpha通道需要修改已有的shader，并且半透明物体需要两个pass</li>
+<li>具体要根据项目半透明物体数量来权衡</li>
+</ul>
+</li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/3eb3a01c/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 4.2 SSAO算法 屏幕空间环境光遮蔽</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/d0e77717/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 3.6 纹理压缩</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

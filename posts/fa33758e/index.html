@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形-3.1 深度与模板测试 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形-3.1 深度与模板测试</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-02-09T02:48:01.000Z" itemprop="datePublished">2023-02-09</time>
+          </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<blockquote>
+<p>一个shader多个pass有不同渲染队列时，选最小的那个队列渲染物体，然后按照pass顺序依次进行</p>
+</blockquote>
+<h2 id="模板测试">模板测试</h2>
+<h4 id="能做什么？">能做什么？</h4>
+<ul>
+<li>传送门，透过传送门看到后面的场景（印象中传送门应该是使用两个门打开场景通道吧）<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/eNQTxbp09zhVaJm9RrtTng_05e32fea14b3d42fbd4ae2291aef4aeb.gif" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/eNQTxbp09zhVaJm9RrtTng_05e32fea14b3d42fbd4ae2291aef4aeb.gif"><br>
+<br></li>
+<li><a target="_blank" rel="noopener" href="https://www.patreon.com/posts/14832618">Minions</a>讲解的一些效果<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/jE5jSiS9fxTBkftMffRUvg.gif" alt=""><br>
+<br></li>
+<li>展示柜，不同面看到不同场景（镜中窥梦）</li>
+</ul>
+<center class="half">     <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/bvS1V1NTiLs9k5UHIqnUUw_6ef4b557535388bb3d93950722a9d453.gif" width="42%"/><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/y7Tcu-l8zuwKKGkVacX8qg_cbb4dcbbe97cceec0a28691569c5fcaa.gif" width="42%"/></center>
+<h4 id="是什么？">是什么？</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ce4660d1ab00d23f2a0fdf7b3c2f22dd.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ce4660d1ab00d23f2a0fdf7b3c2f22dd.png"></p>
+<ul>
+<li>左图为颜色缓冲区中的一张图，在模板缓冲区中我们会给这张图的每一个片元分配一个0-255的数字（8位，默认为0）</li>
+<li>中、右图可以看到，我们修改模板缓冲区部分0-&gt;1，通过<strong>自定义的一些准则，比如只显示模板值为1</strong>对应的片元的颜色，最后通过模板测试的结果就如右图所示</li>
+</ul>
+<h6 id="从渲染管线理解">从渲染管线理解</h6>
+<ul>
+<li>片元着色器结束后，渲染管线执行逐片元操作，对片元进行一系列测试<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_01eb9790fb0282ba6973cdf5ed6c5e87.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_01eb9790fb0282ba6973cdf5ed6c5e87.png"></li>
+<li>逐片元流程<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6f96699c42a3321471fc72def1441463.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6f96699c42a3321471fc72def1441463.png">
+<ul>
+<li>PixelOwnershipTest（像素所有权测试）：控制当前屏幕像素的使用权限，显示器上只有游戏窗口部分使用（全屏、窗口）</li>
+<li>ScissorTest（裁剪测试）：在渲染空间中选定只渲染某一区域，比如可以只渲染窗口的右上角（Unity相机好像有个选项，不知道是不是，有时候用来小地图）</li>
+<li>AlphaTest（透明度测试）：设置透明度阈值，像素透明度与该阈值进行测试，不通过将会被舍弃</li>
+<li>StencilTest（模板测试）</li>
+<li>DepthTest（深度测试）</li>
+<li>Blending（透明度混合）：实现半透明效果必须</li>
+<li>完成接下来的其他一系列操作后，我们会将通过测试的片元/像素输出到帧缓冲区（FrameBuffer）</li>
+</ul>
+</li>
+</ul>
+<h6 id="从逻辑上理解模板测试">从逻辑上理解模板测试</h6>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">if(referenceValue &amp; readMask comparisonFuction stencilBufferValue &amp; readMask</span><br><span class="line">    //通过像素</span><br><span class="line">&#125;</span><br><span class="line">else&#123;</span><br><span class="line">    //剔除像素</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>referenceValue：当前模板缓冲片元的参考值</li>
+<li>stencilBufferValue：模板缓冲区里的值</li>
+<li>comparisonFunction，比较操作</li>
+<li><strong>通过一定条件来判断这个片元/片元属性执行保留还是抛弃</strong>的操作</li>
+</ul>
+<h6 id="从书面概念上理解">从书面概念上理解</h6>
+<ul>
+<li>
+<p>模板缓冲区-FrameBuffer</p>
+<ul>
+<li>模板缓冲区为屏幕上的每一个像素点保存一个无符号整数值（通常为8位int 0-255）</li>
+<li>这个值的意义根据程序的具体应用而定</li>
+</ul>
+</li>
+<li>
+<p>模板测试</p>
+<ul>
+<li>渲染过程中，可以用这个值与预先设定好的参考值作（ReferenceValue）比较，根据结果来决定是否更新相应的像素点的颜色值</li>
+<li>这个比较的过程就称为<strong>模板测试</strong></li>
+<li>模板测试在透明度测试之后，深度测试之前</li>
+<li>如果模板测试通过，相应的像素点（颜色缓冲区）更新，否则不更新</li>
+</ul>
+</li>
+</ul>
+<h4 id="怎么用？">怎么用？</h4>
+<h6 id="Unity-Shader中的语法结构">Unity Shader中的语法结构</h6>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">stencil &#123;</span><br><span class="line">    Ref referenceValue      //给当前片元设置参考值 [0,255]</span><br><span class="line">    ReadMask readMask       //读掩码</span><br><span class="line">    WriteMask writeMask     //写掩码</span><br><span class="line">    Comp comparisonFunction	//比较函数</span><br><span class="line">    Pass stencilOperation	//通过了有什么操作</span><br><span class="line">    Fail stencilOperation	//没有通过有什么操作</span><br><span class="line">    ZFail stencilOperation	//通过了但是深度测试没通过有什么操作</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="ComparisonFunction">ComparisonFunction</h6>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_fb2b9ee940677e83191abb5913ddd3fc.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_fb2b9ee940677e83191abb5913ddd3fc.png"></p>
+<h6 id="StencilOperation">StencilOperation</h6>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ba38ab01bc92711b7456890c84b23a2c.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ba38ab01bc92711b7456890c84b23a2c.png"></p>
+<h4 id="一些效果展示-讲解">一些效果展示&amp;讲解</h4>
+<h6 id="3D卡牌效果">3D卡牌效果</h6>
+<ul>
+<li>Minions Art: <a target="_blank" rel="noopener" href="https://www.patreon.com/posts/14832618">https://www.patreon.com/posts/14832618</a><br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/3DCard.gif" alt=""></li>
+<li>未使用模板测试时，场景中的摆放<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_137ed4a2a67e9c427bb48a8b264f5ea6.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_137ed4a2a67e9c427bb48a8b264f5ea6.png"></li>
+<li>遮罩Shader</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;FX/StencilMask&quot; &#123;</span><br><span class="line">    Properties &#123;</span><br><span class="line">        // 模板参考ID</span><br><span class="line">        _ID(&quot;Mask ID&quot;, Int) = 1</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader&#123;</span><br><span class="line">        //在不透明物体后渲染 </span><br><span class="line">        Tags&#123; &quot;RenderType&quot; = &quot;Opaque&quot; &quot;Queue&quot; = &quot;Geometry+1&quot; &#125; </span><br><span class="line">        ColorMask 0 //颜色遮罩，0就是什么都不输出，也可以选择：RGBA,RGB,R,G,B,A </span><br><span class="line">        ZWrite off	//	关闭深度写入</span><br><span class="line">	Stencil &#123;</span><br><span class="line">	    Ref[_ID]</span><br><span class="line">	    Comp always	//默认keep</span><br><span class="line">	    Pass replace //默认keep</span><br><span class="line">            //Fail keep</span><br><span class="line">            //ZFail keep</span><br><span class="line">	&#125;</span><br><span class="line">	Pass&#123;</span><br><span class="line">	    CGINCLUDE</span><br><span class="line">	    struct appdata &#123;</span><br><span class="line">		float4 vertex : POSITION;</span><br><span class="line">	    &#125;;</span><br><span class="line">	    struct v2f &#123;</span><br><span class="line">		float4 pos : SV_POSITION;</span><br><span class="line">	    &#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	    v2f vert(appdata v) &#123;</span><br><span class="line">		v2f o;</span><br><span class="line">		o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">		return o;</span><br><span class="line">	    &#125;</span><br><span class="line">	    half4 frag(v2f i) : SV_Target&#123;</span><br><span class="line">		return half4(1,1,1,1);</span><br><span class="line">	    &#125;</span><br><span class="line">	    ENDCG</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>物体Shader</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Toon/Lit StencilMask&quot; &#123;</span><br><span class="line">    Properties &#123;</span><br><span class="line">        _Color (&quot;Main Color&quot;, Color) = (0.5,0.5,0.5,1)</span><br><span class="line">        _MainTex (&quot;Base (RGB)&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _Ramp (&quot;Toon Ramp (RGB)&quot;, 2D) = &quot;gray&quot; &#123;&#125;</span><br><span class="line">        _ID(&quot;Mask ID&quot;, Int) = 1</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    SubShader &#123;</span><br><span class="line">        //在遮罩后渲染</span><br><span class="line">	Tags &#123; &quot;RenderType&quot;=&quot;Opaque&quot; &quot;Queue&quot; = &quot;Geometry+2&quot;&#125;</span><br><span class="line">	LOD 200</span><br><span class="line"></span><br><span class="line">	Stencil &#123;</span><br><span class="line">	    Ref [_ID]</span><br><span class="line">	    Comp equal</span><br><span class="line">	&#125;</span><br><span class="line">        CGPROGRAM</span><br><span class="line">        #pragma surface surf ToonRamp</span><br><span class="line"></span><br><span class="line">        sampler2D _Ramp;</span><br><span class="line"></span><br><span class="line">        // custom lighting function that uses a texture ramp based</span><br><span class="line">        // on angle between light direction and normal</span><br><span class="line">        #pragma lighting ToonRamp exclude_path:prepass</span><br><span class="line">        inline half4 LightingToonRamp (SurfaceOutput s, half3 lightDir, half atten)</span><br><span class="line">        &#123;</span><br><span class="line">            #ifndef USING_DIRECTIONAL_LIGHT</span><br><span class="line">            lightDir = normalize(lightDir);</span><br><span class="line">            #endif</span><br><span class="line">            half d = dot (s.Normal, lightDir)*0.5 + 0.5;</span><br><span class="line">            half3 ramp = tex2D (_Ramp, float2(d,d)).rgb;</span><br><span class="line"></span><br><span class="line">            half4 c;</span><br><span class="line">            c.rgb = s.Albedo * _LightColor0.rgb * ramp * (atten * 2);</span><br><span class="line">            c.a = 0;</span><br><span class="line">            return c;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        sampler2D _MainTex;</span><br><span class="line">        float4 _Color;</span><br><span class="line"></span><br><span class="line">        struct Input &#123;</span><br><span class="line">            float2 uv_MainTex : TEXCOORD0;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        void surf (Input IN, inout SurfaceOutput o) &#123;</span><br><span class="line">            half4 c = tex2D(_MainTex, IN.uv_MainTex) * _Color;</span><br><span class="line">            o.Albedo = c.rgb;</span><br><span class="line">            o.Alpha = c.a;</span><br><span class="line">        &#125;</span><br><span class="line">        ENDCG</span><br><span class="line"></span><br><span class="line">    &#125; </span><br><span class="line"></span><br><span class="line">    Fallback &quot;Diffuse&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>思路理解
+<ul>
+<li>Unity模板缓冲区默认值为0</li>
+<li>注意渲染顺序，一般是先让mask将模版缓冲更新，设置部分区域才能通过测试</li>
+<li>默认物体（mask前边，不参与测试的物体）的索引值设为0，Comp设为Always</li>
+<li>mask的的索引值设为1，Comp设为always，但测试通过后将缓冲区替换成索引值，即<strong>mask所在的模板缓冲区的值变成了设定的索引值</strong></li>
+<li>此时模板覆盖的区域缓冲区值被修改为1，其他保持默认0</li>
+<li>参与模版测试，模版后面的物体的索引值设为1，Comp设为Equal，故只有在模板覆盖的区域才能通过测试</li>
+<li>于是便实现了卡牌效果，注意背景层需要给很大，才能兼顾不同视角，避免穿帮</li>
+</ul>
+</li>
+</ul>
+<h6 id="盒子展示柜">盒子展示柜</h6>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/bvS1V1NTiLs9k5UHIqnUUw_6ef4b557535388bb3d93950722a9d453.gif" alt=""></p>
+<ul>
+<li>遮罩shader</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Custom/Stencil Window&quot; &#123;</span><br><span class="line">    Properties &#123;</span><br><span class="line">        _Color (&quot;Color&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _SRef(&quot;Stencil Ref&quot;, Float) = 1</span><br><span class="line">	[Enum(UnityEngine.Rendering.CompareFunction)] _SComp(&quot;Stencil Comp&quot;, Float) = 8</span><br><span class="line">	[Enum(UnityEngine.Rendering.StencilOp)] _SOp(&quot;Stencil Op&quot;, Float) = 2</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    SubShader &#123;</span><br><span class="line">    Tags &#123; &quot;Queue&quot; = &quot;Geometry-1&quot; &#125; </span><br><span class="line">    LOD 200</span><br><span class="line">    ColorMask 0  </span><br><span class="line">    ZWrite off</span><br><span class="line">    Stencil &#123;</span><br><span class="line">        Ref [_SRef]</span><br><span class="line">	Comp [_SComp]</span><br><span class="line">	Pass [_SOp]</span><br><span class="line">    &#125;</span><br><span class="line">    CGPROGRAM </span><br><span class="line">    // Physically based Standard lighting model, and enable shadows on all light types </span><br><span class="line">    #pragma surface surf Lambert</span><br><span class="line">    // Use shader model 3.0 target, to get nicer looking lighting   </span><br><span class="line">    #pragma target 3.0</span><br><span class="line">    struct Input &#123;</span><br><span class="line">	float2 uv_MainTex;</span><br><span class="line">    &#125;;</span><br><span class="line">    fixed4 _Color;</span><br><span class="line">    void surf (Input IN, inout SurfaceOutput o) &#123;</span><br><span class="line">	o.Albedo = _Color.rgb;</span><br><span class="line">    &#125;</span><br><span class="line">    ENDCG</span><br><span class="line">    FallBack &quot;Diffuse&quot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>物体Shader</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Custom/Diffuse Stencil&quot; &#123;</span><br><span class="line">    Properties &#123;</span><br><span class="line">        _Color (&quot;Color&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _MainTex (&quot;Albedo (RGB)&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _SRef(&quot;Stencil Ref&quot;, Float) = 1</span><br><span class="line">        [Enum(UnityEngine.Rendering.CompareFunction)]  </span><br><span class="line">        _SComp(&quot;Stencil Comp&quot;, Float) = 8</span><br><span class="line">        [Enum(UnityEngine.Rendering.StencilOp)] _SOp(&quot;Stencil Op&quot;, Float) = 2</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader &#123;</span><br><span class="line">        Tags &#123; &quot;Queue&quot;=&quot;Geometry&quot; &#125;</span><br><span class="line">        LOD 200</span><br><span class="line">        Stencil&#123;</span><br><span class="line">		Ref[_SRef]</span><br><span class="line">		Comp[_SComp]</span><br><span class="line">		Pass[_SOp]</span><br><span class="line">	&#125;</span><br><span class="line">	CGPROGRAM</span><br><span class="line">	// Physically based Standard lighting model, and enable shadows on all light types</span><br><span class="line">	#pragma surface surf Lambert</span><br><span class="line"></span><br><span class="line">	// Use shader model 3.0 target, to get nicer looking lighting</span><br><span class="line">	#pragma target 3.0</span><br><span class="line"></span><br><span class="line">	sampler2D _MainTex;</span><br><span class="line"></span><br><span class="line">	struct Input &#123;</span><br><span class="line">		float2 uv_MainTex;</span><br><span class="line">	&#125;;</span><br><span class="line">	fixed4 _Color;</span><br><span class="line">	void surf (Input IN, inout SurfaceOutput o) &#123;</span><br><span class="line">		// Albedo comes from a texture tinted by color</span><br><span class="line">		fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;</span><br><span class="line">		o.Albedo = c.rgb;</span><br><span class="line">		o.Alpha = c.a;</span><br><span class="line">	&#125;</span><br><span class="line">	ENDCG</span><br><span class="line">    &#125;</span><br><span class="line">FallBack &quot;Diffuse&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>思路理解
+<ul>
+<li>盒子里放满了所有要展示的物品/场景</li>
+<li>盒子每个面都是一个模板，写入能通过测试的模版值</li>
+<li>盒子里的物品只有对应模板值才能通过测试</li>
+</ul>
+</li>
+</ul>
+<h4 id="总结">总结</h4>
+<ul>
+<li>
+<p>​前期准备：</p>
+<ul>
+<li>​当前模板缓冲区值（StencilBufferValue）、模板参考值（ReferenceValue）</li>
+</ul>
+</li>
+<li>
+<p>​模板测试过程：</p>
+<ul>
+<li>主要就是对这两个值进行特定的比较操作，例如Never、Always、Equal等，具体参考上文的表格</li>
+</ul>
+</li>
+<li>
+<p>模板测试进行后：</p>
+<ul>
+<li>要对模板缓冲区的值进行更新操作，例如Keep，Replace等，具体参考上文表格</li>
+<li>更新操作：可以根据不同的结果对模板缓冲区做不同的更新操作，例如模板测试成功的操作Pass、模板测试失败的操作Fail、深度测试失败的操作ZFail、还有正对正面和背面更新操作Passback，Passfront，Failback等…</li>
+</ul>
+</li>
+<li>
+<p>模板测试不常用，建议避免使用，有一定开销（缓冲区开辟，可好像比深度缓冲小，虽然深度是必须的），只在高端机使用</p>
+</li>
+</ul>
+<h4 id="扩展-参考资料">扩展&amp;参考资料</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7afce9c5cd9565a9c5433c451f5cf7f3.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7afce9c5cd9565a9c5433c451f5cf7f3.png"></p>
+<ul>
+<li>官方文档：<a target="_blank" rel="noopener" href="https://docs.unity3d.com/Manual/SL-Stencil.html">https://docs.unity3d.com/Manual/SL-Stencil.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/u011047171/article/details/46928463">https://blog.csdn.net/u011047171/article/details/46928463</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/liu_if_else/article/details/86316361">https://blog.csdn.net/liu_if_else/article/details/86316361</a></li>
+<li><a target="_blank" rel="noopener" href="https://gameinstitute.qq.com/community/detail/127404">https://gameinstitute.qq.com/community/detail/127404</a></li>
+<li><a target="_blank" rel="noopener" href="https://learnopengl-cn.readthedocs.io/zh/latest/04%20Advanced%20OpenGL/02%20Stencil%20testing/">https://learnopengl-cn.readthedocs.io/zh/latest/04%20Advanced%20OpenGL/02%20Stencil%20testing/</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.patreon.com/posts/14832618">https://www.patreon.com/posts/14832618</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.udemy.com/course/unity-shaders/">https://www.udemy.com/course/unity-shaders/</a></li>
+</ul>
+<h2 id="深度测试">深度测试</h2>
+<h4 id="是什么？-2">是什么？</h4>
+<h6 id="从渲染管线理解-2">从渲染管线理解</h6>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6f96699c42a3321471fc72def1441463.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6f96699c42a3321471fc72def1441463.png"></p>
+<p>深度测试同样位于逐片元操作过程中，在模板测试之后，透明度混合之前。</p>
+<h6 id="从逻辑上理解深度测试">从逻辑上理解深度测试</h6>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">if(ZWrite On &amp;&amp; (currentDepthValue ComparisonFunction DepthBufferValue))&#123;</span><br><span class="line">	写入深度</span><br><span class="line">&#125;else&#123;</span><br><span class="line">	忽略深度</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">if(currentDepthValue ComparsionFunction DepthBufferValue)&#123;</span><br><span class="line">	写入颜色缓冲区</span><br><span class="line">&#125;else&#123;</span><br><span class="line">	不写入颜色缓冲区</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>和模板测试类似，通过每一帧全局的缓冲值与当前值比较，来进行一系列操作</p>
+<h6 id="从书面概念上理解-2">从书面概念上理解</h6>
+<p>深度测试 ：针对当前屏幕上（更准确的说是FrameBuffer）对应的像素点，将对象自身的深度值与当前深度缓冲区的深度值做比较，如果通过了，这个对象在该像素点才会将颜色写入颜色缓冲区，否则不会写入颜色缓冲区。</p>
+<h6 id="从发展上理解深度测试">从发展上理解深度测试</h6>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302091534922.png" alt=""></p>
+<ul>
+<li>控制渲染顺序
+<ul>
+<li>画家算法：
+<ul>
+<li>这里是指油画的画法，也就是画一幅油画，是从远处开始画，然后近处的东西一点点叠加在上面</li>
+<li>存在的问题：例如一列物体，最前面的物体最大，站在正前面看只能看到最前面的物体，这样一来后边的就不用画了，不然就是性能浪费（OverDraw）。</li>
+</ul>
+</li>
+<li>Z-Buffer算法：
+<ul>
+<li>通过深度缓冲区来控制渲染顺序</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>控制Z-Buffer对深度的存储
+<ul>
+<li>什么时候更新深度缓冲区、什么时候使用深度缓冲区</li>
+<li>Z Test、Z Write</li>
+</ul>
+</li>
+<li>控制不同类型物体的渲染顺序
+<ul>
+<li>透明物体</li>
+<li>不透明物体</li>
+<li>渲染队列</li>
+</ul>
+</li>
+<li>减少OverDraw
+<ul>
+<li>Early-Z
+<ul>
+<li>Z-cull（优化手段）</li>
+<li>Z-check（确认正确遮挡关系）</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="怎么用？-2">怎么用？</h4>
+<h6 id="Z-Buffer（深度缓冲区）">Z-Buffer（深度缓冲区）</h6>
+<ul>
+<li>类似于颜色缓冲区，但存储的是距离摄像机最近的深度，通常和颜色缓冲有着一样的宽度和高度</li>
+<li>颜色缓冲区：
+<ul>
+<li>最终在显示屏硬件上显示颜色的GPU显存区域，这个缓冲区储存了每帧更新后的最终颜色值，图形流水线经过一系列测试，包括片段丢弃、颜色混合等，最终生成的像素颜色值就储存在这里，然后提交给显示硬件显示</li>
+</ul>
+</li>
+<li>深度缓冲是由窗口系统自动创建的，它会以16、24、32位float形式存储深度值（大部分系统中深度值是24位的）</li>
+<li>Z-Buffer中存储的是当前的深度信息，对于每个像素存储一个深度值</li>
+<li>可以通过Z-Write 、Z-Test来调用Z-Buffer，从而实现效果</li>
+</ul>
+<h6 id="Z-Write（深度写入）">Z Write（深度写入）</h6>
+<ul>
+<li>
+<p>深度写入包括两种状态：ZWrite On 与 ZWrite Off</p>
+</li>
+<li>
+<p>开启深度写入，物体被渲染时针对物体在屏幕（更准确地说是frame buffer）上每个像素的深度都写入到深度缓冲区</p>
+</li>
+<li>
+<p>关闭深度写入，物体的深度就不会写入深度缓冲区</p>
+</li>
+<li>
+<p>物体是否会写入深度，除了ZWrite这个状态之外，更重要的是需要深度测试通过，也就是ZTest通过，如果ZTest都没通过，那么也就不会写入深度了</p>
+</li>
+<li>
+<p>ZTest分为通过和不通过两种情况，ZWrite分为开启和关闭两种情况的四种情况：</p>
+<ul>
+<li>深度测试通过，深度写入开启：写入深度缓冲区，写入颜色缓冲区</li>
+<li>深度测试通过，深度写入关闭：不写深度缓冲区，写入颜色缓冲区</li>
+<li>深度测试失败，深度写入开启：不写深度缓冲区，不写颜色缓冲区</li>
+<li>深度测试失败，深度写入关闭：不写深度缓冲区，不屑颜色缓冲区</li>
+</ul>
+</li>
+</ul>
+<h6 id="Z-Test比较操作">Z Test比较操作</h6>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302091600141.png" alt=""></p>
+<blockquote>
+<p>默认是ZWrite On  和 ZTest LEqual，深度缓冲区的值一开始是无限大的</p>
+</blockquote>
+<h6 id="Unity的渲染队列">Unity的渲染队列</h6>
+<ul>
+<li>Unity内置的几种渲染队列，队列数越小，越先渲染<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302091602806.png" alt=""></li>
+<li>Unity中设置渲染队列
+<ul>
+<li>默认是Geometry，通过语法Tags { “Queue” = “渲染队列名”}修改</li>
+<li>shader属性面板也能修改</li>
+</ul>
+</li>
+<li>Unity中不透明物体的渲染顺序：从前往后（深度小的先渲染）</li>
+<li>Unity中透明物体的渲染顺序：从后往前（类似画家算法，会造成OverDraw，但由于需要透明度混合，没法避免）</li>
+</ul>
+<h6 id="简述Early-Z技术">简述Early-Z技术</h6>
+<ul>
+<li>Early-Z是位于三角形遍历之后、逐片元操作之前的</li>
+<li>传统的渲染管线中，ZTest是在Blending阶段，所有对象的像素着色器都已经计算过一遍了，这时进行深度测试的话，只是为了得到正确的效果，造成了大量的无用计算（丢弃的片元本来可以不用计算的）。</li>
+<li>为了减少这些不必要的计算，现代GPU运用了Early-Z技术，在顶点和片元阶段之间（光栅化之后，片元着色器之前）进行一次深度测试（如下左图黑框部分）。
+<ul>
+<li>如果这次深度测试失败，那就不用在片元着色器中作无关紧要的计算了，这样一来就会带来性能提升</li>
+<li>最终的ZTest仍然要进行，以保证正确的遮挡关系</li>
+<li>如右图前一次的Z-Cull是为了裁剪达到性能优化的目的，后一次的Z-check是为了保证正确的遮挡关系</li>
+</ul>
+</li>
+<li><em>印象中Tiled Base渲染不能使用，待查证</em></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302091610239.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302091611794.png" alt=""></p>
+<h6 id="深度值">深度值</h6>
+<ul>
+<li>模型在渲染管线中的几次空间变换
+<ul>
+<li>模型一开始所在的模型空间：没有深度</li>
+<li>通过M矩阵变换到世界空间，此时模型坐标已经变换到了齐次坐标（x，y，z，w）：深度存在z分量</li>
+<li>通过V矩阵变换到观察空间（摄像机空间）：深度存在z分量（线性）</li>
+<li>通过P矩阵变换到裁剪空间：深度缓冲中此空间的z/w中（已经变成了非线性的深度）</li>
+<li>最后通过一些投影映射变换到屏幕空间<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302091622806.png" alt=""></li>
+</ul>
+</li>
+<li>为什么深度缓冲区中要存储一个非线性的深度？
+<ul>
+<li>
+<p>参考链接：  <a target="_blank" rel="noopener" href="https://learnopengl-cn.readthedocs.io/zh/latest/04%20Advanced%20OpenGL/01%20Depth%20testing/">https://learnopengl-cn.readthedocs.io/zh/latest/04 Advanced OpenGL/01 Depth testing/</a></p>
+</li>
+<li>
+<p>原因1：和伽马校正类似，人们不太关心远处的深度变化，需要给近处的物体更精细的深度</p>
+<ul>
+<li>在深度缓冲区中的深度值是介于 0.0~1.0之间的，从观察者看到的内容与场景中所有对象的z值作比较</li>
+<li>这些z值可以投影平截头体（就是视锥）的近平面和远平面之间的任何值</li>
+<li>正确的投影特性的非线性深度方程是和1/z成正比的，所以在Z很近的时候有高精度，Z很远的时候低精度</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302091627503.png" alt=""></p>
+</li>
+<li>
+<p>原因2：Z-Fight 深度冲突</p>
+<ul>
+<li>当两个平面或三角形紧密相互平行的时候，深度缓冲区不具有足够的精度来确定哪一个在前面</li>
+<li>结果就是这两个形状不断切换顺序，导致怪异问题，看起来像是两个形状在争夺靠前的位置</li>
+<li>深度冲突是深度缓冲区的普遍问题，当对象的距离越远一般越强（因为深度缓冲区在z值非常大的时候没有很高的精度）</li>
+<li>深度冲突无法避免，但是有技巧可以防止出现：
+<ul>
+<li>物理上的做法，就是让物体不要靠得太近</li>
+<li>尽可能的把近平面设置的远一点</li>
+<li>放弃一些性能来得到更高精度的深度值</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="一些效果展示-讲解-2">一些效果展示&amp;讲解</h4>
+<h6 id="三个正方体遮挡关系">三个正方体遮挡关系</h6>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302091631367.png" alt=""></p>
+<blockquote>
+<p>如果使用URP，需要关闭SRP合批</p>
+</blockquote>
+<blockquote>
+<p>挺好理解的，这里就不过多解释，忘记时翻一下原文视频</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Custom/ZTest&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Color (&quot;Color&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _MainTex (&quot;Main Tex&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        [Enum(Off,0,On,1)] _ZWriteMode(&quot;ZWrite Mode&quot;,Float) = 1</span><br><span class="line">        [Enum(UnityEngine.Rendering.CompareFunction)] _ZComp(&quot;ZTest Comp&quot;,Float) = 4</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">    Pass &#123;</span><br><span class="line">            Tags &#123;&quot;RenderType&quot; =&quot;Opaque&quot; &quot;Queue&quot; = &quot;Geometry&quot;&#125;</span><br><span class="line">            ZWrite [_ZWriteMode]</span><br><span class="line">            ZTest [_ZComp]</span><br><span class="line">            Cull Off</span><br><span class="line">            CGPROGRAM</span><br><span class="line">            #pragma vertex vert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line">            #include &quot;UnityCG.cginc&quot;</span><br><span class="line">            struct appdata</span><br><span class="line">            &#123;   </span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line">            struct v2f&#123;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line">                float4 vertex : SV_POSITION;</span><br><span class="line">            &#125;;</span><br><span class="line">            sampler2D _MainTex;</span><br><span class="line">            float4 _MainTex_ST;</span><br><span class="line">            float4 _Color;</span><br><span class="line">            v2f vert(appdata v) &#123;</span><br><span class="line">                v2f o;</span><br><span class="line">                o.vertex = UnityObjectToClipPos(v.vertex);</span><br><span class="line">                o.uv = TRANSFORM_TEX(v.uv,_MainTex);     </span><br><span class="line">                return o;         </span><br><span class="line">            &#125;</span><br><span class="line">            fixed4 frag(v2f i) : SV_Target &#123;</span><br><span class="line">                half4 col = _Color;</span><br><span class="line">                return col;        </span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">       &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="X-Ray效果">X-Ray效果</h6>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302091637182.png" alt=""></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Custom/XRay&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Color (&quot;Color&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _MainTex (&quot;Main Tex&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        CGINCLUDE   //先写好CGINCLUDE 方便多PASS的使用</span><br><span class="line">        #include &quot;UnityCG.cginc&quot;</span><br><span class="line">        fixed4 _Color;</span><br><span class="line">        struct v2f&#123;</span><br><span class="line">            float3 normal : NORMAL;</span><br><span class="line">            float3 viewDir : TEXCOORD0;</span><br><span class="line">            fixed4 clr  : COLOR;</span><br><span class="line">            float4 pos : SV_POSITION;</span><br><span class="line">        &#125;;</span><br><span class="line">        v2f vertXray(appdata_base v) &#123;</span><br><span class="line">            v2f o;</span><br><span class="line">            o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">            o.viewDir = ObjSpaceViewDir(v.vertex);  //在模型空间上计算夹角</span><br><span class="line">            o.normal = v.normal;</span><br><span class="line">            float3 normal = normalize(v.normal);</span><br><span class="line">            float3 viewDir = normalize(o.viewDir);</span><br><span class="line">            float rim = 1 - dot(normal, viewDir);</span><br><span class="line">            o.clr = _Color * rim; </span><br><span class="line">            return o;</span><br><span class="line">        &#125;</span><br><span class="line">        fixed4 fragXray(v2f i) : SV_TARGET &#123;</span><br><span class="line">            return i.clr;      </span><br><span class="line">        &#125;</span><br><span class="line">        sampler2D _MainTex;</span><br><span class="line">        float4 _MainTex_ST;</span><br><span class="line">        struct v2f2 &#123;</span><br><span class="line">            float4 pos : SV_POSITION;</span><br><span class="line">            float2 uv : TEXCOORD0;     </span><br><span class="line">        &#125;;</span><br><span class="line">        v2f2 vertNormal(appdata_base v) &#123;</span><br><span class="line">            v2f2 o;</span><br><span class="line">            o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">            o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);</span><br><span class="line">            return o;</span><br><span class="line">        &#125;</span><br><span class="line">        fixed4 fragNormal(v2f2 i) :SV_TARGET &#123;</span><br><span class="line">            return tex2D(_MainTex, i.uv);</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        ENDCG</span><br><span class="line">        //XRay</span><br><span class="line">        Pass &#123;</span><br><span class="line">            Tags &#123;&quot;RenderType&quot; =&quot;Transparent&quot; &quot;Queue&quot; = &quot;Transparent&quot;&#125;</span><br><span class="line">            Blend SrcAlpha One           </span><br><span class="line">            ZTest Greater</span><br><span class="line">            ZWrite Off</span><br><span class="line">            Cull Back</span><br><span class="line">            CGPROGRAM</span><br><span class="line">            #pragma vertex vertXray</span><br><span class="line">            #pragma fragment fragXray</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">        Pass &#123;</span><br><span class="line">            Tags &#123;&quot;RenderType&quot; =&quot;Opaque&quot;&#125;</span><br><span class="line">            ZTest LEqual</span><br><span class="line">            ZWrite On</span><br><span class="line">            CGPROGRAM</span><br><span class="line">            </span><br><span class="line">            #pragma vertex vertNormal</span><br><span class="line">            #pragma fragment fragNormal</span><br><span class="line">            ENDCG     </span><br><span class="line">       &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>X-Ray效果部分我们使用到了ZTest ：Greater，深度写入关闭(不关闭会影响其他物体渲染)</li>
+<li>高出墙体部分是默认的渲染：LessEqual、ZWrite On</li>
+<li>Cull back 是剔除背面，为了优化</li>
+<li>Blend SrcAlpha One ：需要混合墙壁和xray效果</li>
+</ul>
+<h6 id="粒子系统中的深度测试">粒子系统中的深度测试</h6>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302091641462.png" alt=""></p>
+<ul>
+<li>
+<p>默认例子效果是不透明的<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302091642035.png" alt=""></p>
+</li>
+<li>
+<p>关键修改</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Tags&#123;</span><br><span class="line">	&quot;RenderType&quot; = &quot;Opaque&quot;</span><br><span class="line">    &quot;Queue&quot; = &quot;Transparent&quot;</span><br><span class="line">&#125;</span><br><span class="line">ZWrite Off</span><br><span class="line">ZTest LEqual</span><br><span class="line">Blend One One</span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302091642843.png" alt=""></p>
+</li>
+</ul>
+<h4 id="深度测试的总结">深度测试的总结</h4>
+<ul>
+<li>最重要的两个值：当前深度缓冲区的值（ZBufferValue）和 深度参考值（ReferenceValue）,进行比较测试</li>
+<li>Unity中的渲染顺序：
+<ul>
+<li>先渲染不透明物体（从前到后），再渲染透明物体（从后往前）</li>
+</ul>
+</li>
+<li>Unity中的默认条件：
+<ul>
+<li>ZWrite：On</li>
+<li>Ztest：LessEqual</li>
+<li>渲染队列：Geometry（2000）</li>
+</ul>
+</li>
+<li>通过对ZWrite和ZTest的相互组合配置来控制半透明物体的渲染（关闭深度写入，快开启深度测试，透明度混合）</li>
+<li>引入Early-Z之后深度测试相关的内容（Z-Cull、Z-Check）<br>
+-深度缓冲区中存储的深度值为[0，1]的非线性值</li>
+</ul>
+<h4 id="扩展-参考资料-2">扩展&amp;参考资料</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302091645111.png" alt=""></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/puppet_master/article/details/53900568">https://blog.csdn.net/puppet_master/article/details/53900568</a></li>
+<li><a target="_blank" rel="noopener" href="https://learnopengl-cn.readthedocs.io/zh/latest/04%20Advanced%20OpenGL/01%20Depth%20testing/">https://learnopengl-cn.readthedocs.io/zh/latest/04 Advanced OpenGL/01 Depth testing/</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.unity3d.com/cn/2018.4/Manual/SL-CullAndDepth.html">https://docs.unity3d.com/cn/2018.4/Manual/SL-CullAndDepth.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/yangxuan0261/article/details/79725466">https://blog.csdn.net/yangxuan0261/article/details/79725466</a></li>
+<li><a target="_blank" rel="noopener" href="https://roystan.net/articles/toon-water.html">https://roystan.net/articles/toon-water.html</a></li>
+<li>《shader入门精要》</li>
+<li>《Unity ShaderLab 开发实战详解》</li>
+</ul>
+<h2 id="大佬笔记">大佬笔记</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/zohar-jpfbj/tiacmz/nw0g0g">https://www.yuque.com/zohar-jpfbj/tiacmz/nw0g0g</a>?</li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/nqoaio#NdG1l">https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/nqoaio#NdG1l</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/wrl780143706/article/details/119730998">https://blog.csdn.net/wrl780143706/article/details/119730998</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43210334/article/details/118179532">https://blog.csdn.net/qq_43210334/article/details/118179532</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/whitebreeze/article/details/118097525">https://blog.csdn.net/whitebreeze/article/details/118097525</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/wuyan-popj0/qo443s/un9pbe#QhGlg">https://www.yuque.com/wuyan-popj0/qo443s/un9pbe#QhGlg</a></li>
+<li><a target="_blank" rel="noopener" href="https://xzyw7.github.io/post/J5gfuU4WE/">https://xzyw7.github.io/post/J5gfuU4WE/</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/zhuying-7uqy4/kipb65/thba9q#WcSdV">https://www.yuque.com/zhuying-7uqy4/kipb65/thba9q#WcSdV</a></li>
+</ul>
+<h2 id="作业">作业</h2>
+<p>根据课程内容，用深度测试和模板测试做些有意思的效果</p>
+<h5 id="模板测试–解谜游戏探索镜效果">模板测试–解谜游戏探索镜效果</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/movie_001.gif" alt=""></p>
+<ul>
+<li>在PBR Shader增加模板测试</li>
+<li>保险箱模板值为0，操作为Equal</li>
+<li>箱子里的物体模板值为1，操作为Equal（别问我为什么是鲨鱼</li>
+<li>探索镜面范围写入模板值1</li>
+<li>注意渲染顺序，镜子先写入模板值</li>
+<li>Timeline简单动画制作（节奏有点怪，运动是线性等缺点。。</li>
+</ul>
+<h5 id="深度测试–在Unity中手写一个卡通水">深度测试–在Unity中手写一个卡通水</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/movie_002.gif" alt=""></p>
+<blockquote>
+<p>参考文章：原出处：<a target="_blank" rel="noopener" href="https://roystan.net/articles/toon-water.html">https://roystan.net/articles/toon-water.html</a></p>
+</blockquote>
+<blockquote>
+<p>参考文章：苏格拉没有底：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/425605759">https://zhuanlan.zhihu.com/p/425605759</a></p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">// 核心代码</span><br><span class="line">TEXTURE2D_X_FLOAT(_CameraDepthTexture);</span><br><span class="line">SAMPLER(sampler_CameraDep</span><br><span class="line"></span><br><span class="line">TEXTURE2D_X_FLOAT(_CameraDepthNormalsTexture);</span><br><span class="line">SAMPLER(sampler_CameraDepthNormalsTexture);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">frag:</span><br><span class="line">	//手动切到屏幕坐标，采样深度图, 最后减去屏幕深度，表示水面高度。</span><br><span class="line">	float2 screenPos = i.screenPosition.xy / i.screenPosition.w;</span><br><span class="line">	float existingDepth01 = SAMPLE_TEXTURE2D_X(_CameraDepthTexture,sampler_CameraDepthTexture,screenPos).r;</span><br><span class="line">	float existingDepthLinear = LinearEyeDepth(existingDepth01,_ZBufferParams);</span><br><span class="line">	float depthDifference = existingDepthLinear - i.sc</span><br><span class="line">	//算出来的水面高度（深度）在最深的地方的比例</span><br><span class="line">	float waterDepthDifference01 = saturate(depthDifference / _DepthMaxDistance);</span><br><span class="line">	float4 waterColor = lerp(_DepthGradientShallow,_DepthGradientDeep,waterDept</span><br><span class="line">	float3 existingNormal = SAMPLE_TEXTURE2D_X(_CameraDepthNormalsTexture,sampler_CameraDepthNormalsText</span><br><span class="line">	//用屏幕空间下的水面法线，和屏幕空间下的屏幕法线坐标点乘。</span><br><span class="line">	float3 normalDot = saturate(dot(existingNormal,i.viewNormal));</span><br><span class="line">	float foamDistance = lerp(_FoamMaxDistance,_FoamMinDistance,normalDot);</span><br><span class="line">	float foamDepthDifferencec01 = saturate(depthDifference / foamDistance);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>很喜欢这个风格，虽然知道很多人会做这个</li>
+<li>水面不加入深度写入，所以通过深度图获取被水体遮挡的深度值（原因在于深度图是渲染顺序小于2500才会被记录）</li>
+<li>水面高度：计算水体屏幕深度和深度图的差值</li>
+<li>urp计算屏幕坐标，只能手动计算xy/w。而屏幕深度就是w分量</li>
+<li>通过计算当前深度和最高深度的比例来lerp水面分层的颜色</li>
+<li>泡沫部分引入噪声图，通过时间增量采样来获取动画效果</li>
+<li>岸边需要更多泡沫，利用深度浅泡沫越多的特点</li>
+<li>目前还需要漂浮物与水面接触时更多的泡沫，所以需要引入深度法线图</li>
+<li>通过点乘两个法向量，值越大，泡沐越多</li>
+<li>URP获取深度与Builtin不同，<a target="_blank" rel="noopener" href="https://codeantenna.com/a/ZivlGXdX96">https://codeantenna.com/a/ZivlGXdX96</a></li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/9ad228fc/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-3.3 曲面细分与几何着色器---大规模草渲染</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/fd4e9782/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-2.8 flowmap的实现-流动效果实现</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

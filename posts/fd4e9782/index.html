@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形-2.8 flowmap的实现-流动效果实现 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形-2.8 flowmap的实现-流动效果实现</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-02-06T07:00:30.000Z" itemprop="datePublished">2023-02-06</time>
+          </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="Flowmap是什么">Flowmap是什么</h2>
+<h5 id="用途">用途</h5>
+<ul>
+<li>是<a target="_blank" rel="noopener" href="https://developer.valvesoftware.com/wiki/Water_(shader)#Flowmaps">Valve在2010年GDC</a>中介绍的一种在求生之路2中用来实现水面流动效果的技术</li>
+<li>容易实现，且运算量较小（所以到现在还在被使用）</li>
+<li>使用了一张被称为flowmap的贴图，来达到控制场景中水面流向的效果</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_8b779e57d8edcda0bb1c324a6e07f273.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_8b779e57d8edcda0bb1c324a6e07f273.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_af9cad9821ede94996f6c88d30f1a2f3.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_af9cad9821ede94996f6c88d30f1a2f3.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bb533dadc4677cebe72a439e89123ca6.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bb533dadc4677cebe72a439e89123ca6.png"></p>
+<h5 id="原理">原理</h5>
+<ul>
+<li>纹理中记录了向量场信息</li>
+<li>Flow map上的颜色（通常为RG通道）记录该处向量场的方向（纹理采样要偏移的方向）</li>
+<li>让模型上某一点表现出定量流动的特征</li>
+<li>通过在shader中偏移uv再对纹理进行采样，来模拟流动效果</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_601b7ace9b0ff33ba003531bc8687917.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_601b7ace9b0ff33ba003531bc8687917.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_fa8ae06d97ff544a70853fa1508aa918.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_fa8ae06d97ff544a70853fa1508aa918.png"></p>
+<h5 id="回顾：UV映射（纹理映射）">回顾：UV映射（纹理映射）</h5>
+<ul>
+<li>UV坐标用于查找纹理的颜色值</li>
+<li>Unity中的uv坐标，类似于xy轴，用此uv坐标查找右边贴图的颜色值，采样会得到和贴图一模一样的结果<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_9e46fb3835e8a373893a1e0a20cf7b5d.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_9e46fb3835e8a373893a1e0a20cf7b5d.png"></li>
+<li>如果改变查找时的uv坐标，让每一列都有相同的uv值，那么采样结果就是右图的条纹状的结果<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7c0c9bfeb1ee7b141105ae9bf9264353.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7c0c9bfeb1ee7b141105ae9bf9264353.png"></li>
+<li>如果用同一个uv值采样的话，结果就会是同一的颜色，意味着采样纹理时使用了同一位置<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_47e86e626bdb6698dc431e89a07a3f9b.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_47e86e626bdb6698dc431e89a07a3f9b.png"></li>
+</ul>
+<h5 id="实际操作">实际操作</h5>
+<ul>
+<li>通过所带有的向量场信息对uv进行了一个偏移，来干扰纹理采样</li>
+<li>经过flowmap发生偏移后，让原本正常的采样变成了一个扭曲的效果</li>
+<li>不同软件的不同uv坐标：UE4与Unity相比，反转了绿通道，所以使用的flowmap也会发生变化。（根据不同的引擎需求进行调整）（是因为unity用的opengl的，UE4则是使用的DirectX的）<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_daf1ca3426653f6560e70667ea68923f.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_daf1ca3426653f6560e70667ea68923f.png"></li>
+</ul>
+<h5 id="为什么要使用flowmap">为什么要使用flowmap</h5>
+<ul>
+<li>
+<p>类似UV动画，而非顶点动画。换言之，无需对模型顶点进行操作，易实现，运算开销小</p>
+</li>
+<li>
+<p>任何和流动相关的效果都可以采用flowmap</p>
+<ul>
+<li>液体</li>
+<li>体积云运动（战神、最后生还者使用(2014GDC)）<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/09cb614b5b5f4dff8f56efef6bdea9d7_cbde693a00c1e751d96e401067bffc43.gif" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/09cb614b5b5f4dff8f56efef6bdea9d7_cbde693a00c1e751d96e401067bffc43.gif"></li>
+</ul>
+</li>
+<li>
+<p>说到水体渲染，还有其他方案：</p>
+<ul>
+<li>FFT（快速傅里叶变换）</li>
+<li>Gerstner波</li>
+<li>法线水等等</li>
+<li>具体可以看下毛星云大佬的<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/95917609">真实感水体渲染</a>部分<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f6501d6b9abdf6ee7288ad158f130002.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f6501d6b9abdf6ee7288ad158f130002.png"></li>
+</ul>
+</li>
+</ul>
+<h2 id="FlowMap-Shader">FlowMap Shader</h2>
+<h5 id="实现思路">实现思路</h5>
+<ul>
+<li>采样flowmap获取向量场信息</li>
+<li>使用向量场信息，使采样贴图时的UV随时间变化</li>
+<li>对同一贴图以半周期的相位差采集两次，并线性插值，使贴图连续流动</li>
+</ul>
+<h5 id="何为流动">何为流动</h5>
+<ul>
+<li>简单来说就是UV流动，根据修改采样坐标使得画面有流动效果</li>
+<li>为什么不是对UV进行加法操作
+<ul>
+<li>加法是向左移动</li>
+<li>以uv的（0,0）点举例，当它加一个（time，0）时该点uv坐标变成（time，0），也就是​<strong>随时间增加采样了更远的点</strong>​，在画面上呈现的效果为向左移动</li>
+<li>类似移动的是观察贴图的窗口，将窗口像左移动，采样向右流动<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/20210619123652998_300358d50531852dfe69939396cca0af.gif" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/20210619123652998_300358d50531852dfe69939396cca0af.gif"></li>
+</ul>
+</li>
+</ul>
+<h5 id="flowmap流动">flowmap流动</h5>
+<ul>
+<li>
+<p>flowmap是一张能控制每个采样点流动方向的贴图</p>
+</li>
+<li>
+<p>flowmap是使用R和G通道来存储向量信息的，这两个颜色通道的取值范围是0到1，而向量的取值范围则应该是-1到1，由此，我们需要进行一步重映射的操作</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//从flowmap获取流向</span><br><span class="line">float3 flowDir = tex2D(_FlowMap, i.uv) * 2.0 - 1.0;</span><br><span class="line">// FlowSpeed影响向量场强度，值越大，不同位置流速差越明显</span><br><span class="line">flowDir *= -_FlowSpeed;</span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_a7303aa6f06a8638b343e8cd6b915dbb.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_a7303aa6f06a8638b343e8cd6b915dbb.png"></p>
+</li>
+<li>
+<p>接下来我们让重映射后的向量偏移乘上个时间，使其随时间移动</p>
+</li>
+<li>
+<p>会发现随时间流逝，扰动效果越来越剧烈，于是做一个frac取小数的操作，使其从0到1周期变换</p>
+<ul>
+<li>关于frac取小数的另一个理由：不取小数的话，时间一长，低端机上的特效会花掉，再往底层说，是因为浮点数的精度问题，我们知道计算机是以二进制的方式对数据进行存储，然后根据精度不同，数字变大后，更少的位数存储小数部分，导致精度缺失从而出现问题</li>
+</ul>
+</li>
+<li>
+<p>取小数后，会存在1-&gt;0的突变瞬间，导致采样变形突变<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_14aef29637ea2d1e4c79c0a444eb869a.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_14aef29637ea2d1e4c79c0a444eb869a.png"></p>
+</li>
+<li>
+<p>构建两个采样差半个周期的采样，然后再对他们进行插值混合来解决这个问题（原视频有举例解释，多看几遍）</p>
+</li>
+<li>
+<p>原理是使纹理流动一个周期重新开始时的不自然情况被另一层采样覆盖</p>
+</li>
+<li>
+<p>应该有三角函数的方案，待查证，貌似庄懂老师课有</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">// 构建周期相同，相位相差半个周期的波形函数</span><br><span class="line">float phase0 = frac(_Time.y * 0.1 * _FlowTimeSpeed + 0.5);</span><br><span class="line">float phase1 = frac(_Time.y * 0.1 * _FlowTimeSpeed + 1.0);</span><br><span class="line">// 用波形函数周期化向量场方向，用偏移后的uv对材质进行偏移采样</span><br><span class="line">half3 tex0 = tex2D(_MainTex, i.uv - flowDir.xy * phase0);</span><br><span class="line">half3 tex1 = tex2D(_MainTex, i.uv - flowDir.xy * phase1);</span><br><span class="line">// 构造函数计算随波形函数变化的权值，使得MainTex采样值在接近最大偏移值时有权值0，并因此消隐，构造较平滑的循环</span><br><span class="line">float flowLerp = abs((0.5 - phase0) / 0.5);</span><br><span class="line">fixed3 finalColor = lerp(tex0, tex1, flowLerp);</span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ee2e9c9cb6f75313a29507d1e443c2e9.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ee2e9c9cb6f75313a29507d1e443c2e9.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_e8b2dfe9ed20f4cbcc928a9fb5916668.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_e8b2dfe9ed20f4cbcc928a9fb5916668.png"></p>
+</li>
+</ul>
+<h5 id="flowmap-修改法线采样">flowmap 修改法线采样</h5>
+<ul>
+<li>采样flowmap</li>
+<li>得到向量场</li>
+<li>构造两个相位</li>
+<li>偏移UV</li>
+<li>用偏移的UV采样法线（两层，并插值混合）</li>
+<li>将法线用于光照计算</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">// 使用FlowMap流动法线</span><br><span class="line">float3 flowDir = tex2D(_FlowMap, i.uv0) * 2.0 - 1.0;</span><br><span class="line">// 影响向量场速度， 越大不同位置流速差越明显</span><br><span class="line">flowDir *= -_FlowVelocity;</span><br><span class="line">// 构建周期相同，相位相差半个周期的波形函数</span><br><span class="line">float phase0 = frac(_Time.y * 0.1 * _FlowTimeSpeed + 0.5);</span><br><span class="line">float phase1 = frac(_Time.y * 0.1 * _FlowTimeSpeed + 1.0);</span><br><span class="line">// 用偏移后的uv对法线贴图（切线空间）进行采样</span><br><span class="line">half3 tnormal0 = UnpackNormal(tex2D(_BumpTex, i.uv.zw + flowDir.xy * phase0));</span><br><span class="line">half3 tnormal1 = UnpackNormal(tex2D(_BumpTex, i.uv.zw + flowDir.xy * phase1));</span><br><span class="line">// 主要是要能无缝周期采样</span><br><span class="line">float flowLerp = abs((0.5 - phase0) / 0.5);</span><br><span class="line">fixed3 bump = lerp(tnormal0, tnormal1, flowLerp);</span><br><span class="line">// 使用修改后的法线进行后续光照计算</span><br></pre></td></tr></table></figure>
+<h2 id="绘制Flowmap">绘制Flowmap</h2>
+<h5 id="flowmap-painter中制作">flowmap painter中制作</h5>
+<p>可以直接对着贴图用笔刷进行绘制flowmap操作，软件能即时看到贴图偏移后的效果。（只能用于贴图，可查看原视频制作）</p>
+<p>下载地址：<a target="_blank" rel="noopener" href="http://teckartist.com/?page_id=107">http://teckartist.com/?page_id=107</a></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ad9d1d4ccf8fb796bd1d5ae7736f1a4a.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ad9d1d4ccf8fb796bd1d5ae7736f1a4a.png"></p>
+<p>注意事项：</p>
+<ul>
+<li>该工具获得的flowmap为<strong>线性空间</strong>下的颜色，无需gamma校正，在Unity中取消勾选sRGB选项</li>
+<li>flowmap在Unity中设置时，需要保证它无压缩或者高质量，并且确认色彩空间</li>
+</ul>
+<h5 id="Houdini中制作">Houdini中制作</h5>
+<ul>
+<li>主要是使用sidefx labs的插件，就会有一系列flowmap相关节点</li>
+<li>学习houdini时可回顾，建议看原视频，很详细的步骤</li>
+</ul>
+<h5 id="其他工具">其他工具</h5>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://clemensbeute.gumroad.com/l/heZDT?fbclid=IwAR0zS-YNJt45KA6Tpc-ajqGi6nLDf1hViuu07rlQm0Xn-vDj_aL0GBLRmSI">Blender Flow Map Painter 插件</a>，可直接在模型上画flowmap</li>
+</ul>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li>百人计划2.8：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Zq4y157c9?p=2">https://www.bilibili.com/video/BV1Zq4y157c9?p=2</a></li>
+<li>课程PPT，有houdini操作，<a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DUXloeWVhV1hCTUFU">https://docs.qq.com/slide/DUXloeWVhV1hCTUFU</a></li>
+<li><a target="_blank" rel="noopener" href="http://alex.vlachos.com/graphics/Vlachos-SIGGRAPH10-WaterFlow.pdf">Vlachos-SIGGRAPH10-WaterFlow</a></li>
+<li><a target="_blank" rel="noopener" href="https://catlikecoding.com/unity/tutorials/flow/texture-distortion/">Catlike Coding：Texture Distortion</a></li>
+<li>UnityShader入门精要</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/95917609">真实感水体渲染技术总结</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=WmXhNkg2ib0">Unity Shader Graph Tutorial: Flow Maps</a></li>
+<li>顽皮狗GDC2014(moving the heavens)</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/196758925">【完结】Unity 水、流体、波纹基础系列4篇</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/7101745365937815559">UE4 —— 基于 Flowmap 实现 “燃烧溶解” 效果</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=FSq4OPtmczc">Flow Map Shader in Unity with Amplify</a></li>
+<li>大佬笔记
+<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43210334/article/details/118031478">https://blog.csdn.net/qq_43210334/article/details/118031478</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/ulk917">https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/ulk917</a></li>
+<li><a target="_blank" rel="noopener" href="https://xzyw7.github.io/post/cPv04HHGV/">https://xzyw7.github.io/post/cPv04HHGV/</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/liangchajun/tpdm7a/clbul0">https://www.yuque.com/liangchajun/tpdm7a/clbul0</a>?</li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/log1024/pfgg4t/ikc0g3">https://www.yuque.com/log1024/pfgg4t/ikc0g3</a>?</li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/wrl780143706/article/details/119702267">https://blog.csdn.net/wrl780143706/article/details/119702267</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="作业">作业</h2>
+<p>结合课程，实现一个流动的效果</p>
+<p>和shader入门精要的折射与反射部分结合，搞了个怪东西（x</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/movie_012.gif" alt=""></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Unity Shaders Learn/Chapter10/Glass Refraction&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _MainTex (&quot;Main Tex&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _BumpTex (&quot;Bump Tex&quot;, 2D) = &quot;bump&quot; &#123;&#125;</span><br><span class="line">        _Cubemap (&quot;Evvironment Cubemap&quot;, Cube) = &quot;_Skybox&quot; &#123;&#125;</span><br><span class="line">        _FlowMap (&quot;Flow Map&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _Distortion (&quot;Distortion&quot;, Range(0, 100)) = 10</span><br><span class="line">        _RefractAmount (&quot;Refract Amount&quot;, Range(0, 1.0)) = 1.0</span><br><span class="line">        _FlowVelocity (&quot;flowmap向量场强度&quot;, Range(1, 4)) = 2</span><br><span class="line">        _FlowTimeSpeed (&quot;flowmap全局流速&quot;, Range(1, 4)) = 2</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags &#123;&quot;Queue&quot;=&quot;Transparent&quot; &quot;RenderType&quot;=&quot;Opaque&quot;&#125;</span><br><span class="line">        GrabPass &#123;&quot;_RefractionTex&quot;&#125;</span><br><span class="line">        Pass </span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123;&quot;LightMode&quot;=&quot;ForwardBase&quot;&#125;</span><br><span class="line">            CGPROGRAM</span><br><span class="line">            </span><br><span class="line">            #pragma vertex vert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line"></span><br><span class="line">            #include &quot;UnityCG.cginc&quot;</span><br><span class="line"></span><br><span class="line">            sampler2D _MainTex;</span><br><span class="line">            float4 _MainTex_ST;</span><br><span class="line">            sampler2D _BumpTex;</span><br><span class="line">            float4 _BumpTex_ST;</span><br><span class="line">            samplerCUBE _Cubemap;</span><br><span class="line">            sampler2D _FlowMap;</span><br><span class="line">            float _Distortion;</span><br><span class="line">            fixed _RefractAmount;</span><br><span class="line">            sampler2D _RefractionTex;</span><br><span class="line">            float4 _RefractionTex_TexelSize;</span><br><span class="line">            float _FlowVelocity;</span><br><span class="line">            float _FlowTimeSpeed;</span><br><span class="line"></span><br><span class="line">            struct a2v</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float4 texcoord : TEXCOORD0;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">                float4 tangent : TANGENT;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float4 srcPos : TEXCOORD0;</span><br><span class="line">                float4 uv : TEXCOORD1;</span><br><span class="line">                float4 TtoW0 : TEXCOORD2;</span><br><span class="line">                float4 TtoW1 : TEXCOORD3;</span><br><span class="line">                float4 TtoW2 : TEXCOORD4;</span><br><span class="line">                float2 uv0 : TEXCOORD5;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line">                o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">                o.srcPos = ComputeGrabScreenPos(o.pos);</span><br><span class="line"></span><br><span class="line">                o.uv.xy = TRANSFORM_TEX(v.texcoord, _MainTex);</span><br><span class="line">                o.uv.zw = TRANSFORM_TEX(v.texcoord, _BumpTex);</span><br><span class="line">                o.uv0 = v.texcoord;</span><br><span class="line"></span><br><span class="line">                float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;</span><br><span class="line">                float3 worldNormal = UnityObjectToWorldNormal(v.normal);</span><br><span class="line">                float3 worldTangent = UnityObjectToWorldDir(v.tangent.xyz);</span><br><span class="line">                float3 worldBinormal = cross(worldNormal, worldTangent) * v.tangent.w;</span><br><span class="line"></span><br><span class="line">                o.TtoW0 = float4(worldTangent.x, worldBinormal.x, worldNormal.x, worldPos.x);</span><br><span class="line">                o.TtoW1 = float4(worldTangent.y, worldBinormal.y, worldNormal.y, worldPos.y);</span><br><span class="line">                o.TtoW2 = float4(worldTangent.z, worldBinormal.z, worldNormal.z, worldPos.z);</span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            fixed4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                float3 worldPos = float3(i.TtoW0.w, i.TtoW1.w, i.TtoW2.w);</span><br><span class="line">                fixed3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPos));</span><br><span class="line"></span><br><span class="line">                // 使用FlowMap流动法线</span><br><span class="line">                float3 flowDir = tex2D(_FlowMap, i.uv0) * 2.0 - 1.0;</span><br><span class="line">                // 影响向量场速度， 越大不同位置流速差越明显</span><br><span class="line">                flowDir *= -_FlowVelocity;</span><br><span class="line">                // 构建周期相同，相位相差半个周期的波形函数</span><br><span class="line">                float phase0 = frac(_Time.y * 0.1 * _FlowTimeSpeed + 0.5);</span><br><span class="line">                float phase1 = frac(_Time.y * 0.1 * _FlowTimeSpeed + 1.0);</span><br><span class="line">                // 用偏移后的uv对法线贴图（切线空间）进行采样</span><br><span class="line">                half3 tnormal0 = UnpackNormal(tex2D(_BumpTex, i.uv.zw + flowDir.xy * phase0));</span><br><span class="line">                half3 tnormal1 = UnpackNormal(tex2D(_BumpTex, i.uv.zw + flowDir.xy * phase1));</span><br><span class="line">                // 主要是要能无缝周期采样</span><br><span class="line">                float flowLerp = abs((0.5 - phase0) / 0.5);</span><br><span class="line">                fixed3 bump = lerp(tnormal0, tnormal1, flowLerp);</span><br><span class="line"></span><br><span class="line">                float2 offset = bump.xy * _Distortion * _RefractionTex_TexelSize.xy;</span><br><span class="line">                i.srcPos.xy = i.srcPos.xy + offset;</span><br><span class="line">                fixed3 refrCol = tex2D(_RefractionTex, i.srcPos.xy/i.srcPos.w).rgb;</span><br><span class="line"></span><br><span class="line">                bump = normalize(half3(dot(i.TtoW0.xyz, bump.x), dot(i.TtoW1, bump.y), dot(i.TtoW2, bump.z)));</span><br><span class="line">                fixed3 reflDir = reflect(-worldViewDir, bump);</span><br><span class="line">                fixed4 texColor = tex2D(_MainTex, i.uv.xy);</span><br><span class="line">                fixed3 reflCol = texCUBE(_Cubemap, reflDir).rgb * texColor.rgb;</span><br><span class="line"></span><br><span class="line">                // fixed3 finalColor = lerp(reflCol, refrCol, _RefractAmount);</span><br><span class="line">                fixed3 finalColor = reflCol*(1-_RefractAmount) + refrCol*_RefractAmount;</span><br><span class="line">;</span><br><span class="line">                return fixed4(finalColor, 1);</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    FallBack &quot;Diffuse&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>还想实现：
+<ul>
+<li>水体渲染</li>
+<li>流动云渲染</li>
+<li>燃烧物品效果</li>
+</ul>
+</li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/fa33758e/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-3.1 深度与模板测试</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/921f8043/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-美术-2.1 DCC工具链与引擎工具链</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

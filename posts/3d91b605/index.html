@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>《Unity性能优化》-- 3. 编辑器资源创建优化 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">《Unity性能优化》-- 3. 编辑器资源创建优化</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-04-07T09:14:16.000Z" itemprop="datePublished">2023-04-07</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-07-14T09:03:59.236Z" itemprop="dateUpdated">2024-07-14</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/Unity/">🏷️ Unity</a></li>
+  
+    <li><a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">🏷️ 性能优化</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="场景">场景</h2>
+<h3 id="场景构成">场景构成</h3>
+<blockquote>
+<p>对于场景一级节点要做好命名和管理，有助于场景的编辑与优化。按功能划分一级节点或使用空节点注释与隔断在性能上并没有太大区分，取决于项目喜好。</p>
+</blockquote>
+<ul>
+<li>摄像机</li>
+<li>灯光（2d场景不一定有）</li>
+<li>静态场景游戏对象</li>
+<li>代码动态创建的游戏场景对象</li>
+<li>UI节点</li>
+<li>辅助游戏节点对象</li>
+</ul>
+<h3 id="场景结构设计原则">场景结构设计原则</h3>
+<ol>
+<li>合理设计场景一级节点的同时，避免场景节点<strong>深度太深</strong>，一些代码生成的游戏对象如果不需要随父节点进行Transform的，一律放到根节点下。
+<ul>
+<li>太深的层级保存引用或GO节点查找、父子节点的transform（2018Unite提到，有父子节点的transform效率比没有父子节点差很多，原因在于下图的逐级脏标记）都会带来效率问题<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304061539105.png" alt=""></li>
+</ul>
+</li>
+<li>尽量使用Prefab节点构建场景，而不是直接创建的GameObject节点
+<ul>
+<li>通过对比是否使用Prefab节点的场景文本文件</li>
+<li>发现直接创建会带有GO节点的所有组件信息在场景文件中</li>
+<li>使用Prefab节点则是用field id和guid指向Prefab节点的实例引用</li>
+<li>使用Prefab能减少场景文件大小从而减低包体体积</li>
+<li>配合asset bundle能节省内存使用量，多个场景引用的同一个prefab是同一块内存（有待测试）</li>
+</ul>
+</li>
+<li>避免DontDestroyOnLoad节点下有太多生命周期过长或引用资源过多的复杂节点对象。Additve模式添加的场景要尤为注意。
+<ul>
+<li>Unity通过场景切换来创建和卸载资源</li>
+<li>如果DontDestroyOnLoad节点引用太多资源，则不会被释放</li>
+<li>实在需要DontDestroyOnLoad需要自己手动释放一些暂时用不到的资源</li>
+</ul>
+</li>
+<li>最好为一些需要经常访问的节点添加tag，静态节点一定要添加Static标记。
+<ul>
+<li>复杂场景中，对于设置好Tag的节点，使用FindGameObjectWithTag方法取查找该节点更高效<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304061554968.png" alt=""></li>
+<li>静态物体可以让其忽略去参与一些功能的预计算和逻辑更新，减少游戏开销<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304061558319.png" alt=""></li>
+</ul>
+</li>
+</ol>
+<h2 id="预制体">预制体</h2>
+<h3 id="预制体Prefab">预制体Prefab</h3>
+<p>Unity中的预制体是用来存储游戏对象、子对象及其所需组件的可重用资源，一般来说预制体资源可充当资源模版，在此模版基础上可以在场景中创建新的预制体实例。</p>
+<h3 id="使用预制体的好处">使用预制体的好处</h3>
+<ul>
+<li>由于预制体系统可以自动保持所有实例副本同步，因此可以比单纯地简单复制粘贴游戏对象做到更好的对象管理。</li>
+<li>此外通过预制体嵌套(Nested Prefabs)可以将一个预制体嵌套到另一个预制体中，从而创建多个易于编辑的复杂游戏对象层级视图（如房子由窗户、家具、地板等预制体组合）。</li>
+<li>可以通过覆盖各个预制体实例的设置来创建预制体变体(Prefabs Variant)，从而可以将一系列覆盖组合在一起形成有意义预制体的变化。</li>
+</ul>
+<h3 id="嵌套预制体与单预制体相比的优点与缺点">嵌套预制体与单预制体相比的优点与缺点</h3>
+<ul>
+<li>优点：
+<ul>
+<li>嵌套预制体方便预制体管理，方便资源重复利用，易于统计场景复杂度</li>
+<li>美术制作时可以比较合理的分配UV，和贴图利用率。意思是不用直接将整个场景直接设计建模展庞大uv，而是从基础单元入手去组合。</li>
+<li>方便关卡设计人员发挥，充分合理利用资源</li>
+<li>嵌套预制体比较方便利用工具做LOD，LOD效果也比较好。因为基础组成都是简单闭包模型，工具自动生成lod不容易出错，生成的uv也会比较合理（复杂模型容易出现点面没有焊接好，从而导致工具生成算法出错）</li>
+<li>嵌套预制体修改方便，只需修改子预制体就可以做到所有嵌套预制体同步</li>
+<li>比较方便做场景遮挡剔除，可以做到精细的遮挡剔除优化效果</li>
+</ul>
+</li>
+<li>缺点：
+<ul>
+<li>手动做Bundle依赖时要按Scene方式处理，依赖关系较为复杂（因为越往上引用的东西越多）</li>
+<li>可能会增加材质数量与Drawcall数量（都是小零件，材质也不同，合批容易被打断。但可以使用遮挡剔除和srp batch优化）</li>
+<li>不太适合做大规模远景对象。因为用基础物体组合无法做场景剔除和LOD（感觉是因为都看见了，所以不剔除，然而小物体太多也没有合批，所以性能会差一点），还是要用模型替代体或模型面片</li>
+<li>美术与关卡设计人员要充分考虑组合复杂度与特例场景显示，避免重复性和单一性，需要更多的沟通成本</li>
+</ul>
+</li>
+</ul>
+<h3 id="使用Prefab变体的一些限制">使用Prefab变体的一些限制</h3>
+<ul>
+<li>不能改变本体Prefab游戏对象 （GameObject）层级</li>
+<li>不能删除本体Prefab中的游戏对象，但可以通过Deactive游戏对象来达到与删除游戏对象同样的效果</li>
+<li>对于Prefab变体要保持其Override属性的变化，不能通过Apply to base把这些变化应用到本体Prefab上，这样会破坏基础Prefab的结构和功能。</li>
+</ul>
+<h2 id="UGUI">UGUI</h2>
+<blockquote>
+<p>除了课程视频外，推荐这篇文章学习：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/125054290">https://zhuanlan.zhihu.com/p/125054290</a></p>
+</blockquote>
+<h3 id="Unity-UI性能的四类问题">Unity UI性能的四类问题</h3>
+<ol>
+<li>Canvas Re-batch 时间过长</li>
+<li>Canvas Over-dirty, Re-batch次数过多</li>
+<li>生成网格顶点时间过长（使用profiler查看每个批次的顶点数）</li>
+<li>Fill-rate overutilization（UI shader中GPU片元着色器利用率过高，即overdraw问题）</li>
+</ol>
+<h3 id="相关名词解释">相关名词解释</h3>
+<h4 id="Canvas画布">Canvas画布</h4>
+<ul>
+<li>Canvas负责管理UGUI元素，负责UI渲染网格的生成与更新，并向GPU发送DrawCall指令</li>
+<li>这部分工作在引擎native层，由C++完成</li>
+<li>对于每个Canvas对象，在绘制之前都要进行一次合批的过程，如果canvas底下的元素这一帧和上一帧保持不变，会使用上一帧合批的结果来节省性能</li>
+<li>如果画布发生变化则要重新匹配几何体，被标记为dirty触发重新合批</li>
+</ul>
+<h4 id="Canvas-Re-batch过程">Canvas Re-batch过程</h4>
+<blockquote>
+<p>这部分工作在C++层以多线程进行，即不同设备因核心数不同工作速度也不同。</p>
+</blockquote>
+<ol>
+<li>根据UI元素深度关系进行排序</li>
+<li>检查UI元素的覆盖关系</li>
+<li>检查UI元素材质并进行合批</li>
+</ol>
+<h4 id="Canvas-Over-dirty原因">Canvas Over-dirty原因</h4>
+<p>Unity的UI渲染是基于画布（Canvas）的，画布下面挂载了一些UI元素，每个UI元素又可以包含其他UI元素。当一个UI元素发生变化时，Unity会将该元素所在的画布标记为Dirty，表示需要重新渲染。</p>
+<p>UGUI的构建顺序是由底至顶的，合批的构建顺序是在hierarchy中由上至下遍历并将使用相同材质、贴图且没有中间层隔断的物体合并到一个 draw call。所谓的“中间层”即使用了不同材质且与可以合批的物体产生了遮挡关系的物体，中间层会打断合批。</p>
+<p>合批被打断在图文混排的时候最容易发生，文字的实际边缘是比肉眼可见的文字要大一些的一个透明背景，这个透明部分可能与图片发生了重叠，这时需要调制物体的顺序使不能合批的全都放在最上层，或者调制物体位置使他们不会互相遮挡。这两个操作都可以在开启 Frame Debugger 时进行，方便观察效果。</p>
+<p>合批步骤的第二步，覆盖关系的改变导致的Over-dirty问题：</p>
+<ul>
+<li>课程中举了个例子，一个ui按钮包括底板和文字，分别不同的材质负责，所以是两个批次</li>
+<li>如果创建多一个按钮，此时按钮之间没有覆盖关系（准确的说是底板和文字两者的覆盖关系没有发生变化时），还是两个批次</li>
+<li>如果将第二个按钮的底板遮挡了第一个按钮的文字，则覆盖关系发生改变，打断了合批，从而变成了四个批次</li>
+</ul>
+<h4 id="UGUI渲染细节">UGUI渲染细节</h4>
+<ul>
+<li>UGUI中渲染是在Transparent半透明渲染队列中完成的，半透明队列的绘制顺序是从后往前画，由于UI元素做Alpha Blend,我们在做UI时很难保障每一个像素不被重画，UI的Overdraw太高，这会造成片元着色器利用率过高，造成GPU负担。</li>
+<li>UI SpriteAtlas图集利用率不高的情况下，大量完全透明的像素被采样也会导致像素被重绘，造成片元着色器利用率过高；同时纹理采样器浪费了大量采样在无效的像素上，导致需要采样的图集像素不能尽快的被采样，造成纹理采样器的填充率过低，同样也会带来性能问题。</li>
+</ul>
+<h4 id="Re-Build过程">Re-Build过程</h4>
+<p>Re-Build是在Re-Batch过程中完成的，主要逻辑在c#层，用来进行计算layout布局与渲染网格重建</p>
+<ul>
+<li>在WillRenderCanvases事件调用PerformUpdate::CanvasUpdateRegistry接口，主要工作有：
+<ul>
+<li>通过ICanvasElement.Rebuild方法重新构建Dirty的Layout组件</li>
+<li>通过ClippingRegistry.Cullf方法，任何已注册的裁剪组件Clipping Compnents(Such as Masks)的对象进行裁剪剔除操作</li>
+<li>任何Dirty的 Graphics Compnents都会被要求重新生成图形元素</li>
+</ul>
+</li>
+<li>Layout Rebuild（以下情况被标记成dirty）
+<ul>
+<li>UI元素位置、大小、颜色发生变化</li>
+<li>优先计算靠近Root节点，并根据层级深度排序</li>
+</ul>
+</li>
+<li>Graphic Rebuild（以下情况被标记成dirty）
+<ul>
+<li>顶点数据被标记成Dirty</li>
+<li>材质或贴图数据被标记成Dirty</li>
+</ul>
+</li>
+</ul>
+<details>
+<summary>chatgpt 回答的rebuild和rebatch关系</summary>
+<p>在Unity中，Canvas是UI的基础组件，用于呈现2D UI元素。当Canvas需要重新渲染的时候，Unity会通过执行两个主要步骤来更新它：Rebuild和Rebatch。</p>
+<p>Rebuild（重建）是指重新生成Canvas的几何结构。这个过程包括计算和设置UI元素的位置、大小、缩放以及裁剪区域等。在这个过程中，Unity会检查所有的UI元素是否需要更新并标记为Dirty。Dirty标记表示该元素需要重新构建和渲染。</p>
+<p>Rebatch（重新批处理）是指将所有Dirty元素进行批处理。这个过程会将所有需要重新渲染的UI元素进行排序、合并和划分，以最小化渲染状态的切换次数，从而提高性能。</p>
+<p>Canvas Over-dirty问题是由于在Canvas重建期间，每个UI元素的Dirty标记被设置，即使在它们不需要被重新构建的情况下也是如此。这会导致一些不必要的重建和渲染操作，从而影响性能。为了避免这个问题，可以使用优化技术，如合并相邻的UI元素、使用不透明的UI元素和减少UI元素的数量等。</p>
+</details>
+<h3 id="UGUI性能优化">UGUI性能优化</h3>
+<h4 id="使用Canvas的基本准则：">使用Canvas的基本准则：</h4>
+<ul>
+<li>将所有可能打断合批的层移到最下边的图层，尽量避免UI元素出现重叠区域（特别小心小物体，比如字体）</li>
+<li>可以拆分使用多个同级或嵌套的Canvas来减少Canvas的Rebatch复杂度（但是canvas间不会合批，需要权衡）</li>
+<li>拆分动态和静态对象放到不同Canvas下。</li>
+<li>不使用Layout组件</li>
+<li>Canvas的RenderMode尽量Overlay模式，减少Camera调用的开销</li>
+</ul>
+<h4 id="UGUI射线（Raycaster）优化：">UGUI射线（Raycaster）优化：</h4>
+<ul>
+<li>必要的需要交互UI组件才开启“Raycast Target”</li>
+<li>开启“Raycast Targets”的UI组件越少，层级越浅，性能越好</li>
+<li>对于复杂的控件，尽量在根节点开启“Raycast Target”</li>
+<li>对于嵌套的Canvas，OverrideSorting属性会打断射线，可以降低层级遍历的成本</li>
+</ul>
+<h4 id="UI字体">UI字体</h4>
+<ul>
+<li>
+<p>避免字体框重叠，造成合批打断</p>
+</li>
+<li>
+<p>字体网格重建(UIText和TMP Text Pro都是四边形网格，由两个三角形组成)</p>
+<ul>
+<li>UIText组件发生变化时</li>
+<li>父级对象发生变化时</li>
+<li>UIText组件或其父对象enable/disable时</li>
+<li>以上重建都会重新计算用于显示文本的多边形</li>
+</ul>
+</li>
+<li>
+<p>动态字体（字体导入中的Dynamic选项）与字体图集</p>
+<ul>
+<li>运行时，根据UIText组件内容，动态生成字体图集，只会保存当前Actived状态的 UIText控件中的字符</li>
+<li>不同的字体库维护不同的Texture图集</li>
+<li>字体Size、大小写、粗体、斜体等各种风格都会保存在不同的字体图集中（有无必要，影响图集利用效率（可以用第三方工具对原字体进行修改，比如去掉斜体），一些利用不多的特殊字体可以采用图片代替或使用Custom Font，Font Assets Creater创建静态字体资源）</li>
+<li>当前Font Texture不包含UIText需要显示的字体时，当前Font Texture需要重建</li>
+<li>如果当前图集太小，系统也会尝试重建，并加入需要使用的字形，文字图集只增不减，尺寸规格为2的幂次方宽高</li>
+<li>利用Font.RequestCharacterInTexture可以有效降低启动时间和动态扩展时的时间</li>
+</ul>
+</li>
+<li>
+<p>UI控件优化注意事项</p>
+<ul>
+<li>不需要交互的UI元素一定要关闭Raycast Target选项</li>
+<li>如果是较大的背景图的UI元素建议也要使用Sprite的九宫格拉伸处理，充分减小UI Sprite大小，提高UI Atlas图集利用率</li>
+<li>对于不可见的UI元素，一定不要使用材质的透明度控制显隐，因为那样UI网格依然在绘制，也不要采用active/deactive UI控件进行显隐，因为那样会带来gc和重建开销。尽量通过canvas控件的激活与关闭（当然也要看情况，如果是一张的话建议挪到看不见的地方吧）。</li>
+<li>使用全屏的UI界面时，要注意隐藏其背后的所有内容，给GPU休息机会（禁用对应的camera component）。</li>
+<li>在使用非全屏但模态对话框时，建议使用<strong>OnDemandRendering</strong>接口，对渲染进行降频。这个接口只降低渲染频率，而targetfps降低渲染频率同时还会影响输入频率</li>
+<li>优化裁剪UI Shader，根据实际使用需求移除多余特性关键字。</li>
+</ul>
+</li>
+<li>
+<p>滚动视图Scroll View优化（大量元素会有实例化开销和rebuild开销）</p>
+<ul>
+<li>使用RectMask2d组件裁剪，需要标准矩形（原理是rect相交检测而不是模板缓冲）。不规则需要pixel mask写额外着色器</li>
+<li>使用基于位置的对象池作为实例化缓存</li>
+<li>网上有很多优化方案</li>
+</ul>
+</li>
+</ul>
+<h2 id="物理">物理</h2>
+<blockquote>
+<p>hh怎么也算编辑器资源优化</p>
+</blockquote>
+<h3 id="Unity中的物理">Unity中的物理</h3>
+<table>
+<thead>
+<tr>
+<th>解决方案</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Box2D</td>
+<td>2d的默认解决方案，是一套高效、开源的2d刚体物理c++代码库</td>
+</tr>
+<tr>
+<td>Nvidia PhysX</td>
+<td>3d的默认解决方案，由NVIDIA收购而来，支持cuda加速。但缺点是非确定性物理模拟库（状态同步表现会不同）</td>
+</tr>
+<tr>
+<td>Unity Physics</td>
+<td>符合dots理念并为确定性物理模拟，比起Nvidia PhysX会缺少一些物理模拟功能，高性能简单功能模拟，可以在单帧内多次物理模拟从而预测走向（不支持显卡加速，但有dots多核加持）</td>
+</tr>
+<tr>
+<td>Havok Physics for Unity</td>
+<td>符合dots设计理念，数据与Unity Physics通用，可以用来增强Unity Physics。但是需要授权开发（$）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Unity物理设置">Unity物理设置</h3>
+<h4 id="设置位置">设置位置</h4>
+<p>Project Settings-&gt;Physics/Physics 2D</p>
+<h4 id="部分设置讲解">部分设置讲解</h4>
+<table>
+<thead>
+<tr>
+<th>设置</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Layer Collision Matrix</td>
+<td>最重要的设置，要确定好那些Layer需要互相碰撞</td>
+</tr>
+<tr>
+<td>Auto Sync Transforms</td>
+<td>Transforms组件发生变化时强制同步物理，一般不开启，等待FixedUpdate，表现上差别不会太大</td>
+</tr>
+<tr>
+<td>Reuse Collision Callbacks</td>
+<td>推荐开启，物理引擎发生碰撞回调时会重用之前的Collision对象实例，减少gc开销</td>
+</tr>
+<tr>
+<td>Default Solver [Velocity] Iterations</td>
+<td>分别与物理碰撞精度和碰撞后物理模拟精度有关，一般保持默认，有特殊需求可以修改这个迭代次数（越高越精确越耗性能）</td>
+</tr>
+<tr>
+<td>Broadphase Type</td>
+<td>与场景加速算法有关（应该是八叉树BVH那类），一般保持默认，有特殊需求可以设置</td>
+</tr>
+<tr>
+<td>Auto Simulation</td>
+<td>去掉勾选后需要手动用Physics.Simulation去手动调用物理更新</td>
+</tr>
+<tr>
+<td>Time-Fixed Timestep</td>
+<td>物理计算频率，如果过低子弹穿薄物体可能会有问题，可以用射线检测或两帧之间的位置创建碰撞盒检测</td>
+</tr>
+<tr>
+<td>Time-Maximum Allowed Timestep</td>
+<td>帧数下降时限制物理更新的最大间隔，避免物理错误，一般推荐设置8-10fps</td>
+</tr>
+</tbody>
+</table>
+<h3 id="优化建议">优化建议</h3>
+<h4 id="Unity中的物理组件Collider部分的优化">Unity中的物理组件Collider部分的优化</h4>
+<ul>
+<li>Trigger与Collider
+<ul>
+<li>Trigger对象的碰撞会被物理引擎所忽略，通过OnTriggerEnter/Stay/Exit函数回调</li>
+<li>Collider对象由物理引擎触发碰撞，通过OnCollisionEnter/Stay/Exit函数回调</li>
+<li>发生碰撞或触发都必须至少有一个对象有RigidBody组件，两者还要有Collider</li>
+<li>Trigger对象更高效</li>
+</ul>
+</li>
+</ul>
+<h4 id="Unity中的物理组件Collider部分的优化-2">Unity中的物理组件Collider部分的优化</h4>
+<ul>
+<li>尽量少使用MeshCollider，可以用简单Collider代替，即使用多个简单Collider组合代替也要比复杂的MeshCollider来的高效</li>
+<li>MeshCollider是基于三角形面的碰撞</li>
+<li>MeshCollider生成的碰撞体网格占用内存也较高</li>
+<li>MeshCollider即使要用也要尽量保障其是静态物体</li>
+<li>可以通过PlayerSetting选项中勾选Prebake Collision Meshes选项来在构建应用时预先Bake出碰撞网格。</li>
+</ul>
+<h4 id="Unity中的物理组件RigidBody部分的优化">Unity中的物理组件RigidBody部分的优化</h4>
+<ul>
+<li>Kinematic与RigidBody
+<ul>
+<li>Kinematic对象不受物理引擎中力的影响，但可以对其他RigidBody施加物理影响。</li>
+<li>RigidBody完全由物理引擎模拟来控制，场景中RigidBody数量越多，物理计算负载越高</li>
+<li>勾选了Kinematic选项的RigidBody对象会被认为是Kinematic的，不会增加场景中的RigidBody个数</li>
+<li>场景中的RigidBody对象越少越好</li>
+</ul>
+</li>
+</ul>
+<h4 id="Unity中的RayCast与Overlap部分的优化">Unity中的RayCast与Overlap部分的优化</h4>
+<ul>
+<li>Unity物理中RayCast与Overlap都有NoAlloc版本的函数，在代码中调用时尽量用NoAlloc版本，这样可以避免不必要的GC开销</li>
+<li>尽量调用RayCast与Overlap时要指定对象图层进行对象过滤，并且RayCast要还可以指定距离来减少一些太远的对象查询</li>
+<li>此外如果是大量的RayCast操作还可以通过RaycastCommand的方式批量处理，充分利用JobSystem来分摊到多核多线程计算。</li>
+</ul>
+<h2 id="动画">动画</h2>
+<h3 id="Unity动画系统回顾">Unity动画系统回顾</h3>
+<ul>
+<li>Animation</li>
+<li>Animator</li>
+<li>Playable API</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304071645132.png" alt=""></p>
+<h3 id="Animation的一些细节">Animation的一些细节</h3>
+<ul>
+<li>播放单个AnimationClip速度，Legacy Animation系统更快，因为老系统是直接采样曲线并直接写入对象对应组件属性。而新的Mecanim系统需要用于混合的临时缓冲区，并会对采样曲线以及其他数据进行额外的赋值。（对于单个clip播放而言）</li>
+<li>针对动画的缩放曲线比位移、旋转曲线开销更大</li>
+<li>常数曲线不会每帧写入场景，更高效</li>
+</ul>
+<h3 id="Animator的一些细节">Animator的一些细节</h3>
+<ul>
+<li>不要使用字符串来查询Animator</li>
+<li>使用曲线标记来处理动画事件</li>
+<li>使用Target Marching函数来协助处理动画</li>
+<li>将Animator的CullingMode设置成Based On Renderers来优化动画，并禁用SkinMesh Renderer的Update When Offscreen属性来让角色不可见时动画不更新</li>
+</ul>
+<h3 id="Internal-Animation-Update">Internal Animation Update</h3>
+<p><img src="https://github.com/lwwhb/Unity2022_SUNTAIL_Stylized_Fantasy_Village_Optimization/raw/main/Documents/Pics/13-0.png" alt="13-0"></p>
+<ul>
+<li>白色部分是动画系统更新的回调</li>
+<li>灰色部分是动画系统的关键步骤
+<ul>
+<li>ProcessGraph对需要评估的所有Animation Clip进行采样以及计算根骨动画</li>
+<li>ProcessAnimation计算动画图混合结果</li>
+<li>WriteTransform是将所有动画的变换从工作线程写入场景的transform中</li>
+<li>WriteProperties是将主线程中其他对象属性写入场景对象中</li>
+</ul>
+</li>
+<li>详情可查阅https://docs.unity3d.com/Manual/ExecutionOrder.html</li>
+</ul>
+<h3 id="Animator-VS-Animation">Animator VS Animation</h3>
+<ul>
+<li>Animation可以将任何对象属性制作成Animation Clip, Animator是将Animaiton Clip组织到状态机流程图中使用</li>
+<li>Animation与Animator播放动画时的效率是有个临界点的，这个临界点是根据动画曲线条数来的，当动画曲线条数小于这个临界点时Animation快，当动画曲线条数大于这个临界点时Animator快</li>
+<li>当Cpu核数较少时，Animation播放动画有优势，当Cpu核数较多时，Animator表现会更好</li>
+<li>动画组件比较复杂时Animator运行效率高</li>
+<li>Animator Controller Graph中的所有动画节点的Animation Clip都会载入到内存中，当有海量动画状态机节点时，内存开销较大</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202304071659171.png" alt=""></p>
+<h3 id="Playable-API-VS-Animator">Playable API VS Animator</h3>
+<blockquote>
+<p>建议学习了解Playable API，来解决动画状态机过复杂时导致的内存问题，以及可以扩展Timeline（从而作为技能编辑器/过场动画编辑器）</p>
+</blockquote>
+<p><strong>Playable API优点</strong></p>
+<ul>
+<li>支持动态动画混合，可为场景中的对象提供自己的动画，并可以动态添加到PlayableGraph当中使用</li>
+<li>允许创建播放单个动画，而并不会产生创建和管理AnimatorController资源所涉及的开销，可更加灵活的控制PlayableGraph的数据流，可以插入自定义的AimationJob来并行处理。</li>
+<li>可以控制动画文件加载策略，按需加载、异步加载等（Animator初始化时动画加载开销问题）</li>
+<li>允许用户动态创建混合图，并直接逐帧控制混合权重（甚至可以混合AniationClip与AnimatorController动画）</li>
+<li>可以运行时动态创建，根据条件添加可播放节点。而不需要提前提供一套PlayableGraph运行时启动和禁用节点，可以做到自由度更高的override机制</li>
+<li>可加载自定义配置数据，更加方便的和其他游戏系统整合</li>
+</ul>
+<p><strong>Playable API缺点</strong></p>
+<ul>
+<li>没有直接使用Animator直观</li>
+<li>混合模式没有现成的，需要自己实现</li>
+<li>需要开发更多的配套工具</li>
+<li>有一定学习成本</li>
+</ul>
+<h3 id="解决方案选择">解决方案选择</h3>
+<ul>
+<li>一些简单、少量曲线动画可以使用Animation或动画区间库如Dotween\iTween等完成，如UI动画，Transform动画等。</li>
+<li>角色骨骼蒙皮动画如果骨骼较少，Animation Clip资源不多，对动画混合表现要求不高的项目可以采用Legacy Animation。注意控制总体曲线数量</li>
+<li>一些角色动画要求与逻辑有较高的交互、并且动画资源不多的项目可以直接用Animator Graph完成（小心动画机节点数量，不然初始化内存问题）</li>
+<li>一些动作游戏，对动画混合要求较高、有一些高级动画效果要求、动画资源量庞大的项目，建议采用Animator+Playable API扩展Timeline的方式完成。（状态机中只有基础的动画节点，其他行为由扩展增加）</li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/e690dd38/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">《Unity性能优化》-- 4. 性能优化之道</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/ea6d1a86/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">《Unity性能优化》-- 99. Unity工作流</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>Unity Shader入门精要-章节17 Unity的表面着色器探秘 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">Unity Shader入门精要-章节17 Unity的表面着色器探秘</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2022-10-27T14:33:00.000Z" itemprop="datePublished">2022-10-27</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-07-14T09:03:59.226Z" itemprop="dateUpdated">2024-07-14</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/">🏷️ Unity Shader入门精要</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <p>求知若饥，虚心若愚</p>
+<span id="more"></span>
+<p>2009年，Unity 的渲染工程师 Aras连续发表了3篇名为《Shaders must die》的博客，在博客里，他认为把渲染流程分为顶点和像素的抽象层面是错误的，这种在顶点/几何/片元着色器上的操作是对硬件友好，但不符合人类的思考方式，应该划分为表面着色器、光照模型和光照着色器这样的层面。</p>
+<ul>
+<li>表面着色器定义了模型表面的反射率、法线和高光等</li>
+<li>光照模型则选择是使用兰伯特还是Blinn-Phone等模型</li>
+<li>光照着色器负责计算光照衰减、阴影等</li>
+</ul>
+<p>最终在2010年的 Unity3 中，加入了<strong>表面着色器（Surface Shader）</strong>。</p>
+<p>表面着色器实际上是在顶点/片元着色器上添加了一层抽象，例如只需要直接告诉shader（实际就是unity会根据我们这些关键配置和代码去生成完整的shader，避免我们写那些重复的代码）：</p>
+<ul>
+<li>用这些纹理填充颜色</li>
+<li>用这个法线纹理填充表面法线</li>
+<li>使用兰伯特光照模型</li>
+<li>不用考虑是使用前向渲染路径还是延迟渲染路径，场景中有多少光源，它们的类型是什么，怎么处理这些光源等</li>
+</ul>
+<h3 id="表面着色器的一个例子">表面着色器的一个例子</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Unity Shaders Learn/Chapter17/BumpedDiffuse&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Color (&quot;Main Color&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _MainTex (&quot;Base (RGB)&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _BumpMap (&quot;Normalmap&quot;, 2D) = &quot;bump&quot; &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags &#123; &quot;RenderType&quot;=&quot;Opaque&quot; &#125;</span><br><span class="line">        LOD 300</span><br><span class="line"></span><br><span class="line">        CGPROGRAM</span><br><span class="line">        #pragma surface surf Lambert</span><br><span class="line"></span><br><span class="line">        // Use shader model 3.0 target, to get nicer looking lighting</span><br><span class="line">        #pragma target 3.0</span><br><span class="line"></span><br><span class="line">        sampler2D _MainTex;</span><br><span class="line">        sampler2D _BumpMap;</span><br><span class="line">        fixed4 _Color;</span><br><span class="line"></span><br><span class="line">        struct Input</span><br><span class="line">        &#123;</span><br><span class="line">            float2 uv_MainTex;</span><br><span class="line">            float2 uv_BumpMap;</span><br><span class="line">        &#125;;</span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line">        void surf (Input IN, inout SurfaceOutput o)</span><br><span class="line">        &#123;</span><br><span class="line">            // Albedo comes from a texture tinted by color</span><br><span class="line">            fixed4 c = tex2D (_MainTex, IN.uv_MainTex);</span><br><span class="line">            o.Albedo = c.rgb * _Color.rgb;</span><br><span class="line">            o.Alpha = c.a * _Color.a;</span><br><span class="line">            o.Normal = UnpackNormal(tex2D(_BumpMap, IN.uv_BumpMap));</span><br><span class="line">        &#125;</span><br><span class="line">        ENDCG</span><br><span class="line">    &#125;</span><br><span class="line">    FallBack &quot;Legacy Shaders/Diffuse&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<center>
+<img src="http://static.zybuluo.com/candycat/slo759tsffn90428bqqkt054/bumped_diffuse.png" />
+<p>表面着色器的例子。左图：在一个平行光下的效果。右图：添加了一个点光源（蓝色）和一个聚光灯（紫色）后的效果</p>
+</center>
+<p>相比顶点/片元着色器，表面着色器的代码量更少。而且可以轻松地实现常见的光照模型，甚至不需要和任何光照变量打交道，Unity为我们处理好了每个光源的光照结果。</p>
+<p>表面着色器的CG代码直接且必须写在 SubShader 块中。最重要的部分是 <strong>两个结构体</strong> 以及它的 <strong>编译指令</strong>。</p>
+<h3 id="汇编指令">汇编指令</h3>
+<p>汇编指令最重要的作用是指明该表面着色器使用的 <strong>表面函数</strong> 和 <strong>光照函数</strong>，并设置一些可选参数。编译指令的一般格式如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// pragma surface指明该编译指令是用于定义表面着色器的</span><br><span class="line">// surfaceFunction表面函数</span><br><span class="line">// lightModel光照模型</span><br><span class="line">#pragma surface surfaceFunction lightModel [optionalparams]</span><br></pre></td></tr></table></figure>
+<h6 id="表面函数">表面函数</h6>
+<p>surfaceFunction 用于定义反射率、光滑度、透明度等表面属性，通常是名为 surf 的函数（函数名可以是任意的），他的函数格式的固定的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">void surf(Input IN, inout SurfaceOutput o)</span><br><span class="line">// PBR加入的两个</span><br><span class="line">void surf(Input IN, inout SurfaceOutputStandard o)</span><br><span class="line">void surf(Input IN, inout SurfaceOutputStandardSpecular o)</span><br></pre></td></tr></table></figure>
+<p>在表面函数中，会使用输入结构体<strong>InputIN</strong>来设置各种表面属性，并把这些属性储存在输出结构体中，再传递给光照函数计算光照结果。</p>
+<h6 id="光照函数">光照函数</h6>
+<p>光照函数会使用表面函数中设置的各种表面属性，来应用某些光照模型，进而模拟物体表面的光照效果。</p>
+<ul>
+<li>基于物理的光照模型函数（UnityPBSLighting.cginc）：
+<ul>
+<li>Standard</li>
+<li>StandardSpecular</li>
+</ul>
+</li>
+<li>简单的非基于物理的光照模型函数（Lighting.cginc）：
+<ul>
+<li>Lambert</li>
+<li>BlinnPhong</li>
+</ul>
+</li>
+</ul>
+<p>还可以自定义光照函数，例如用下面的函数来定义用于前向渲染中的光照函数：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// 用于不依赖视角的光照模型，例如漫反射</span><br><span class="line">half4 Lighting&lt;Name&gt; (SurfaceOutput s, half3 lightDir, half atten);</span><br><span class="line">// 用于依赖视角的光照模型，例如高光反射</span><br><span class="line">half4 Lighting&lt;Name&gt; (SurfaceOutput s, half3 lightDir, half3 viewDir, half atten);s</span><br></pre></td></tr></table></figure>
+<h6 id="其他可选参数">其他可选参数</h6>
+<p>可选参数包含了很多非常有用的<a target="_blank" rel="noopener" href="https://docs.unity3d.com/Manual/SL-SurfaceShaders.html">指令类型</a>，例如：</p>
+<ul>
+<li>自定义的修改函数
+<ul>
+<li>表面函数</li>
+<li>光照模型</li>
+<li>顶点修改函数（vertex:VertexFunction）：例如把顶点颜色传递给表面函数，修改顶点位置，实现某些顶点动画等</li>
+<li>最后的颜色修改函数（finalcolor:ColorFunction）：可以在颜色绘制到屏幕前，最后一次修改颜色值，例如实现自定义的雾效等</li>
+</ul>
+</li>
+<li>阴影
+<ul>
+<li>addshadow：为表面着色器生成一个阴影投射的Pass，可以对阴影的投射进行特殊处理(顶点动画或者透明度测试时)</li>
+<li>fullforwardshadows：可以在前向渲染路径中支持所有光源类型的阴影，默认只有最重要的平行光</li>
+<li>noshadow：禁用阴影</li>
+</ul>
+</li>
+<li>透明度混合和透明度测试
+<ul>
+<li>alpha：透明度混合</li>
+<li>alphatest:VariableName：使用名为 VariableName 的变量来剔除不满足条件的片元</li>
+</ul>
+</li>
+<li>光照
+<ul>
+<li>noambient：不要应用任何环境光照或光照探针（light probe）</li>
+<li>novertexlights：不要应用任何逐顶点光照</li>
+<li>noforwardadd：去掉所有前向渲染中的额外Pass，只支持一个逐像素平行光，其他按逐顶点或SH光源</li>
+<li>nolightmap/nofog，控制光照烘焙、雾效模拟</li>
+</ul>
+</li>
+<li>控制代码的生成
+<ul>
+<li>默认情况下会为一个表面着色器生成响应的前向渲染路径、延迟渲染路径使用的 Pass，这会导致生成的 Shader 文件比较大</li>
+<li>exclude_path:[deferred/forward/prepass]，不要为这些渲染路径生成代码</li>
+</ul>
+</li>
+</ul>
+<h3 id="两个结构体">两个结构体</h3>
+<p>表面着色器支持最多自定义4种关键的函数：表面函数，光照函数，顶点修改函数，最后的颜色修改函数。</p>
+<p>需要通过两个结构体，在他们之间传递信息：</p>
+<ul>
+<li>表面函数的输入结构体 Input</li>
+<li>存储表面属性的结构体 SurfaceOutput（以及 SurfaceOutputStandard 和 SurfaceOutputStandardSpecular）</li>
+</ul>
+<h6 id="数据来源：Input-结构体">数据来源：Input 结构体</h6>
+<p>输入结构体Input包含了许多表面属性的数据来源，它会作为表面函数的输入结构体（如果自定义了顶点修改函数还会是顶点修改函数的输出结构体）。其中如果有纹理坐标，那命名规则为uv加纹理名称（当使用第二张纹理坐标时使用uv2加纹理名称）。下表列出了Input结构体中内置的其他变量（不需要手动计算，unity会准备好，但需要在 Input 结构体中严格声明这些变量）：</p>
+<table>
+<thead>
+<tr>
+<th>变量</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>float3 viewDir</td>
+<td>包含了视角方向，可用于计算边缘光照等</td>
+</tr>
+<tr>
+<td>使用COLOR语义定义的float4变量</td>
+<td>包含了插值后的逐顶点颜色</td>
+</tr>
+<tr>
+<td>float4 screenPos</td>
+<td>包含了屏幕空间的坐标，可以用于反射或屏幕特效</td>
+</tr>
+<tr>
+<td>float3 worldPos</td>
+<td>包含了世界空间下的位置</td>
+</tr>
+<tr>
+<td>float3 worldRefl</td>
+<td>包含了世界空间下的反射方向。前提是没有修改表面法线o.Normal</td>
+</tr>
+<tr>
+<td>float3 worldRefl;INTERNAL_DATA</td>
+<td>如果修改了表面法线o.Normal，需要使用该变量告诉Unity要基于修改后的法线计算世界空间下的反射方向。在表面函数中，我们需要使用WorldReflectionVector(IN, o.Normal)来得到世界空间下的反射方向</td>
+</tr>
+<tr>
+<td>float3 worldNormal</td>
+<td>包含了世界空间下的法线方向。前提是没有修改表面法线o.Normal</td>
+</tr>
+<tr>
+<td>float3 worldNormal;INTERNAL_DATA</td>
+<td>如果修改了表面法线o.Normal，需要使用该变量告诉Unity要基于修改后的法线计算世界空间下的法线方向。在表面函数中，我们需要使用WorldNormalVector(IN, o.Normal)来得到世界空间下的法线方向</td>
+</tr>
+</tbody>
+</table>
+<h6 id="表面属性：SurfaceOutput-结构体">表面属性：SurfaceOutput 结构体</h6>
+<p>SurfaceOutput SurfaceOutputStandard SurfaceOutputStandardSpecular 作为表面函数的输出，随后作为光照函数的输入来进行光照计算。</p>
+<p>相比 Input 结构体的自由性，这个结构体里面的变量是提前就声明好的，不能增加或减少。</p>
+<p>SurfaceOutput 的声明可以在 Lighting.cginc 中找到：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">struct SurfaceOutput &#123;</span><br><span class="line">    fixed3 Albedo;</span><br><span class="line">    fixed3 Normal;</span><br><span class="line">    fixed3 Emission;</span><br><span class="line">    half Specular;</span><br><span class="line">    fixed Gloss;</span><br><span class="line">    fixed Alpha;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>SurfaceOutputStandard 和 SurfaceOutputStandardSpecular 的声明可以在 UnityPBSLighting.cginc 中找到：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">struct SurfaceOutputStandard</span><br><span class="line">&#123;</span><br><span class="line">    fixed3 Albedo;      // base (diffuse or specular) color</span><br><span class="line">    float3 Normal;      // tangent space normal, if written</span><br><span class="line">    half3 Emission;</span><br><span class="line">    half Metallic;      // 0=non-metal, 1=metal</span><br><span class="line">    // Smoothness is the user facing name, it should be perceptual smoothness but user should not have to deal with it.</span><br><span class="line">    // Everywhere in the code you meet smoothness it is perceptual smoothness</span><br><span class="line">    half Smoothness;    // 0=rough, 1=smooth</span><br><span class="line">    half Occlusion;     // occlusion (default 1)</span><br><span class="line">    fixed Alpha;        // alpha for transparencies</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">struct SurfaceOutputStandardSpecular</span><br><span class="line">&#123;</span><br><span class="line">    fixed3 Albedo;      // diffuse color</span><br><span class="line">    fixed3 Specular;    // specular color</span><br><span class="line">    float3 Normal;      // tangent space normal, if written</span><br><span class="line">    half3 Emission;</span><br><span class="line">    half Smoothness;    // 0=rough, 1=smooth</span><br><span class="line">    half Occlusion;     // occlusion (default 1)</span><br><span class="line">    fixed Alpha;        // alpha for transparencies</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>使用哪个输出结构体，取决于我们选择使用的光照模型：</p>
+<ul>
+<li>使用 SurfaceOutput：Unity5 之前的、简单的、非基于物理的光照模型。包括 Lambert 和 BlinnPhong</li>
+<li>使用 SurfaceOutputStandard：Unity5添加的、基于物理的光照模型，Standard。用于默认的金属工作流程（Metallic Workflow）</li>
+<li>使用 SurfaceOutputStandardSpecular：Unity5 添加的、基于物理的光照模型，StandardSpecular。用于高光工作流程（Specular Workflow）</li>
+</ul>
+<p>以下是 SurfaceOutput 结构体中的变量和含义：</p>
+<ul>
+<li>fixed3 Albedo：对光源的反射率。通常由纹理采样和颜色属性的乘积计算而得</li>
+<li>fixed3 Normal：表面法线方向。</li>
+<li>fixed3 Emission：自发光。c.rgb += o.Emission;</li>
+<li>half Specular：高光反射中指数部分的系数。</li>
+<li>fixed Gloss：高光反射中的强度系数。  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// 内置的BlinnPhone光照函数</span><br><span class="line">float spec = pow(nh, s.Specular * 128.0) * s.Gloss</span><br></pre></td></tr></table></figure>
+</li>
+<li>fixed Alpha：透明通道。如果开启了透明度的话，会用该值进行颜色混合，否者默认会被重置为1(可配置)</li>
+</ul>
+<p>时刻记着，表面着色器本质上就是包含了很多 Pass 的顶点/片元着色器（自动生成）。</p>
+<h3 id="Unity-背后做了什么">Unity 背后做了什么</h3>
+<p>表面着色器中的各个函数、编译指令和结构体与顶点/片元着色器之间有什么关系呢？</p>
+<ul>
+<li>有些 Pass 是为了针对不同的渲染路径
+<ul>
+<li>会前向渲染路径生成 LightMode 为 ForwardBase 和 ForwardAdd 的 Pass</li>
+<li>为 Unity5 之前的延迟渲染路径生成 LightMode 为 PrePassBase 和 PrePassFinal 的 Pass</li>
+<li>为 Unity5 之后的延迟渲染路径生成 LightMode 为 Deferred 的 Pass</li>
+</ul>
+</li>
+<li>一些 Pass 是用于产生额外的信息。例如为了给光照映射和动态全局光照提取表面信息，会生成一个 LightMode 为 Meta 的 Pass</li>
+<li>有些表面着色器由于修改了顶点位置，因此可以使用 addshadow 编译指令为它生成相应的 LightMode 为 ShadowCaster 的阴影投射 Pass</li>
+</ul>
+<p>在每个编译完成的表面着色器面板上，都有 Show generated code 按钮，单击可以看到 Unity 为它生成的所有顶点/片元着色器。</p>
+<center>
+<img src="http://static.zybuluo.com/candycat/rt3i7s74tdilo8185rexkowi/generated_code.png" />
+<p>查看表面着色器生成的代码</p>
+</center>
+<p>Unity对ForwardBase的Pass自动生成过程大概如下</p>
+<ol>
+<li>
+<p>Unity会直接将表面着色器中CGPROGRAM和ENDCG之间的代码赋值过来，这些代码包括了我们对Input结构体，表面函数，光照函数等变量和函数的定义。这些函数和变量会在之后的处理过程中被当成正常的结构体和函数进行调用。</p>
+</li>
+<li>
+<p>Unity会分析上述代码，并生成顶点着色器的输出，即v2f_surf结构体，Unity会分析我们在自定义函数中所使用的变量。而且，即便有时我们在Input中定义了某些变量（如某些纹理坐标），但是并没用到，Unity会舍弃这些变量，这相当于一种自动的优化。</p>
+</li>
+<li>
+<p>生成顶点着色器，生成顶点着色器又可以分为以下几步。</p>
+<ol>
+<li>如果我们定义了<strong>顶点修改函数</strong>，Unity会首先调用顶点修改函数来修改顶点数据，或填充自定义的Input结构体中的变量。然后，Unity会分析顶点修改函数中修改的数据，在需要时通过Input结构体将修改结果存储到v2f_surf相应的变量中。</li>
+<li>计算v2f_surf中其他生成的变量值。这主要包括了顶点位置、纹理坐标、法线方向、逐顶点光照、光照纹理的采样坐标等。当然，我们可以通过编译指令来控制某些变量是否需要计算。</li>
+<li>最后，将v2f_surf结构体传递给片元着色器。</li>
+</ol>
+</li>
+<li>
+<p>生成片元着色器，生成片元着色器又可以分为以下几步。</p>
+<ol>
+<li>使用v2f_surf中的对应的变量填充Input结构体，例如纹理坐标，视角方向等。</li>
+<li>调用我们自定义的<strong>表面函数</strong>填充SurfaceOutput结构体。</li>
+<li>调用<strong>光照函数</strong>得到初始的颜色值。如果使用的是内置的Lambert或者BlinnPhong光照，Unity还会计算动态全局光照，并添加到光照模型的计算中。</li>
+<li>进行其他的颜色的叠加。例如，如果没有使用光照烘焙，还会添加逐顶点光照的影响。</li>
+<li>最后，如果自定义了<strong>最后颜色修改函数</strong>，Unity就会调用它进行最后的颜色修改。其他Pass的生存过程和上面类似，在此不再赘述。</li>
+</ol>
+</li>
+</ol>
+<center>
+<img src="http://static.zybuluo.com/candycat/rokaz0qqzk11hyj7ntkss3ze/pipeline.png" />
+<p>表面着色器的渲染计算流水线。黄色：可以自定义的函数。灰色：Unity自动生成的计算步骤</p>
+</center>
+<h3 id="表面着色器实例分析">表面着色器实例分析</h3>
+<h6 id="实例">实例</h6>
+<p>实现的效果是对模型进行膨胀。原理是在顶点修改函数中，沿着顶点法线方向扩张顶点位置。本例中对表面着色器中4个可自定义的函数，全部采用了自定义的实现（顶点修改函数、表面函数、光照函数、最后的颜色修改函数）。</p>
+<center>
+<img src="http://static.zybuluo.com/candycat/bhggsxnr7rlhkzs8u68mqarn/normal_extrusion.png" />
+<p>沿顶点法线对模型进行膨胀。左图：膨胀前。右图：膨胀后</p>
+</center>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Unity Shaders Learn/Chapter17/NormalExtrusion&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _ColorTint (&quot;Color Tint&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _MainTex (&quot;Base (RGB)&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _BumpMap (&quot;Normalmap&quot;, 2D) = &quot;bump&quot; &#123;&#125;</span><br><span class="line">        _Amount (&quot;Extrusion Amount&quot;, Range(-0.5, 0.5)) = 0.1</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags &#123; &quot;RenderType&quot;=&quot;Opaque&quot; &#125;</span><br><span class="line">        LOD 300</span><br><span class="line"></span><br><span class="line">        CGPROGRAM</span><br><span class="line">        //surf 指定表面着色器函数</span><br><span class="line">        //CustomLambert自定义光照函数</span><br><span class="line">        //vertex:myvert 自定义顶点修改函数</span><br><span class="line">        //finalcolor:mycolor 自定义颜色修改函数</span><br><span class="line">        //addshadow 由于我们修改了顶点位置，所以需要告诉unity重新生成shadowcaster，让阴影配合顶点位移</span><br><span class="line">        //exclude_path:deferred exclude_path:prepass不要为延迟路径生成相应的pass</span><br><span class="line">        //nometa 不需要为光照映射和全局光照提取表面信息</span><br><span class="line">        #pragma surface surf CustomLambert vertex:myvert finalcolor:mycolor addshadow exclude_path:deferred exclude_path:prepass nometa</span><br><span class="line"></span><br><span class="line">        // Use shader model 3.0 target, to get nicer looking lighting</span><br><span class="line">        #pragma target 3.0</span><br><span class="line"></span><br><span class="line">        sampler2D _MainTex;</span><br><span class="line">        sampler2D _BumpMap;</span><br><span class="line">        fixed4 _ColorTint;</span><br><span class="line">        half _Amount;</span><br><span class="line"></span><br><span class="line">        struct Input</span><br><span class="line">        &#123;</span><br><span class="line">            float2 uv_MainTex;</span><br><span class="line">            float2 uv_BumpMap;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        void myvert (inout appdata_full v)</span><br><span class="line">        &#123;</span><br><span class="line">            v.vertex.xyz += v.normal * _Amount;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        void surf (Input IN, inout SurfaceOutput o)</span><br><span class="line">        &#123;</span><br><span class="line">            // Albedo comes from a texture tinted by color</span><br><span class="line">            fixed4 c = tex2D (_MainTex, IN.uv_MainTex);</span><br><span class="line">            o.Albedo = c.rgb;</span><br><span class="line">            o.Alpha = c.a;</span><br><span class="line">            o.Normal = UnpackNormal(tex2D(_BumpMap, IN.uv_BumpMap));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        half4 LightingCustomLambert (SurfaceOutput s, half3 lightDir, half atten)</span><br><span class="line">        &#123;</span><br><span class="line">            half NdotL = dot(s.Normal, lightDir);</span><br><span class="line">            half4 c;</span><br><span class="line">            c.rgb = s.Albedo * _LightColor0 * NdotL * atten;</span><br><span class="line">            c.a = s.Alpha;</span><br><span class="line">            return c;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        void mycolor (Input IN, SurfaceOutput o, inout float4 color)</span><br><span class="line">        &#123;</span><br><span class="line">            color *= _ColorTint;</span><br><span class="line">        &#125;</span><br><span class="line">        ENDCG</span><br><span class="line">    &#125;</span><br><span class="line">    FallBack &quot;Legacy Shaders/Diffuse&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li>在顶点修改函数 myvert()：使用顶点法线对顶点位置进行了膨胀</li>
+<li>在表面函数 surf()：使用主纹理设置了表面属性中的反射率，使用法线纹理设置了表面方向</li>
+<li>在光照函数 LightingCustomLambert()：实现了简单的兰伯特漫反射光照模型</li>
+<li>在最后的颜色修改函数 mycolor()：简单的使用了颜色参数对输出颜色进行调整</li>
+<li>pragma surface 编译指令：
+<ul>
+<li>addshadow：生成一个该表面着色器对应的阴影投射 Pass，而不要依赖 FallBack 中找到的阴影投射 Pass</li>
+<li>exclude_path:deferred exclude_path:prepass：不要为延迟渲染路径生成相应的 Pass，为了缩小自动生成的代码量</li>
+<li>nometa：取消对提取元数据的 Pass 的生成</li>
+</ul>
+</li>
+</ul>
+<h6 id="生成代码分析">生成代码分析</h6>
+<p>生成了3个 Pass，分别是 LightMode 为 ForwardBase（前向渲染路径中处理逐像素的平行光）、ForwardAdd（处理其他逐像素光）、ShadowCaster（处理阴影投射）。代码中有大量的#ifdef和#if语句，可以判断一些渲染条件，如是否使用了动态光照纹理、是否使用了逐顶点光照、是否使用了屏幕空间的阴影等，unity会根据这些条件来进行不同的光照计算，把烦人的光照计算都交给Unity</p>
+<p>以下分析 Unity生成的ForwardBase（2021.3.4f1）</p>
+<ol>
+<li>
+<p>首先指明了一些编译指令：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">// ---- forward rendering base pass:</span><br><span class="line">	Pass &#123;</span><br><span class="line">		Name &quot;FORWARD&quot;</span><br><span class="line">		Tags &#123; &quot;LightMode&quot; = &quot;ForwardBase&quot; &#125;</span><br><span class="line"></span><br><span class="line">CGPROGRAM</span><br><span class="line">// compile directives</span><br><span class="line">#pragma vertex vert_surf</span><br><span class="line">#pragma fragment frag_surf</span><br><span class="line">#pragma target 3.0</span><br><span class="line">#pragma multi_compile_instancing</span><br><span class="line">#pragma multi_compile_fwdbase</span><br><span class="line">#include &quot;HLSLSupport.cginc&quot;</span><br><span class="line">#define UNITY_INSTANCED_LOD_FADE</span><br><span class="line">#define UNITY_INSTANCED_SH</span><br><span class="line">#define UNITY_INSTANCED_LIGHTMAPSTS</span><br><span class="line">#include &quot;UnityShaderVariables.cginc&quot;</span><br><span class="line">#include &quot;UnityShaderUtilities.cginc&quot;</span><br></pre></td></tr></table></figure>
+<p>顶点着色器vert_surf和片元着色器frag_surf都是自动生成的</p>
+</li>
+<li>
+<p>之后是一些自动生成的注释：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">// Surface shader code generated based on:</span><br><span class="line">// vertex modifier: &#x27;myvert&#x27;</span><br><span class="line">// writes to per-pixel normal: YES</span><br><span class="line">// writes to emission: no</span><br><span class="line">// writes to occlusion: no</span><br><span class="line">// needs world space reflection vector: no</span><br><span class="line">// needs world space normal vector: no</span><br><span class="line">// needs screen space position: no</span><br><span class="line">// needs world space position: no</span><br><span class="line">// needs view direction: no</span><br><span class="line">// needs world space view direction: no</span><br><span class="line">// needs world space position for lighting: no</span><br><span class="line">// needs world space view direction for lighting: no</span><br><span class="line">// needs world space view direction for lightmaps: no</span><br><span class="line">// needs vertex color: no</span><br><span class="line">// needs VFACE: no</span><br><span class="line">// needs SV_IsFrontFace: no</span><br><span class="line">// passes tangent-to-world matrix to pixel shader: YES</span><br><span class="line">// reads from normal: no</span><br><span class="line">// 2 texcoords actually used</span><br><span class="line">//   float2 _MainTex</span><br><span class="line">//   float2 _BumpMap</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>随后定义了一些宏来辅助计算：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#define INTERNAL_DATA half3 internalSurfaceTtoW0; half3 internalSurfaceTtoW1; half3 internalSurfaceTtoW2;</span><br><span class="line">#define WorldReflectionVector(data,normal) reflect (data.worldRefl, half3(dot(data.internalSurfaceTtoW0,normal), dot(data.internalSurfaceTtoW1,normal), dot(data.internalSurfaceTtoW2,normal)))</span><br><span class="line">#define WorldNormalVector(data,normal) fixed3(dot(data.internalSurfaceTtoW0,normal), dot(data.internalSurfaceTtoW1,normal), dot(data.internalSurfaceTtoW2,normal))</span><br></pre></td></tr></table></figure>
+<p>这些宏是为了修改表面法线的情况下，辅助计算得到世界空间下的反射方向和法线方向，与之对应的是Input结构体中的一些变量</p>
+</li>
+<li>
+<p>接着 Unity 把我们在表面着色器中编写的 CG 代码复制过来，作为 Pass 的一部分，以便后续调用</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line">/* UNITY: Original start of shader */</span><br><span class="line">        //surf 指定表面着色器函数</span><br><span class="line">        //CustomLambert自定义光照函数</span><br><span class="line">        //vertex:myvert 自定义顶点修改函数</span><br><span class="line">        //finalcolor:mycolor 自定义颜色修改函数</span><br><span class="line">        //addshadow 由于我们修改了顶点位置，所以需要告诉unity重新生成shadowcaster，让阴影配合顶点位移</span><br><span class="line">        //exclude_path:deferred exclude_path:prepass不要为延迟路径生成相应的pass</span><br><span class="line">        //nometa 不需要为光照映射和全局光照提取表面信息</span><br><span class="line">        //#pragma surface surf CustomLambert vertex:myvert finalcolor:mycolor addshadow exclude_path:deferred exclude_path:prepass nometa</span><br><span class="line"></span><br><span class="line">        // Use shader model 3.0 target, to get nicer looking lighting</span><br><span class="line">        //#pragma target 3.0</span><br><span class="line"></span><br><span class="line">        sampler2D _MainTex;</span><br><span class="line">        sampler2D _BumpMap;</span><br><span class="line">        fixed4 _ColorTint;</span><br><span class="line">        half _Amount;</span><br><span class="line"></span><br><span class="line">        struct Input</span><br><span class="line">        &#123;</span><br><span class="line">            float2 uv_MainTex;</span><br><span class="line">            float2 uv_BumpMap;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        void myvert (inout appdata_full v)</span><br><span class="line">        &#123;</span><br><span class="line">            v.vertex.xyz += v.normal * _Amount;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        void surf (Input IN, inout SurfaceOutput o)</span><br><span class="line">        &#123;</span><br><span class="line">            // Albedo comes from a texture tinted by color</span><br><span class="line">            fixed4 c = tex2D (_MainTex, IN.uv_MainTex);</span><br><span class="line">            o.Albedo = c.rgb;</span><br><span class="line">            o.Alpha = c.a;</span><br><span class="line">            o.Normal = UnpackNormal(tex2D(_BumpMap, IN.uv_BumpMap));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        half4 LightingCustomLambert (SurfaceOutput s, half3 lightDir, half atten)</span><br><span class="line">        &#123;</span><br><span class="line">            half NdotL = dot(s.Normal, lightDir);</span><br><span class="line">            half4 c;</span><br><span class="line">            c.rgb = s.Albedo * _LightColor0 * NdotL * atten;</span><br><span class="line">            c.a = s.Alpha;</span><br><span class="line">            return c;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        void mycolor (Input IN, SurfaceOutput o, inout float4 color)</span><br><span class="line">        &#123;</span><br><span class="line">            color *= _ColorTint;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>然后 Unity 定义了顶点着色器到片元着色器的插值结构体（即顶点着色器的输出结构体） v2f_surf。Unity使用#ifdef语句来判断是否使用了光照纹理，并为不同的情况生成不同的结构体：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line">// vertex-to-fragment interpolation data</span><br><span class="line">// no lightmaps:</span><br><span class="line">#ifndef LIGHTMAP_ON</span><br><span class="line">// half-precision fragment shader registers:</span><br><span class="line">#ifdef UNITY_HALF_PRECISION_FRAGMENT_SHADER_REGISTERS</span><br><span class="line">struct v2f_surf &#123;</span><br><span class="line">  UNITY_POSITION(pos);</span><br><span class="line">  float4 pack0 : TEXCOORD0; // _MainTex _BumpMap</span><br><span class="line">  float4 tSpace0 : TEXCOORD1;</span><br><span class="line">  float4 tSpace1 : TEXCOORD2;</span><br><span class="line">  float4 tSpace2 : TEXCOORD3;</span><br><span class="line">  fixed3 vlight : TEXCOORD4; // ambient/SH/vertexlights</span><br><span class="line">  UNITY_LIGHTING_COORDS(5,6)</span><br><span class="line">  #if SHADER_TARGET &gt;= 30</span><br><span class="line">  float4 lmap : TEXCOORD7;</span><br><span class="line">  #endif</span><br><span class="line">  UNITY_VERTEX_INPUT_INSTANCE_ID</span><br><span class="line">  UNITY_VERTEX_OUTPUT_STEREO</span><br><span class="line">&#125;;</span><br><span class="line">#endif</span><br><span class="line">// high-precision fragment shader registers:</span><br><span class="line">#ifndef UNITY_HALF_PRECISION_FRAGMENT_SHADER_REGISTERS</span><br><span class="line">struct v2f_surf &#123;</span><br><span class="line">  UNITY_POSITION(pos);</span><br><span class="line">  float4 pack0 : TEXCOORD0; // _MainTex _BumpMap</span><br><span class="line">  float4 tSpace0 : TEXCOORD1;</span><br><span class="line">  float4 tSpace1 : TEXCOORD2;</span><br><span class="line">  float4 tSpace2 : TEXCOORD3;</span><br><span class="line">  fixed3 vlight : TEXCOORD4; // ambient/SH/vertexlights</span><br><span class="line">  UNITY_SHADOW_COORDS(5)</span><br><span class="line">  #if SHADER_TARGET &gt;= 30</span><br><span class="line">  float4 lmap : TEXCOORD6;</span><br><span class="line">  #endif</span><br><span class="line">  UNITY_VERTEX_INPUT_INSTANCE_ID</span><br><span class="line">  UNITY_VERTEX_OUTPUT_STEREO</span><br><span class="line">&#125;;</span><br><span class="line">#endif</span><br><span class="line">#endif</span><br><span class="line">// with lightmaps:</span><br><span class="line">#ifdef LIGHTMAP_ON</span><br><span class="line">// half-precision fragment shader registers:</span><br><span class="line">#ifdef UNITY_HALF_PRECISION_FRAGMENT_SHADER_REGISTERS</span><br><span class="line">struct v2f_surf &#123;</span><br><span class="line">  UNITY_POSITION(pos);</span><br><span class="line">  float4 pack0 : TEXCOORD0; // _MainTex _BumpMap</span><br><span class="line">  float4 tSpace0 : TEXCOORD1;</span><br><span class="line">  float4 tSpace1 : TEXCOORD2;</span><br><span class="line">  float4 tSpace2 : TEXCOORD3;</span><br><span class="line">  float4 lmap : TEXCOORD4;</span><br><span class="line">  UNITY_LIGHTING_COORDS(5,6)</span><br><span class="line">  UNITY_VERTEX_INPUT_INSTANCE_ID</span><br><span class="line">  UNITY_VERTEX_OUTPUT_STEREO</span><br><span class="line">&#125;;</span><br><span class="line">#endif</span><br><span class="line">// high-precision fragment shader registers:</span><br><span class="line">#ifndef UNITY_HALF_PRECISION_FRAGMENT_SHADER_REGISTERS</span><br><span class="line">struct v2f_surf &#123;</span><br><span class="line">  UNITY_POSITION(pos);</span><br><span class="line">  float4 pack0 : TEXCOORD0; // _MainTex _BumpMap</span><br><span class="line">  float4 tSpace0 : TEXCOORD1;</span><br><span class="line">  float4 tSpace1 : TEXCOORD2;</span><br><span class="line">  float4 tSpace2 : TEXCOORD3;</span><br><span class="line">  float4 lmap : TEXCOORD4;</span><br><span class="line">  UNITY_SHADOW_COORDS(5)</span><br><span class="line">  UNITY_VERTEX_INPUT_INSTANCE_ID</span><br><span class="line">  UNITY_VERTEX_OUTPUT_STEREO</span><br><span class="line">&#125;;</span><br><span class="line">#endif</span><br><span class="line">#endif</span><br></pre></td></tr></table></figure>
+<p>pack0存储了主纹理和法线纹理的采样坐标，tSpace0、tSpace1、tSpace2是切线空间变换世界空间的矩阵以及世界坐标，vlight是逐顶点和SH光照的结果，在顶点着色器计算并在片元着色器与原光照结果叠加</p>
+</li>
+<li>
+<p>随后 Unity 定义了真正的顶点着色器（首先会调用我们自定义的顶点修改函数）：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">// vertex shader</span><br><span class="line">v2f_surf vert_surf (appdata_full v) &#123;</span><br><span class="line">  UNITY_SETUP_INSTANCE_ID(v);</span><br><span class="line">  v2f_surf o;</span><br><span class="line">  UNITY_INITIALIZE_OUTPUT(v2f_surf,o);</span><br><span class="line">  UNITY_TRANSFER_INSTANCE_ID(v,o);</span><br><span class="line">  UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);</span><br><span class="line">  myvert (v);</span><br><span class="line">  o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">  o.pack0.xy = TRANSFORM_TEX(v.texcoord, _MainTex);</span><br><span class="line">  o.pack0.zw = TRANSFORM_TEX(v.texcoord, _BumpMap);</span><br><span class="line">  float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;</span><br><span class="line">  float3 worldNormal = UnityObjectToWorldNormal(v.normal);</span><br><span class="line">  fixed3 worldTangent = UnityObjectToWorldDir(v.tangent.xyz);</span><br><span class="line">  fixed tangentSign = v.tangent.w * unity_WorldTransformParams.w;</span><br><span class="line">  fixed3 worldBinormal = cross(worldNormal, worldTangent) * tangentSign;</span><br><span class="line">  o.tSpace0 = float4(worldTangent.x, worldBinormal.x, worldNormal.x, worldPos.x);</span><br><span class="line">  o.tSpace1 = float4(worldTangent.y, worldBinormal.y, worldNormal.y, worldPos.y);</span><br><span class="line">  o.tSpace2 = float4(worldTangent.z, worldBinormal.z, worldNormal.z, worldPos.z);</span><br><span class="line">  #ifdef DYNAMICLIGHTMAP_ON</span><br><span class="line">  o.lmap.zw = v.texcoord2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;</span><br><span class="line">  #endif</span><br><span class="line">  #ifdef LIGHTMAP_ON</span><br><span class="line">  o.lmap.xy = v.texcoord1.xy * unity_LightmapST.xy + unity_LightmapST.zw;</span><br><span class="line">  #endif</span><br><span class="line"></span><br><span class="line">  // SH/ambient and vertex lights</span><br><span class="line">  #ifndef LIGHTMAP_ON</span><br><span class="line">  #if UNITY_SHOULD_SAMPLE_SH &amp;&amp; !UNITY_SAMPLE_FULL_SH_PER_PIXEL</span><br><span class="line">  float3 shlight = ShadeSH9 (float4(worldNormal,1.0));</span><br><span class="line">  o.vlight = shlight;</span><br><span class="line">  #else</span><br><span class="line">  o.vlight = 0.0;</span><br><span class="line">  #endif</span><br><span class="line">  #ifdef VERTEXLIGHT_ON</span><br><span class="line">  o.vlight += Shade4PointLights (</span><br><span class="line">    unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0,</span><br><span class="line">    unity_LightColor[0].rgb, unity_LightColor[1].rgb, unity_LightColor[2].rgb, unity_LightColor[3].rgb,</span><br><span class="line">    unity_4LightAtten0, worldPos, worldNormal );</span><br><span class="line">  #endif // VERTEXLIGHT_ON</span><br><span class="line">  #endif // !LIGHTMAP_ON</span><br><span class="line"></span><br><span class="line">  UNITY_TRANSFER_LIGHTING(o,v.texcoord1.xy); // pass shadow and, possibly, light cookie coordinates to pixel shader</span><br><span class="line">  return o;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>包含了变量的计算和判断是否使用了光照映射和动态光照映射，并在需要时把两种光照纹理的采样坐标计算结果储存在o.lmap中，如果没有光照映射就计算顶点的SH光照，结果储存在o.vlight，以及四个最重要的逐顶点光照</p>
+</li>
+<li>
+<p>在 Pass 的最后，Unity 定义了真正的片元着色器：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br></pre></td><td class="code"><pre><span class="line">// fragment shader</span><br><span class="line"> fixed4 frag_surf (v2f_surf IN) : SV_Target &#123;</span><br><span class="line">   UNITY_SETUP_INSTANCE_ID(IN);</span><br><span class="line">   UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);</span><br><span class="line">   // prepare and unpack data</span><br><span class="line">   Input surfIN;</span><br><span class="line">   #ifdef FOG_COMBINED_WITH_TSPACE</span><br><span class="line">     UNITY_RECONSTRUCT_TBN(IN);</span><br><span class="line">   #else</span><br><span class="line">     UNITY_EXTRACT_TBN(IN);</span><br><span class="line">   #endif</span><br><span class="line">   UNITY_INITIALIZE_OUTPUT(Input,surfIN);</span><br><span class="line">   surfIN.uv_MainTex.x = 1.0;</span><br><span class="line">   surfIN.uv_BumpMap.x = 1.0;</span><br><span class="line">   surfIN.uv_MainTex = IN.pack0.xy;</span><br><span class="line">   surfIN.uv_BumpMap = IN.pack0.zw;</span><br><span class="line">   float3 worldPos = float3(IN.tSpace0.w, IN.tSpace1.w, IN.tSpace2.w);</span><br><span class="line">   #ifndef USING_DIRECTIONAL_LIGHT</span><br><span class="line">     fixed3 lightDir = normalize(UnityWorldSpaceLightDir(worldPos));</span><br><span class="line">   #else</span><br><span class="line">     fixed3 lightDir = _WorldSpaceLightPos0.xyz;</span><br><span class="line">   #endif</span><br><span class="line">   #ifdef UNITY_COMPILER_HLSL</span><br><span class="line">   SurfaceOutput o = (SurfaceOutput)0;</span><br><span class="line">   #else</span><br><span class="line">   SurfaceOutput o;</span><br><span class="line">   #endif</span><br><span class="line">   o.Albedo = 0.0;</span><br><span class="line">   o.Emission = 0.0;</span><br><span class="line">   o.Specular = 0.0;</span><br><span class="line">   o.Alpha = 0.0;</span><br><span class="line">   o.Gloss = 0.0;</span><br><span class="line">   fixed3 normalWorldVertex = fixed3(0,0,1);</span><br><span class="line">   o.Normal = fixed3(0,0,1);</span><br><span class="line"> </span><br><span class="line">   // call surface function</span><br><span class="line">   surf (surfIN, o);</span><br><span class="line"> </span><br><span class="line">   // compute lighting &amp; shadowing factor</span><br><span class="line">   UNITY_LIGHT_ATTENUATION(atten, IN, worldPos)</span><br><span class="line">   fixed4 c = 0;</span><br><span class="line">   float3 worldN;</span><br><span class="line">   worldN.x = dot(_unity_tbn_0, o.Normal);</span><br><span class="line">   worldN.y = dot(_unity_tbn_1, o.Normal);</span><br><span class="line">   worldN.z = dot(_unity_tbn_2, o.Normal);</span><br><span class="line">   worldN = normalize(worldN);</span><br><span class="line">   o.Normal = worldN;</span><br><span class="line">   #ifndef LIGHTMAP_ON</span><br><span class="line">   c.rgb += o.Albedo * IN.vlight;</span><br><span class="line">   #endif // !LIGHTMAP_ON</span><br><span class="line"> </span><br><span class="line">   // lightmaps</span><br><span class="line">   #ifdef LIGHTMAP_ON</span><br><span class="line">     #if DIRLIGHTMAP_COMBINED</span><br><span class="line">       // directional lightmaps</span><br><span class="line">       fixed4 lmtex = UNITY_SAMPLE_TEX2D(unity_Lightmap, IN.lmap.xy);</span><br><span class="line">       fixed4 lmIndTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, IN.lmap.xy);</span><br><span class="line">       half3 lm = DecodeDirectionalLightmap (DecodeLightmap(lmtex), lmIndTex, o.Normal);</span><br><span class="line">     #else</span><br><span class="line">       // single lightmap</span><br><span class="line">       fixed4 lmtex = UNITY_SAMPLE_TEX2D(unity_Lightmap, IN.lmap.xy);</span><br><span class="line">       fixed3 lm = DecodeLightmap (lmtex);</span><br><span class="line">     #endif</span><br><span class="line"> </span><br><span class="line">   #endif // LIGHTMAP_ON</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">   // realtime lighting: call lighting function</span><br><span class="line">   #ifndef LIGHTMAP_ON</span><br><span class="line">   c += LightingCustomLambert (o, lightDir, atten);</span><br><span class="line">   #else</span><br><span class="line">     c.a = o.Alpha;</span><br><span class="line">   #endif</span><br><span class="line"> </span><br><span class="line">   #ifdef LIGHTMAP_ON</span><br><span class="line">     // combine lightmaps with realtime shadows</span><br><span class="line">     #ifdef SHADOWS_SCREEN</span><br><span class="line">       #if defined(UNITY_LIGHTMAP_DLDR_ENCODING)</span><br><span class="line">       c.rgb += o.Albedo * min(lm, atten*2);</span><br><span class="line">       #else</span><br><span class="line">       c.rgb += o.Albedo * max(min(lm,(atten*2)*lmtex.rgb), lm*atten);</span><br><span class="line">       #endif</span><br><span class="line">     #else // SHADOWS_SCREEN</span><br><span class="line">       c.rgb += o.Albedo * lm;</span><br><span class="line">     #endif // SHADOWS_SCREEN</span><br><span class="line">   #endif // LIGHTMAP_ON</span><br><span class="line"> </span><br><span class="line">   #ifdef DYNAMICLIGHTMAP_ON</span><br><span class="line">   fixed4 dynlmtex = UNITY_SAMPLE_TEX2D(unity_DynamicLightmap, IN.lmap.zw);</span><br><span class="line">   c.rgb += o.Albedo * DecodeRealtimeLightmap (dynlmtex);</span><br><span class="line">   #endif</span><br><span class="line"> </span><br><span class="line">   mycolor (surfIN, o, c);</span><br><span class="line">   UNITY_OPAQUE_ALPHA(c.a);</span><br><span class="line">   return c;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如果是HLSL，则使用更严格的声明方式来声明SurfaceOutput结构体</li>
+<li>先对表面属性进行初始化，再用表面函数surf来填充这些表面属性</li>
+<li>进行光照计算</li>
+<li>判断是否使用光照映射（生成的代码好像与书中有冲突，以代码为主）
+<ul>
+<li>不使用，就把逐顶点的光照结果叠加到输出颜色中</li>
+<li>使用，使用之前计算的光照纹理采样坐标，对光照纹理进行采样并解码，得到光照纹理中的光照结果</li>
+</ul>
+</li>
+<li>如果使用了动态光照映射，还会对动态光照纹理进行采样</li>
+<li>调用自定义颜色修改函数</li>
+<li>UNITY_OPAQUE_ALPHA 是用来重置透明通道，默认情况下不透明类型都会被重置，</li>
+</ul>
+</li>
+</ol>
+<h3 id="Surface-Shader-的缺点">Surface Shader 的缺点</h3>
+<p>表面着色器给我们带来了很大的便利，但缺点也不少：</p>
+<ul>
+<li>任何在表面着色器中完成的事情，都可以在顶点/片元着色器中重现，但反过来不成立。</li>
+<li>表面着色器往往会对性能造成影响。例如移动平台的版本 Mobile/Diffuse 等只是去掉了额外的逐像素 Pass、不计算全局光照等，但没有深层的优化。</li>
+<li>表面着色器无法完成一些自定义的渲染效果。例如 10.2.2 节中的透明玻璃效果。</li>
+</ul>
+<p>因此，给出一些建议供读者参考：</p>
+<ul>
+<li>如果你需要和各种光源打交道，尤其是想用 Unity 中的全局光照。可以使用表面着色器，但要时刻小心它的性能；</li>
+<li>如果你需要处理的光源数目非常少，例如只有一个平行光，那么使用顶点/片元着色器更好；</li>
+<li>最重要的是，如果有很多自定义的渲染效果，那么请选择顶点/片元着色器。</li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/55aeb08e/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity Shader入门精要-章节20 还有更多内容吗</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/9ebc2fb9/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity Shader入门精要-章节16 Unity中的渲染优化技术</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

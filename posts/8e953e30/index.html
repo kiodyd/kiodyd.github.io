@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>C#本质论-章节15-17 语言集成查询 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">C#本质论-章节15-17 语言集成查询</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2022-09-22T14:33:00.000Z" itemprop="datePublished">2022-09-22</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-07-14T09:03:59.240Z" itemprop="dateUpdated">2024-07-14</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/C-%E7%AC%94%E8%AE%B0/">🏷️ C#笔记</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <p>求知若饥，虚心若愚</p>
+<span id="more"></span>
+<h3 id="支持标准查询操作符的集合接口">支持标准查询操作符的集合接口</h3>
+<ul>
+<li>集合初始化器，使用和数组声明相似的语法构造集合</li>
+<li>实现了IEnumerable接口就可使用初始化器{}</li>
+<li>IEnumerable接口来使用foreach语句，实际上是使用了迭代器模式，只需要知道第一个、下一个、最后一个元素就能遍历</li>
+<li>IEnumerable接口只有GetEnumerator方法来获取迭代器，该迭代器由IEnumerator接口定义，后者一般需要实现Current属性和MoveNext、Reset方法。单使用IEnumerator不足以解决交错遍历和错误处理的问题，所以一般使用IEnumerable来表示我可以枚举，至于具体的迭代器由类（一般是一个内嵌类，而不是集合类本身管理）自己去实现。</li>
+<li>IEnumerator可以实现IDisposable接口，配合using或者显式调用可以清理状态</li>
+<li>foreach循环内不要修改集合，一是如果是值类型改了也没用，二是新增了元素那么迭代器需要怎么处理。所以c#干脆禁用了，会抛出System.InvalidOperationException.</li>
+<li>实现了IEnumerable接口的类可以配合Linq引入超过50个不需要显式实现的方法，由c#3.0起的扩展方法引入
+<table>
+<thead>
+<tr>
+<th>扩展方法</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>where</strong></td>
+<td>筛选数据，传入一个谓词（一个实参并返回bool），该表达式是先传给集合并不马上执行，只有当遍历时才求值执行</td>
+</tr>
+<tr>
+<td><strong>Select</strong></td>
+<td>投射数据，将原数据处理成自己想要的对象（可以是元组），有点类似c++transform或者lua walk遍历去转换数据。</td>
+</tr>
+<tr>
+<td><strong>Count</strong></td>
+<td>对元素进行计数，可传入一个谓词（不传则为全部），满足条件才计入。但是会遍历集合，如果集合本身带有count优先使用。</td>
+</tr>
+<tr>
+<td><strong>Any</strong></td>
+<td>集合是否存在一个或以上元素，有元素便停止遍历。</td>
+</tr>
+<tr>
+<td><strong>OrderBy/ThenBy</strong></td>
+<td>排序集合。ThenBy可以链式多次使用，但OrderBy每次使用都会重新排序。OrderBy返回的是IOrderedEnumerable<T>接口，派生自IEnumerable<T>.(应该是限制ThenBy的使用)</td>
+</tr>
+<tr>
+<td><strong>Join</strong></td>
+<td>执行内部联接，将两个有关联的集合联接在一起查询</td>
+</tr>
+<tr>
+<td><strong>GroupBy</strong></td>
+<td>分组结果。返回的是IGrouping&lt;TKey,TElement&gt;类型的数据项，派生自IEnumerable</td>
+</tr>
+<tr>
+<td><strong>GroupJoin</strong></td>
+<td>来实现一对多的关系。和Join类似，但将符合条件的集合绑定到内联集合中。</td>
+</tr>
+<tr>
+<td><strong>SelectMany</strong></td>
+<td>和select类似，但select返回的数据项和原集合一致，当处理集合里的集合时有可能需要将二级集合元素拆出来，这时候就要用SelectMany</td>
+</tr>
+<tr>
+<td><strong>OfType</strong></td>
+<td>只返回特定类型的项</td>
+</tr>
+<tr>
+<td><strong>Union</strong></td>
+<td>合并两个集合，不包含重复的项</td>
+</tr>
+<tr>
+<td><strong>Concat</strong></td>
+<td>保持顺序的情况下合并两个集合，且保留重复项</td>
+</tr>
+<tr>
+<td><strong>Intersert</strong></td>
+<td>取交集</td>
+</tr>
+<tr>
+<td><strong>Distinct</strong></td>
+<td>去除重复项</td>
+</tr>
+<tr>
+<td><strong>SequenceEquals</strong></td>
+<td>比较两个集合是否一致，包括顺序</td>
+</tr>
+<tr>
+<td><strong>Reverse</strong></td>
+<td>反转集合项顺序</td>
+</tr>
+<tr>
+<td><strong>Average</strong>、<strong>Sum</strong>、<strong>Max</strong>、<strong>Min</strong></td>
+<td>常用聚合类方法</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>Linq查询具有推迟执行的特点，如果有where等过滤语句，则每次遍历时都会触发一次过滤（Count也会触发遍历），所以很容易不知不觉造成重复执行。解决方案是将过滤结果用ToXXX方法保存起来（虽然ToXXX也会执行一次）或者返回IQueryable<T>，避免后续使用该迭代器重复执行Linq。这个必须重视，如果是消耗比较大的查询。</li>
+<li>IQueryable<T>是没有扩展方法的IEnumerable<T>，但除此之外，还可通过它来实现自定义的LINQ Provider。IEnumerable<T>可以调用AsQueryable<T></li>
+<li>匿名类型，c#3.0的产物，可以配合LINQ生成临时数据类型。实际还是强类型，编译器会分配类型。成员以及顺序一致的会当做同一个类型，否则不是，之所以顺序也要一致是因为编译器重写了ToString，顺序不同会导致ToString结果不同。匿名类型不能用集合初始化器（Array除外），因为需要知道类型，当然可以通过实现一个泛型初始化工厂函数来避开，因为这个时候已经知道类型。总之如果是c#7.0以后就尽量用元组来代替匿名类型，可以方便传出函数外和避免类型污染。</li>
+</ul>
+<h3 id="使用查询表达式的LINQ">使用查询表达式的LINQ</h3>
+<blockquote>
+<p>查询语句总是以&quot;form子句&quot;开始，以&quot;select子句&quot;或者&quot;group···by子句&quot;</p>
+</blockquote>
+<blockquote>
+<p>使用了与SQL接近的语法，但顺序不同，为了支持IDE的智能感知</p>
+</blockquote>
+<ul>
+<li>使用表达式也会推迟执行，和直接使用LINQ方法一致的规则。也会在Count、Foreach等语句重复执行，原因在于C#为了每次结果都是最新而且正确的，都会重新执行。其背后原理其实是委托，表达式会被编译器转成Lambda表达式，最后在生成委托，合适的时候调用。</li>
+<li>orderby语句，支持多个条件，用逗号隔开，默认是升序，可条件后紧接ascending|descending关键字改变升降序规则</li>
+<li>可在第一个from子句之后、最后一个select/group···by子句之间使用范围变量关键字let，用于重复引用、生成的对象</li>
+<li>使用’into’来查询延续，查询后将结果紧接着另一个查询</li>
+<li>可以使用多个from筛选不同来源的数据又或者处理上一个from的数据</li>
+</ul>
+<h3 id="构建自定义集合">构建自定义集合</h3>
+<h6 id="集合接口">集合接口</h6>
+<ul>
+<li>IList<T>，通过位置索引来获取值</li>
+<li>IDictionary&lt;TKey, TValue&gt;，通过键来获取值</li>
+<li>ICollection<T>，有两个成员Count()和CopyTo()，后者可以指定一个数组和index，表示从index开始将集合拷贝过去，需要调用者保证足够内存</li>
+</ul>
+<h6 id="主要集合类">主要集合类</h6>
+<ul>
+<li>List<T>，性质和数组类似，但随着元素增多会自动扩展（TrimToSize、Capacity）。（和C++Vector有点类似）其中的Sort方法一般调用类型实现了IComparable<T>接口的CompareTo方法，但也可以手动传入一个IComparer<T>作为实参比较器来比较。</li>
+<li>List<T>常用的搜索方法有Contains、IndexOf、LastIndexOf、BinarySearch。其中BinarySearch要求集合已排好序，且如果没找到的话会返回一个负整数，对这个负整数取反（~）可快速得到查找元素应插入的位置。</li>
+<li>Dictionary&lt;TKey, TValue&gt;，使用键值对来存取，不要依赖字典键的添加顺序。构造时可以提供IEqualityComparer<T>的一个实现来作为相等性判断器，需要实现Equals和GetHashCode两个函数，主要如果两个对象相等，那么他们也要有相同的hashcode，反之则不然，两个不相等的对象可能有一样的hashcode，毕竟冲突不可避免。生存期间哈希码要保持不变，且这两个函数不能引发异常。</li>
+<li>已排序集合：SortedDictionary&lt;TKey, TValue&gt;和SortedList<T>，有序字典是按键排序，相比无序插入和删除都会慢一点。</li>
+<li>栈集合Stack<T>，后入先出，关键方法是Push和Pop，Peek可不修改栈的前提下获取栈顶元素</li>
+<li>队列集合Queue<T>，先入先出，关键方法是Enqueue和Dequeue。会自动扩大空间，但不会回收。可手动调用TrimToSize回收</li>
+<li>链表LinkedList<T>，支持正反序遍历</li>
+</ul>
+<h6 id="提供索引器">提供索引器</h6>
+<ul>
+<li>语法使用this关键字，后面紧接[T index]，实现语法类似属性，也有get/set，可重载不同的索引参数（甚至可以是可变参数）</li>
+<li>索引器的CIL属性默认名称为Item，所以不可以定义类似名的属性，但可以通过IndexerNameAttibute特性指定一个不同的名称。</li>
+</ul>
+<h6 id="返回null或者空集合">返回null或者空集合</h6>
+<ul>
+<li>可使用Enumerable.Empty<T>生成空集合</li>
+<li>空集合好处是调用者不需要判空处理</li>
+<li>两者都是集合为空时的反馈</li>
+</ul>
+<h6 id="迭代器">迭代器</h6>
+<blockquote>
+<p>类要支持使用foreach进行迭代，就必须实现枚举数模式，以从IEnumerable<T>接口获取的IEnumerator<T>接口为基础</p>
+</blockquote>
+<blockquote>
+<p>选择使用迭代器，而不是手动实现枚举数模式，能显著提高程序员的编程效率（GetEnumerator配合yield）。CIL会自动生成对应的私有类来实现IEnumerator<T>接口，生成对应的Current属性和MoveNext方法</p>
+</blockquote>
+<ul>
+<li>迭代器类似于函数，但它不是返回(return)一个值，而是生成(yield)一系列值</li>
+<li>正确实现迭代器模式需维护一些内部状态，以便在枚举集合时跟踪记录当前位置</li>
+<li>使用yield return，每次调用完以后，等待下一次调用。 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">public class BinaryTree&lt;T&gt; : IEnumerable&lt;T&gt;</span><br><span class="line">&#123;</span><br><span class="line">    ···</span><br><span class="line">    public IEnumerator&lt;T&gt; GetEnumerator()</span><br><span class="line">    &#123;</span><br><span class="line">        // 返回根节点</span><br><span class="line">        yield return value;</span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line">        foreach (BinartTree&lt;T&gt; tree in SubItems)</span><br><span class="line">        &#123;</span><br><span class="line">            if (tree != null)</span><br><span class="line">            &#123;</span><br><span class="line">                // 会调用子树的迭代器，递归调用</span><br><span class="line">                foreach (T item in tree)</span><br><span class="line">                &#123;</span><br><span class="line">                    yield return item;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        // 注意如果树的深度比较深，那么消耗可能比较大</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li>使用yield break 取消更多的迭代</li>
+<li>可在一个类返回多个迭代器，但返回的类型是IEnumerable<T>，然后外部显式调用。我的理解是生成了另一个IEnumerable<T>，而不是默认那个。</li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/ba48dfb8/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">C#本质论-章节18 反射、特性和动态编程</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/f52b637/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">C#本质论-章节14 事件</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

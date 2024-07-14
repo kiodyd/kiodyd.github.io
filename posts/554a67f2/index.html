@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>Unity Shader入门精要-章节09 更复杂的光照 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">Unity Shader入门精要-章节09 更复杂的光照</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2022-10-12T14:33:00.000Z" itemprop="datePublished">2022-10-12</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-07-14T09:03:59.224Z" itemprop="dateUpdated">2024-07-14</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/">🏷️ Unity Shader入门精要</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <p>求知若饥，虚心若愚</p>
+<span id="more"></span>
+<h3 id="Unity的渲染路径">Unity的渲染路径</h3>
+<p><strong>渲染路径（Rendering Path）</strong> 决定了光照是如何应用到UnityShader中的。要为每个Pass指定它使用的渲染路径，该Shader的光照计算才能被正确执行。</p>
+<p>在Unity5.0之前，有3中渲染路径（现在一般也是，最近有个Forward+）：</p>
+<ul>
+<li>前向渲染路径（Forward Rendering Path）</li>
+<li>延迟渲染路径（Deferred Rendering Path）</li>
+<li>顶点照明渲染路径（Vertex Lit Rendering Path）</li>
+</ul>
+<p>一般项目只使用一种渲染路径，可以这样设置默认的渲染路径：Edit-&gt;Graphics-&gt;Tier Settings-&gt;…-&gt;Rendering Path（在旧版本的Unity中，Edit-&gt;Project Settings-&gt;Player-&gt;Other Settings-&gt;Rendering Path）。</p>
+<p>也可以在Camera中设置来覆盖默认渲染路径（默认是使用Project Setting的值），这为使用多种渲染路径提供可能。需要注意的是，如果当前显卡不支持所选择的渲染路径<br>
+，Unity会自动使用更低一级的渲染路径。例如GPU不支持延迟渲染，那么就会使用前向渲染路径。</p>
+<p>完成设置后还需要在Shader中每个Pass使用标签来指定该Pass使用的渲染路径。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Pass &#123;</span><br><span class="line">    Tags &#123;&quot;LightMode&quot;=&quot;ForwardBase&quot;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>LightMode标签支持的渲染路径设置选项</p>
+</blockquote>
+<pre><code>标签名 | 描述
+---|---
+Always | 不管使用哪种渲染路径，该Pass总是会被渲染，但不会计算任何光照
+ForwardBase | 用于前向渲染，该Pass会计算环境光、最重要的平行光（没有重要的则为黑色），逐顶点/SH光源和Lightmaps
+ForwardAdd | 用于前向渲染，该Pass会计算额外的逐像素光源（最重要的设置项个数光源），每个Pass对应一个光源
+Deferred | 用于延迟渲染，该Pass会渲染G缓冲（G-buffer）
+ShadowCaster | 把物体的深度信息渲染到阴影映射纹理（shadermap）或一张深度纹理中
+PrepassBase | 用于遗留的延迟渲染，该Pass会渲染法线和高光反射的指数部分
+PrepassFinal | 用于遗留的延迟渲染，该Pass通过合并纹理、光照和自发光来渲染得到最后的颜色
+Vertex、VertexLMRGBM 和 VertexLM | 用于遗留的顶点照明渲染
+</code></pre>
+<p>通过设置渲染路径，Unity才能正确对相关的光照属性赋值，是和底层渲染引擎的一次重要的沟通。</p>
+<h6 id="前向渲染路径">前向渲染路径</h6>
+<ol>
+<li>
+<p><strong>前向渲染路径的原理</strong></p>
+<div>渲染该对象的渲染图元，并计算颜色缓冲区和深度缓冲区的信息。大致过程：</div>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Pass&#123;</span><br><span class="line">    for(each primitive in this model)&#123;</span><br><span class="line">        for(each fragment covered by this primitive)&#123;</span><br><span class="line">            if(failed in depth test)&#123;</span><br><span class="line">                // 如果没有通过深度测试，说明该片元是不可见的</span><br><span class="line">                discard;</span><br><span class="line">            &#125;else&#123;</span><br><span class="line">                // 如果该片元可见，就进行光照计算</span><br><span class="line">                float4 color=Shading(materialInfo,pos,normal,lightDir,viewDir);</span><br><span class="line">                // 更新帧缓冲</span><br><span class="line">                writeFrameBuffer(fragment,color);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<div>对每个逐像素光源，都需要进行上面一次完整的渲染流程。假设场景中有N个物体，每个物体受M个光源的影响，一个需要N*M个Pass。</div>
+</li>
+<li>
+<p><strong>Unity中的前向渲染</strong></p>
+<div>在Unity中前向渲染路径有3种处理光照（照亮物体）的方式：</div>
+<ul>
+<li>逐顶点处理</li>
+<li>逐像素处理</li>
+<li>球谐函数处理（Spherical Harmonics, SH）</li>
+</ul>
+<p>决定一个光源使用哪种处理模式，取决于它的类型和渲染模式。渲染模式指光源是否是重要的（Important），如果是重要的，就会进行逐像素光源处理。</p>
+<blockquote>
+<p>设置光源的类型和渲染模式</p>
+</blockquote>
+<p><img src="http://static.zybuluo.com/candycat/skolpwg0h7zzcey4gtl1rvc9/light_type_mode.png" alt="image"></p>
+<p>前向渲染中，Unity会根据场景中各个光源的设置以及这些光源对物体的影响程度（例如，距离物体的远近、光源强度等）对这些光源进行重要度排序。其中一定数目的光源按逐像素处理，最多4个光源按逐顶点处理，剩下的可以按SH处理。规则如下：</p>
+<ul>
+<li>场景中最亮的平行光总是按逐像素处理</li>
+<li>渲染模式被设置成NotImportant的光源，逐顶点或SH</li>
+<li>渲染模式被设置成Important的光源，逐像素</li>
+<li>如果根据以上规则得到的逐像素光源数量小于QualitySetting中的逐像素光源数量（Pixel Light Count），会有更多的光源逐像素处理</li>
+</ul>
+<p>BasePass和Additional Pass进行的标签和渲染设置以及常规光照计算如下<br>
+<img src="http://static.zybuluo.com/candycat/575lq2zgnsaop3nw2miyobt3/forward_rendering.png" alt="image"></p>
+<p>补充说明：</p>
+<ul>
+<li>pragma multi_compile_fwdbase和#pargma multi_compile_fwdadd。使用了这两个编译指令，才可以在相关Pass中得到正确的光照变量，如光照衰减值</li>
+<li>BasePass旁边的注释给出一些支持的光照特性</li>
+<li>BasePass中渲染的平行光默认是支持阴影的，AdditionalPass中默认是没阴影的（可以通过multi_compile_fwdadd_fullshadows打开，为点光源和聚光灯提供阴影效果，但需要Unity内部使用更多的Shader变种）</li>
+<li>环境光和自发光也是在BasePass中计算的，不在AdditionalPass中计算是为了防止叠加多次环境光和自发光</li>
+<li>AdditionalPass开启和设置了混合模式，最终得到多个光照的渲染结果</li>
+<li>对前向渲染，一个UnityShader通常定义一个BasePass和一个AdditionalPass。前者仅执行一次（双面渲染等多个情况除外），后者会根据影响该物体的其他<strong>逐像素光源数目</strong>被多次调用</li>
+</ul>
+</li>
+<li>
+<p><strong>内置的光照变量和函数</strong></p>
+<div>对于前向渲染（LightMode为ForwardBase或ForwardAdd），可以在Shader中访问到的光照变量：</div>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>_LightColor0</td>
+<td>float4</td>
+<td>该Pass处理的逐像素光源的颜色</td>
+</tr>
+<tr>
+<td>_WorldSpaceLightPos0</td>
+<td>float4</td>
+<td>_WorldSpaceLightPos0.xyz 是该Pass处理的逐像素光源的位置。如果该光源是平行光，那么_WorldSpaceLightPos0.w是0，其他光源类型w值为1</td>
+</tr>
+<tr>
+<td>_LightMatrix0（新版本是unity_WorldToLight）</td>
+<td>float4X4</td>
+<td>从世界空间到光源空间的变换矩阵。可以用于采样cookie和光强衰减(attenuation)纹理</td>
+</tr>
+<tr>
+<td>unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0</td>
+<td>float4</td>
+<td>仅用于BasePass，前4个非重要的点光源在世界空间中的位置</td>
+</tr>
+<tr>
+<td>unity_4LightAtten0</td>
+<td>float4</td>
+<td>仅用于BasePass，储存了前4个非重要的点光源的衰减因子</td>
+</tr>
+<tr>
+<td>unity_LightColor</td>
+<td>half4[4]</td>
+<td>仅用于BasePass，储存了前4个非重要的点光源的颜色</td>
+</tr>
+</tbody>
+</table>
+<div>前向渲染可以使用的内置光照函数：</div>
+<table>
+<thead>
+<tr>
+<th>函数名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>float3 WorldSpaceLightDir(float4 v)</td>
+<td><strong>仅可用于前向渲染中。</strong> 输入一个模型空间中的顶点位置，返回世界空间中从该点到光源的光照方向。内部实现使用了UnityWorldSpaceLightDir函数。没有被归一化</td>
+</tr>
+<tr>
+<td>float3 UnityWorldSpaceLightDir(float4 v)</td>
+<td><strong>仅可用于前向渲染中。</strong> 输入一个世界空间中的顶点位置，返回世界空间中从该点到光源的光照方向。没有被归一化</td>
+</tr>
+<tr>
+<td>float3 ObjSpaceLightDir(float4 v)</td>
+<td><strong>仅可用于前向渲染中。</strong> 输入一个模型空间中的顶点位置，返回模型空间中从该点到光源的光照方向。没有被归一化</td>
+</tr>
+<tr>
+<td>float3 Shade4PointLights(…)</td>
+<td><strong>仅可用于前向渲染中。</strong> 计算四个点光源的光照，它的参数是已经打包进矢量的光照数据，通常就是上表的内置变量，如unity_4LightPosX0，unity_4LightPosY0，unity_4LightPosZ0，unity_LightColor和unity_4LightAtten0等。前向渲染通常会使用这个函数来计算逐顶点光照</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ol>
+<h6 id="顶点照明渲染路径">顶点照明渲染路径</h6>
+<p>对硬件配置要求最少、运算性能最高，但同时也是效果最差的类型，不支持那些逐像素才能得到的效果，例如阴影、法线映射、高精度的高光反射等。</p>
+<ol>
+<li>
+<p><strong>Unity中的顶点照明渲染</strong></p>
+<div>通常在一个Pass就可以完成。在这个Pass中，会逐顶点计算所有光源对该物体的照明，这是Unity中最快速的渲染路径，并具有广泛的硬件支持（游戏机上不支持）。</div>
+<p>因为顶点照明渲染路径仅仅是前向渲染路径的一个子集，因此在Unity5中作为一个遗留的渲染路径，未来可能会移除（Unity2021还在）。</p>
+</li>
+<li>
+<p><strong>可访问的内置变量和函数</strong></p>
+<div>一个顶点照明的Pass最多访问到8个逐顶点光源(如果小于8，其他的会被置为黑色)。</div>
+<p>顶点照明渲染路径中可以使用的内置变量：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>unity_LightColor</td>
+<td>half4[8]</td>
+<td>光源颜色</td>
+</tr>
+<tr>
+<td>unity_LightPosition</td>
+<td>float4[8]</td>
+<td>xyz分量是视角空间中的光源位置。如果光源是平行光，那么z分量值为0，其他光源类型z分量值为1</td>
+</tr>
+<tr>
+<td>unity_LightAtten</td>
+<td>half4[8]</td>
+<td>光源衰减因子。如果光源是聚光灯，x分量是cos(spotAngle/2)，y分量是1/cos(spotAngle/4)；如果是其他类型的光源，x分量是-1，y分量是1。z分量是衰减的平方，w分量是光源范围开根号的结果</td>
+</tr>
+<tr>
+<td>unity_SpotDirection</td>
+<td>float4[8]</td>
+<td>如果光源是聚光灯的话，值为视角方向的聚光灯的位置；如果是其他类型的光源，值为(0,0,1,0)</td>
+</tr>
+</tbody>
+</table>
+<p>顶点照明渲染路径中可以使用的内置函数</p>
+<table>
+<thead>
+<tr>
+<th>函数名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>float3 ShadeVertexLights(float4 vertex, float3 normal)</td>
+<td>输入模型空间中的顶点位置和法线，计算四个逐顶点光源的光照以及环境光。内部实现实际上调用了ShadeVertexLightsFull函数</td>
+</tr>
+<tr>
+<td>float3 ShadeVertexLightsFull(float4 vertex, float3 normal, int lightCount, bool spotLight)</td>
+<td>输入模型空间中的顶点位置和法线，计算lightCount个光源的光照以及环境光。如果spotLight值为true，那么这些光源会被当成聚光灯来处理，虽然结果更加准确，但计算更加耗时；否则按点光源处理。</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ol>
+<h6 id="延迟渲染路径">延迟渲染路径</h6>
+<p>前向渲染的问题是，场景中有大量的实时光源时，性能会急速下降（每执行一个Pass都需要重新渲染一次物体）。</p>
+<p>延迟渲染是一种更古老的渲染方法，由于前向渲染可能的瓶颈问题，近几年又流行起来。除了颜色缓冲和深度缓冲，延迟渲染会利用额外的缓冲区，统称为G缓冲（G-buffer），G是Geometry的缩写。G-buffer存储了我们所关心的表面（通常指的是离相机最近的表面）的其他信息，如表面法线、位置、用于光照计算的材质属性等。</p>
+<ol>
+<li>
+<p><strong>延迟渲染的原理</strong></p>
+ <div>主要包含了两个Pass：</div>
+<ul>
+<li>第一个Pass。不进行任何光照计算，仅通过深度缓冲技术，计算哪些片元是可见的。如果可见，就把它的相关信息存储到G缓冲。</li>
+<li>第二个Pass。利用G缓冲的各个片元信息，例如表面法线、视角方向、漫反射系数等，进行真正的光照计算。</li>
+</ul>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">Pass1&#123;</span><br><span class="line">    // 第一个Pass不进行真正的光照计算</span><br><span class="line">    // 仅仅把光照计算需要的信息存储到G缓冲中</span><br><span class="line">    for(each primitive in this model)&#123;</span><br><span class="line">        for(each fragment covered by this primitive)&#123;</span><br><span class="line">            // 如果没有通过深度测试，说明该片元不可见</span><br><span class="line">            discard;</span><br><span class="line">        &#125;else&#123;</span><br><span class="line">            // 如果该片元可见，就把需要的信息存储到G缓冲中</span><br><span class="line">            writeGBuffer(materialInfo,pos,normal);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Pass2&#123;</span><br><span class="line">    // 利用G缓冲中的信息进行真正的光照计算</span><br><span class="line">    for(each pixel in the screen)&#123;</span><br><span class="line">        if(the pixel is valid)&#123;</span><br><span class="line">            // 如果该像素的有效的，读取它对应的G缓冲中的信息</span><br><span class="line">            readGBuffer(pixel,materialInfo,pos,normal);</span><br><span class="line"></span><br><span class="line">            // 根据读取到的信息进行光照计算</span><br><span class="line">            float4 color=Shading(materialInfo,pos,normal,lightDir,viewDir);</span><br><span class="line">            // 更新帧缓冲</span><br><span class="line">            writeFrameBuffer(pixel,color);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>延迟渲染使用的Pass数目通常就是两个，和场景中包含的光源数目没有关系，只和我们使用的屏幕空间大小有关。原因在于需要的信息都存储在缓冲区中，缓冲区可以看成一张张2D图像，计算实际上就是在这些图像空间中进行的。</p>
+</li>
+<li>
+<p><strong>Unity中的延迟渲染</strong></p>
+ <div>有两种，Unity5之前遗留的和Unity5.x中使用的，差别很小。遗留的不支持Unity5基于物理的StandardShader，以下仅讨论Unity5后使用的延迟渲染路径。</div>
+<p>延迟渲染路径适合在场景光源数目很多，如果使用前向渲染会造成性能瓶颈的情况下使用。延迟渲染路径中每个光源都可以按逐像素处理。但它有一些缺点：</p>
+<ul>
+<li>不支持真正的抗锯齿（anti-aliasing）功能</li>
+<li>不能处理半透明物体</li>
+<li>对显卡有一定要求。显卡必须支持MRT（Multiple Render Targets）、ShaderMode3.0及以上、深度渲染纹理以及双面的模板缓冲</li>
+</ul>
+<p>使用延迟渲染时，Unity要求我们提供两个Pass：</p>
+<ul>
+<li>第一个用于渲染G缓冲。把物体的漫反射颜色、高光反射颜色、平滑度、法线、自发光、深度等信息渲染到屏幕空间的G缓冲中，每个物体这个Pass执行一次</li>
+<li>第二个用于计算真正的光照模型。用上个Pass中渲染的数据来计算最终的光照颜色，在存储到帧缓冲中</li>
+</ul>
+<p>默认的G缓冲区包含了以下几个渲染纹理（Render Texture, RT）：</p>
+<ul>
+<li>RT0:格式是ARGB32，RGB通道存储漫反射颜色，A通道没有使用</li>
+<li>RT1：格式是ARGB32，RGB通道存储高光反射颜色，A通道存储高光反射指数部分</li>
+<li>RT2：格式是ARGB2101010，RGB通道存储法线，A通道没有使用</li>
+<li>RT3：格式是ARGB32（非HDR）或ARGBHalf（HDR），用于存储自发光+lightmap+反射探针（reflection probes）</li>
+<li>深度缓冲和模板缓冲</li>
+</ul>
+<p>第二个Pass中计算光照时，默认情况下仅可以使用Unity内置的Standard光照类型。如果要使用其他的光照模型，需要替换原有的Internal-DefferredShading.shader文件。</p>
+</li>
+<li>
+<p><strong>可访问的内置变量和函数</strong></p>
+ <div>这些变量可以在UnityDefferredLibrary.cginc中找到它们的声明：</div>
+<p>延迟渲染路径中可以使用的内置变量</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>_LightColor</td>
+<td>float4</td>
+<td>光照颜色</td>
+</tr>
+<tr>
+<td>_LightMatrix0（新版本是unity_WorldToLight）</td>
+<td>float4x4</td>
+<td>从世界空间到光源空间的变换矩阵，可以用于采样cookie和光照衰减纹理</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p><strong>选择哪种渲染路径</strong></p>
+ <div>参考官方文档，给出了4种渲染路径的详细比较（前向渲染、延迟渲染、遗留的延迟渲染、顶点照明）：</div>
+<p><a target="_blank" rel="noopener" href="https://docs.unity3d.com/Manual/RenderingPaths.html">官方文档</a><br>
+<img src="https://imgbed.link/file/2365" alt="image"></p>
+<p>总体来说要根据游戏发布的目标平台来渲染渲染路径，如果当前显卡不支持所选的，会自动使用低一级的。</p>
+</li>
+</ol>
+<h3 id="Unity的光源类型">Unity的光源类型</h3>
+<p>Unity一共支持4种光源类型：平行光、点光源（point light）、聚光灯（spot light）和面光源（area light）。面光源仅在烘焙时才可发挥作用。</p>
+<h6 id="光源类型有什么影响">光源类型有什么影响</h6>
+<p>最常用的光源属性有5个：光源的位置、方向（到某点的方向）、颜色、强度以及衰减（到某点的衰减，与该点到光源的距离有关）。</p>
+<ol>
+<li>
+<p><strong>平行光</strong></p>
+ <div>作为太阳光，位置任意，几何属性只有方向，不会衰减。</div>
+<p><img src="http://static.zybuluo.com/candycat/uadla1q69533nc71z7g7ep0g/directional_ligth.png" alt="image"></p>
+</li>
+<li>
+<p><strong>点光源</strong></p>
+ <div>照亮空间有限，由空间中的一个球体定义，表示由一个点发出的、向所有方向延申的光。有范围，有位置，会衰减。</div>
+<p><img src="http://static.zybuluo.com/candycat/tvbpd08wgc0s1o31v4nw20ad/point_ligtht.png" alt="image"></p>
+</li>
+<li>
+<p><strong>聚光灯</strong></p>
+ <div>照亮空间有限，由空间中一块锥形区域定义，表示由一个特定位置出发、向特定方向延申的光。有范围，有位置，会衰减。</div>
+<p><img src="http://static.zybuluo.com/candycat/tx45g2n04xypq5cdlyblecrv/spot_light.png" alt="image"></p>
+</li>
+</ol>
+<blockquote>
+<p>以下内容引用自<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/355008150">知乎文章</a></p>
+</blockquote>
+<p><em>点光源和聚光灯都有个警告：Realtime and indirect bounce shadowing is not supported for Spot and Point lights。意思是不支持实时间接反弹阴影。查资料说是“这意味着由点光源创建的光线将继续穿过物体并在另一侧反射，除非被范围衰减。这可能会导致墙壁和地板发出“漏光”，因此灯必须小心放置以避免出现此类问题。然而，这在使用烘焙GI时不是问题。”如下将一块平面挡住另一块平面，聚光灯穿透上面的平面，继续照到下方了：</em></p>
+<p><img src="https://pic3.zhimg.com/80/v2-856c0b4c8304f115e71f8b995fc16812_1440w.webp" alt="image"></p>
+<p><em>这个可能和光源模式也有关系，如果将聚光灯的Mode从Realtime改为Baked，就没有这个警告。如果将IndirectMultiplier间接系数改为0，也没有这个提示了，从字面意思看就是不使用这个光源进行间接反射阴影了。</em></p>
+<p><em>Unity光源的Mode属性中Realtime/Mixed/Baked（实时/混合/烘焙），可能分别对应UE4中的Movable/Stationary/Static（可移动/固定/静态）。这里先不讨论这个问题了。</em></p>
+<h6 id="在前向渲染中处理不同的光源类型">在前向渲染中处理不同的光源类型</h6>
+<p>如何使用前向渲染路径，在UnityShader中访问这3种光源的5个属性：<strong>位置、方向、颜色、强度、衰减</strong>。</p>
+<ol>
+<li>
+<p><strong>实践</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;UnityShadersLearn/Chapter9/ForwardRendering&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Color (&quot;Color Tint&quot;, Color) = (1.0, 1.0, 1.0, 1.0)</span><br><span class="line">        _Specular (&quot;Specular Tint&quot;, Color) = (1.0, 1.0, 1.0, 1.0)</span><br><span class="line">        _Gloss (&quot;Gloss&quot;, Range(8.0, 256)) = 20</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Pass </span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123;&quot;LightMode&quot;=&quot;ForwardBase&quot;&#125;</span><br><span class="line">            CGPROGRAM</span><br><span class="line">            // 保证在Shader中使用光照衰减等光照变量可以被正确赋值</span><br><span class="line">            #pragma multi_compile_fwdbase</span><br><span class="line">            </span><br><span class="line">            #pragma vertex vert;</span><br><span class="line">            #pragma fragment frag;</span><br><span class="line"></span><br><span class="line">            #include &quot;Lighting.cginc&quot;</span><br><span class="line"></span><br><span class="line">            fixed4 _Color;</span><br><span class="line">            fixed4 _Specular;</span><br><span class="line">            float _Gloss;</span><br><span class="line"></span><br><span class="line">            struct a2v</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float3 worldNormal : TEXCOORD0;</span><br><span class="line">                float3 worldPos : TEXCOORD1;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line">                o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">                o.worldNormal = UnityObjectToWorldNormal(v.normal);</span><br><span class="line">                o.worldPos = mul(unity_ObjectToWorld, v.vertex);</span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            fixed4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                fixed3 worldNormal = normalize(i.worldNormal);</span><br><span class="line">                // 处理平行光的逐像素光照</span><br><span class="line">                fixed3 worldLightDir = normalize(_WorldSpaceLightPos0.xyz);</span><br><span class="line"></span><br><span class="line">                // 计算环境光，只计算一次，所以放在ForwardBase，这里假设物体没有自发光</span><br><span class="line">                fixed3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz;</span><br><span class="line"></span><br><span class="line">                // 使用_LightColor0得到最亮平行光的颜色和强度</span><br><span class="line">                // _LightColor0已经是颜色和强度相乘后的结果</span><br><span class="line">                fixed3 diffuse = _LightColor0.rgb * _Color.rgb * saturate(dot(worldNormal, worldLightDir));</span><br><span class="line"></span><br><span class="line">                fixed3 viewDir = normalize(UnityWorldSpaceViewDir(i.worldPos));</span><br><span class="line">                fixed3 halfDir = normalize(worldLightDir + viewDir);</span><br><span class="line">                fixed3 specular = _LightColor0.rgb * _Specular.rgb * pow(saturate(dot(halfDir, worldNormal)), _Gloss);</span><br><span class="line"></span><br><span class="line">                // 平行光衰减为1</span><br><span class="line">                fixed atten = 1.0;</span><br><span class="line">                return fixed4(ambient + (diffuse + specular) * atten, 1.0);</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">        Pass </span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123;&quot;LightMode&quot;=&quot;ForwardAdd&quot;&#125;</span><br><span class="line">            </span><br><span class="line">            // 计算的结果与缓冲区叠加</span><br><span class="line">            Blend One One</span><br><span class="line">            </span><br><span class="line">            CGPROGRAM</span><br><span class="line">            // 保证在Shader中使用光照衰减等光照变量可以被正确赋值</span><br><span class="line">            #pragma multi_compile_fwdadd</span><br><span class="line">            </span><br><span class="line">            #pragma vertex vert;</span><br><span class="line">            #pragma fragment frag;</span><br><span class="line"></span><br><span class="line">            #include &quot;Lighting.cginc&quot;</span><br><span class="line">            </span><br><span class="line">            #include &quot;AutoLight.cginc&quot;</span><br><span class="line"></span><br><span class="line">            fixed4 _Color;</span><br><span class="line">            fixed4 _Specular;</span><br><span class="line">            float _Gloss;</span><br><span class="line"></span><br><span class="line">            struct a2v</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float3 worldNormal : TEXCOORD0;</span><br><span class="line">                float3 worldPos : TEXCOORD1;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line">                o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">                o.worldNormal = UnityObjectToWorldNormal(v.normal);</span><br><span class="line">                o.worldPos = mul(unity_ObjectToWorld, v.vertex);</span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            fixed4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                fixed3 worldNormal = normalize(i.worldNormal);</span><br><span class="line"></span><br><span class="line">                // 计算不同光源类型的方向</span><br><span class="line">                #ifdef USING_DIRECTIONAL_LIGHT</span><br><span class="line">                    fixed3 worldLightDir = normalize(_WorldSpaceLightPos0.xyz);</span><br><span class="line">                #else</span><br><span class="line">                    fixed3 worldLightDir = normalize(_WorldSpaceLightPos0.xyz - i.worldPos.xyz);</span><br><span class="line">                #endif</span><br><span class="line">                </span><br><span class="line">                fixed3 diffuse = _LightColor0.rgb * _Color.rgb * saturate(dot(worldNormal, worldLightDir));</span><br><span class="line"></span><br><span class="line">                fixed3 viewDir = normalize(UnityWorldSpaceViewDir(i.worldPos));</span><br><span class="line">                fixed3 halfDir = normalize(worldLightDir + viewDir);</span><br><span class="line">                fixed3 specular = _LightColor0.rgb * _Specular.rgb * pow(saturate(dot(halfDir, worldNormal)), _Gloss);</span><br><span class="line"></span><br><span class="line">                // 计算不同光源类型的衰减</span><br><span class="line">                #ifdef USING_DIRECTIONAL_LIGHT</span><br><span class="line">                    fixed atten = 1.0;</span><br><span class="line">                #else</span><br><span class="line">                    float3 lightCoord = mul(unity_WorldToLight, float4(i.worldPos, 1)).xyz;</span><br><span class="line">                    fixed atten = tex2D(_LightTexture0, dot(lightCoord, lightCoord).rr).UNITY_ATTEN_CHANNEL;</span><br><span class="line">                #endif</span><br><span class="line">                </span><br><span class="line">                return fixed4((diffuse + specular) * atten, 1.0);</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    FallBack &quot;Specular&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>除了设置渲染路径外，还使用了#pragma指令。#pragma multi_compile_fwdbase保证在Shader中使用光照衰减等光照变量可以被正确赋值。</p>
+<p>Base Pass处理了场景中最重要的平行光，如果有多个平行光，Unity只会选择最亮的平行光给Base Pass进行逐像素处理，其他平行光会按照逐顶点或在Additional Pass中按逐像素的方式处理。</p>
+<p>如果场景中没有<strong>重要的</strong>平行光源，那么BasePass会被当做全黑的光源处理。</p>
+<p>AdditionalPass处理其他逐像素光源。光照模式使用ForwardAdd，设置混合模式（不设置会覆盖原有的），然后要加上#pragma multi_compile_fwdadd（如果需要完整阴影可以用**_fullshadows版本）。在片元着色器中，用#ifdef/#else/#endif来判断光源类型，不同光源方向和衰减有区别。</p>
+<p>内置矩阵_LightMatrix0，新版本Unity已经没有，请使用unity_WorldToLight。这个是从世界空间到光照空间的变换矩阵，用于将世界空间中的物体坐标，转到光照空间通过_LightTexture0采样获取衰减值。</p>
+</li>
+<li>
+<p><strong>实验：Base Pass和Additional Pass的调用</strong></p>
+<div>默认情况下光源的Render Mode是Auto，在此场景中一共5个光源，1个是平行光在BasePass中被处理，其余4个点光源在AdditionalPass中被处理，默认情况下一个物体可以接受除最亮的平行光以外的4个逐像素光照。</div>
+<p>开启帧调试器（Frame Debugger），Window-&gt;Analysis-&gt;FrameDebugger（Unity5是Widow-&gt;FrameDebugger）。可以看到前向渲染的绘制过程</p>
+<p><img src="http://static.zybuluo.com/candycat/78c7qwpppd0h5baure1l9t1q/frame_debugger.png" alt="image"></p>
+<p><img src="http://static.zybuluo.com/candycat/e4ruexwdln51zl9nrj8s6yrl/multi_lights_0.png" alt="image"></p>
+<p>当把光源的Render Mode设为Not Important时，这些光源就不会按逐像素光来处理</p>
+<p><img src="http://static.zybuluo.com/candycat/joseae4o6388culiwx8tfntf/light_not_important.png" alt="image"></p>
+<p>Unity处理这些点光源的顺序是按照重要度排序的，在这里因为所有点光源颜色和强度都相同，因此它们的重要度取决于它们距离胶囊体的远近。官方文档没有给出光源强度、颜色、距离物体的远近是如何影响重要度的，只知道有关系。</p>
+</li>
+</ol>
+<h3 id="Unity的光照衰减">Unity的光照衰减</h3>
+<p>Unity使用一张纹理作为查找表来在片元着色器中计算逐像素光照的衰减，好处是不依赖数学公式，弊端如下：</p>
+<ul>
+<li>需要预处理得到采样纹理，纹理大小也会影响衰减的精度</li>
+<li>不直观也不方便，一旦存储到查找表，就无法使用其他数学公式来计算衰减</li>
+</ul>
+<p>Unity默认还是用纹理查找的方式计算逐像素的点光源和聚光灯的衰减。</p>
+<h6 id="用于光照衰减的纹理">用于光照衰减的纹理</h6>
+<p>Unity内部使用一张名为_LightTexture0的纹理来计算光源衰减。(0,0)表示与光源位置重合的点的衰减值，(1,1)表示在光源空间中所关心的距离最远的点的衰减。</p>
+<p>为了对_LightTexture0纹理采样得到指定点到该光源的衰减值，首先要得到该点到光源空间中的位置，通过_LightMatrix0变换矩阵得到：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">float3 lightCoord=mul(_LightMatrix0,float4(i.worldPosition,1)).xyz;</span><br></pre></td></tr></table></figure>
+<p>然后可以使用这个坐标的模的平方对衰减纹理进行采样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">//.rr是啥呢？首先是由点积得到光源的距离平方，这是一个标量，我们对这个变量进行.rr操作相当于构建了一个二维矢量，这个二维矢量每个分量的值都是这个标量值，由此得到一个二维采样坐标。这个操作是shader中常见的swizzling操作，Cg的官网上也有说明。</span><br><span class="line">fixed atten=tex2D(_LightTexture0,dot(lightCoord,LightCoord).rr).UNITY_ATTEN_CHANNEL;</span><br></pre></td></tr></table></figure>
+<h6 id="使用数学公式计算衰减">使用数学公式计算衰减</h6>
+<p>有时候希望可以在代码中利用公式来计算光源的衰减，如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">float distance=length(_WorldSpaceLightPos0.xyz-i.worldPosition.xyz);</span><br><span class="line">fixed atten=1.0/distance; // linear attenuation</span><br></pre></td></tr></table></figure>
+<p>因为无法在Shader通过内置变量得到光源的范围、聚光灯的朝向、张开角度等信息，效果不尽人意。灵活度低。</p>
+<h3 id="Unity的阴影">Unity的阴影</h3>
+<h6 id="阴影是如何实现的">阴影是如何实现的</h6>
+<p>实时渲染中，最常用的技术是Shadow Map。原理是它会首先把相机位置放在与光源重合的位置上，那么场景中该光源的阴影区域就是那些相机看不到的地方。</p>
+<p>在前向渲染路径中，如果场景中最重要的平行光开启了阴影，Unity就会为该光源计算它的阴影映射纹理ShadowMap，本质是一张深度图。</p>
+<p>Unity使用一个额外的LightMode标签被设置为ShadowCaster的Pass来更新光源的阴影映射纹理，这个Pass的渲染目标不是帧缓存，而是ShadowMap。如果没有，就会在Fallback指定的UnityShader中寻找。</p>
+<p>在传统的阴影映射纹理实现中，会在正常渲染的Pass中把顶点位置变换到光源空间下，然后使用xy分量对ShadowMap进行采样得到深度值，判断是否处于阴影中。</p>
+<p>Unity5中，使用了屏幕空间的阴影映射技术（Screenspace Shadow Map）。首先通过调用LightMode为ShadowCaster的Pass得到ShadowMap和相机深度纹理；然后据此得到屏幕空间的阴影图；如果相机的深度图中记录的表面深度大于转换到ShadowMap中的深度值，说明表面可见但在阴影中。如果想要一个物体接受来自其他物体的阴影，只需要在Shader中对阴影图采样。</p>
+<p>总结，一个物体接受阴影，以及向其他物体投射阴影是两个过程：</p>
+<ul>
+<li>接受阴影。在Shader中对ShadowMap进行采样，把采样结果和最后的光照结果相乘</li>
+<li>投射阴影。必须把该物体加入到光源的ShadowMap计算中。</li>
+</ul>
+<h6 id="不透明物体的阴影">不透明物体的阴影</h6>
+<ol>
+<li>
+<p><strong>让物体投射阴影</strong></p>
+ <div>在Mesh Renderer组件打开Cast Shadows和Receive Shadows属性，光源处也需要开启投射阴影</div>
+<p>直接使用上一小节中的ForwardRendering，尽管只有BasePass和AdditionalPass，没有LightMode为ShadowCaster的Pass，也能正常投射阴影，这是因为Fallback起了作用，Fallback使用了Specular，而Specular的Fallback调用了VertexLit，这里进行了渲染ShadowMap和深度图的工作。</p>
+<p>关键的内置着色器代码（DefaultResourcesExtra\Normal-VertexLit.shader，可在官网下载）：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">// Pass to render object as a shadow caster</span><br><span class="line">Pass &#123;</span><br><span class="line">    Name &quot;ShadowCaster&quot;</span><br><span class="line">    Tags &#123; &quot;LightMode&quot; = &quot;ShadowCaster&quot; &#125;</span><br><span class="line"></span><br><span class="line">    CGPROGRAM</span><br><span class="line">    #pragma vertex vert</span><br><span class="line">    #pragma fragment frag</span><br><span class="line">    #pragma target 2.0</span><br><span class="line">    #pragma multi_compile_shadowcaster</span><br><span class="line">    #pragma multi_compile_instancing // allow instanced shadow pass for most of the shaders</span><br><span class="line">    #include &quot;UnityCG.cginc&quot;</span><br><span class="line"></span><br><span class="line">    struct v2f &#123;</span><br><span class="line">        V2F_SHADOW_CASTER;</span><br><span class="line">        UNITY_VERTEX_OUTPUT_STEREO</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    v2f vert( appdata_base v )</span><br><span class="line">    &#123;</span><br><span class="line">        v2f o;</span><br><span class="line">        UNITY_SETUP_INSTANCE_ID(v);</span><br><span class="line">        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);</span><br><span class="line">        TRANSFER_SHADOW_CASTER_NORMALOFFSET(o)</span><br><span class="line">        return o;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    float4 frag( v2f i ) : SV_Target</span><br><span class="line">    &#123;</span><br><span class="line">        SHADOW_CASTER_FRAGMENT(i)</span><br><span class="line">    &#125;</span><br><span class="line">    ENDCG</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>右边的平面默认是不会从背面朝正面投影的，需要将CastShadows从On设置为TwoSided。<br>
+<img src="http://static.zybuluo.com/candycat/3t7vthpva2llk7madax2rcqs/shadow_1.png" alt="image"></p>
+</li>
+<li>
+<p><strong>让物体接收阴影</strong></p>
+ <div>先在BasePass中包含一个新的内置文件：</div>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;AutoLight.cginc&quot; // 下面计算阴影时所用的宏是在这个文件中声明的</span><br></pre></td></tr></table></figure>
+<p>在顶点着色器的输出结构体v2f中添加内置宏SHADOW_COORDS：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">struct v2f&#123;</span><br><span class="line">    float4 pos:SV_POSITION;</span><br><span class="line">    float3 worldNormal:TEXCOORD0;</span><br><span class="line">    float3 worldPos:TEXCOORD1;</span><br><span class="line"></span><br><span class="line">    // 声明一个用于对阴影纹理采样的坐标</span><br><span class="line">    // 参数是下一个可用的插值寄存器的索引值，2</span><br><span class="line">    SHADOW_COORDS(2)</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>在顶点着色器返回之前添加内置宏TRANSFER_SHADOW：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">v2f vert(a2v v&#123;</span><br><span class="line">    v2f o;</span><br><span class="line">    ...</span><br><span class="line">    // Pass shadow coordinates to pixel shader</span><br><span class="line">    // 用于在顶点着色器中计算上一步中声明的阴影纹理坐标</span><br><span class="line">    TRANSFER_SHADOW(o);</span><br><span class="line"></span><br><span class="line">    return o;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>在片元着色器中计算阴影，使用了内置宏SHADOW_ATTENUATION：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// Use shadow coordinates to sample shadow map</span><br><span class="line">fixed shadow=SHADOW_ATTENUATION(i);</span><br></pre></td></tr></table></figure>
+<p>最后在片元着色器中，把阴影值shadow和漫反射以及高光反射颜色相乘：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">return fixed4(ambient+(diffuse+specular)*atten*shadow, 1.0);</span><br></pre></td></tr></table></figure>
+<p><img src="http://static.zybuluo.com/candycat/d33yusj8nxye922idu6ws2xe/shadow_2.png" alt=""></p>
+<p><strong>SHADOW_COORDS、TRANSFER_SHADOW、SHADOW_ATTENUATION</strong>是计算阴影的“三剑客”，可以在AutoLight.cginc中找到他们的声明</p>
+</li>
+</ol>
+<h6 id="使用帧调试器查看阴影绘制过程">使用帧调试器查看阴影绘制过程</h6>
+<p>打开FrameDebug，渲染事件可以分为4个部分：</p>
+<ul>
+<li>UpdateDepthTexture：更新相机深度纹理</li>
+<li>RenderShadowmap：渲染得到的平行光阴影映射纹理</li>
+<li>CollectShadows：根据深度纹理和阴影映射纹理得到屏幕空间的阴影图</li>
+<li>最后绘制渲染结果</li>
+</ul>
+<p>使用帧调试器查看阴影绘制过程<br>
+<img src="http://static.zybuluo.com/candycat/3sjunj4mk8gizha7fve184m4/shadow_frame_debugger.png" alt="image"></p>
+<p>正方体对深度纹理的更新结果<br>
+<img src="http://static.zybuluo.com/candycat/c3c1kldvrbicscs1opg7ihjn/shadow_frame_debugger_0.png" alt="image"></p>
+<p>屏幕空间的阴影图<br>
+<img src="http://static.zybuluo.com/candycat/88mxjbzlwzyxsbncd8337dd1/shadow_frame_debugger_1.png" alt="image"></p>
+<p>Unity绘制屏幕阴影的过程<br>
+<img src="http://static.zybuluo.com/candycat/fv1abzu7knq289amxegwxqki/shadow_frame_debugger_2.png" alt="image"></p>
+<h6 id="统一管理光照衰减和纹理">统一管理光照衰减和纹理</h6>
+<p>实际上，光照衰减和阴影对物体最终渲染结果的影响本质上是相同的——我们都是把光照衰减和阴影值及光照结果相乘得到最终的渲染结果。通过内置的UNITY_LIGHT_ATTENUATION，可以同时计算两个信息。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">// UNITY_LIGHT_ATTENUATION not only compute attenuation, but also shadow infos</span><br><span class="line">// 可自行查看这个宏的定义（Rider可以跳转）</span><br><span class="line">UNITY_LIGHT_ATTENUATION(atten,i,i.worldPos);</span><br><span class="line"></span><br><span class="line">// return fixed4(ambient+(diffuse+specular)*atten*shadow,1.0);</span><br><span class="line">return fixed4(ambient+(diffuse+specular)*atten,1.0);</span><br></pre></td></tr></table></figure>
+<h6 id="透明度物体的阴影">透明度物体的阴影</h6>
+<ul>
+<li>对大多数不透明物体来说，把Fallback设为VertexLit就可以得到正确的阴影。对于透明物体，要小心处理。</li>
+<li>透明度测试如果使用VertexLit、Diffuse、Specular等作为回调，往往无法得到正确的阴影（镂空处的阴影显示不出来）。</li>
+<li>可以使用Transparent/Cutout/VertexLit作为Fallback，在这个Fallback中，使用了名为_Cutoff的属性来进行透明度测试。。</li>
+<li>可以使用上节<strong>让物体接收阴影</strong>的方法同样可以让透明度测试的物体接收阴影</li>
+<li>需要MeshRenderer组件中的CastShadows属性设置为TwoSided，才能得到更为真实的阴影（背面的镂空遮挡）</li>
+</ul>
+<center>
+<img src="http://static.zybuluo.com/candycat/v0wel6w64l5x0intcrfp3vdt/alpha_test_shadow_0.png" width=200/>
+<img src="http://static.zybuluo.com/candycat/ap18z7090krmbw2ftx2u3e6z/alpha_test_shadow_1.png" width=200/>
+<img src="http://static.zybuluo.com/candycat/g4hli2g5m1371d7h1bowc4jj/alpha_test_shadow_2.png" width=300/>
+</center>
+<ul>
+<li>对于透明度混合，因为关闭了深度写入，所以阴影处理很复杂。所有内置的透明度混合的UnityShader，如Transparent/VertexLit都不包含阴影投射的Pass，它不会向其他物体投射阴影，也不会接收来自其他物体的阴影。</li>
+<li>如果强行设置它们的Fallback为VertexLit、Diffuse等，阴影会投射到半透明物体表面，也是不正确的（阴影没有穿过透明物体）。<br>
+<img src="http://static.zybuluo.com/candycat/00c0x6mhf74ru1kd9ejdwlko/alpha_blend_shadow1.png" alt="image"></li>
+</ul>
+<h3 id="本书使用的标准UnityShader">本书使用的标准UnityShader</h3>
+<p>之前作者一直强调，代码不能用到实际项目中，因为缺少了一些光照计算。现在已经学习了Unity中所有的基础光照计算，如多光源、阴影和光照衰减，可以整合到一起实现一个标准光照着色器了。</p>
+<p>在本书资源的Assets/Shaders/Common中提供了BumpedDiffuse和BumpedSpecular，都包含了对法线纹理、多光源、光照衰减和阴影的处理。BumpedDiffuse使用了Phong光照模型，BumpedSpecular使用了Blinn-Phong光照模型。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br></pre></td><td class="code"><pre><span class="line">// Upgrade NOTE: replaced &#x27;_Object2World&#x27; with &#x27;unity_ObjectToWorld&#x27;</span><br><span class="line">// Upgrade NOTE: replaced &#x27;mul(UNITY_MATRIX_MVP,*)&#x27; with &#x27;UnityObjectToClipPos(*)&#x27;</span><br><span class="line"></span><br><span class="line">Shader &quot;Unity Shaders Book/Common/Bumped Specular&quot; &#123;</span><br><span class="line">	Properties &#123;</span><br><span class="line">		_Color (&quot;Color Tint&quot;, Color) = (1, 1, 1, 1)</span><br><span class="line">		_MainTex (&quot;Main Tex&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">		_BumpMap (&quot;Normal Map&quot;, 2D) = &quot;bump&quot; &#123;&#125;</span><br><span class="line">		_Specular (&quot;Specular Color&quot;, Color) = (1, 1, 1, 1)</span><br><span class="line">		_Gloss (&quot;Gloss&quot;, Range(8.0, 256)) = 20</span><br><span class="line">	&#125;</span><br><span class="line">	SubShader &#123;</span><br><span class="line">		Tags &#123; &quot;RenderType&quot;=&quot;Opaque&quot; &quot;Queue&quot;=&quot;Geometry&quot;&#125;</span><br><span class="line">		</span><br><span class="line">		Pass &#123; </span><br><span class="line">			Tags &#123; &quot;LightMode&quot;=&quot;ForwardBase&quot; &#125;</span><br><span class="line">		</span><br><span class="line">			CGPROGRAM</span><br><span class="line">			</span><br><span class="line">			#pragma multi_compile_fwdbase	</span><br><span class="line">			</span><br><span class="line">			#pragma vertex vert</span><br><span class="line">			#pragma fragment frag</span><br><span class="line">			</span><br><span class="line">			#include &quot;UnityCG.cginc&quot;</span><br><span class="line">			#include &quot;Lighting.cginc&quot;</span><br><span class="line">			#include &quot;AutoLight.cginc&quot;</span><br><span class="line">			</span><br><span class="line">			fixed4 _Color;</span><br><span class="line">			sampler2D _MainTex;</span><br><span class="line">			float4 _MainTex_ST;</span><br><span class="line">			sampler2D _BumpMap;</span><br><span class="line">			float4 _BumpMap_ST;</span><br><span class="line">			fixed4 _Specular;</span><br><span class="line">			float _Gloss;</span><br><span class="line">			</span><br><span class="line">			struct a2v &#123;</span><br><span class="line">				float4 vertex : POSITION;</span><br><span class="line">				float3 normal : NORMAL;</span><br><span class="line">				float4 tangent : TANGENT;</span><br><span class="line">				float4 texcoord : TEXCOORD0;</span><br><span class="line">			&#125;;</span><br><span class="line">			</span><br><span class="line">			struct v2f &#123;</span><br><span class="line">				float4 pos : SV_POSITION;</span><br><span class="line">				float4 uv : TEXCOORD0;</span><br><span class="line">				float4 TtoW0 : TEXCOORD1;  </span><br><span class="line">                float4 TtoW1 : TEXCOORD2;  </span><br><span class="line">                float4 TtoW2 : TEXCOORD3; </span><br><span class="line">				SHADOW_COORDS(4)</span><br><span class="line">			&#125;;</span><br><span class="line">			</span><br><span class="line">			v2f vert(a2v v) &#123;</span><br><span class="line">			 	v2f o;</span><br><span class="line">			 	o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">			 </span><br><span class="line">			 	o.uv.xy = v.texcoord.xy * _MainTex_ST.xy + _MainTex_ST.zw;</span><br><span class="line">			 	o.uv.zw = v.texcoord.xy * _BumpMap_ST.xy + _BumpMap_ST.zw;</span><br><span class="line"></span><br><span class="line">				TANGENT_SPACE_ROTATION;</span><br><span class="line">				</span><br><span class="line">				float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;  </span><br><span class="line">                fixed3 worldNormal = UnityObjectToWorldNormal(v.normal);  </span><br><span class="line">                fixed3 worldTangent = UnityObjectToWorldDir(v.tangent.xyz);  </span><br><span class="line">                fixed3 worldBinormal = cross(worldNormal, worldTangent) * v.tangent.w; </span><br><span class="line">                </span><br><span class="line">                o.TtoW0 = float4(worldTangent.x, worldBinormal.x, worldNormal.x, worldPos.x);  </span><br><span class="line">                o.TtoW1 = float4(worldTangent.y, worldBinormal.y, worldNormal.y, worldPos.y);  </span><br><span class="line">                o.TtoW2 = float4(worldTangent.z, worldBinormal.z, worldNormal.z, worldPos.z);  </span><br><span class="line">  				</span><br><span class="line">  				TRANSFER_SHADOW(o);</span><br><span class="line">			 	</span><br><span class="line">			 	return o;</span><br><span class="line">			&#125;</span><br><span class="line">			</span><br><span class="line">			fixed4 frag(v2f i) : SV_Target &#123;</span><br><span class="line">				float3 worldPos = float3(i.TtoW0.w, i.TtoW1.w, i.TtoW2.w);</span><br><span class="line">				fixed3 lightDir = normalize(UnityWorldSpaceLightDir(worldPos));</span><br><span class="line">				fixed3 viewDir = normalize(UnityWorldSpaceViewDir(worldPos));</span><br><span class="line">				</span><br><span class="line">				fixed3 bump = UnpackNormal(tex2D(_BumpMap, i.uv.zw));</span><br><span class="line">				bump = normalize(half3(dot(i.TtoW0.xyz, bump), dot(i.TtoW1.xyz, bump), dot(i.TtoW2.xyz, bump)));</span><br><span class="line"></span><br><span class="line">				fixed3 albedo = tex2D(_MainTex, i.uv.xy).rgb * _Color.rgb;</span><br><span class="line">				</span><br><span class="line">				fixed3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz * albedo;</span><br><span class="line">				</span><br><span class="line">			 	fixed3 diffuse = _LightColor0.rgb * albedo * max(0, dot(bump, lightDir));</span><br><span class="line">			 	</span><br><span class="line">			 	fixed3 halfDir = normalize(lightDir + viewDir);</span><br><span class="line">			 	fixed3 specular = _LightColor0.rgb * _Specular.rgb * pow(max(0, dot(bump, halfDir)), _Gloss);</span><br><span class="line">			</span><br><span class="line">				UNITY_LIGHT_ATTENUATION(atten, i, worldPos);</span><br><span class="line"></span><br><span class="line">				return fixed4(ambient + (diffuse + specular) * atten, 1.0);</span><br><span class="line">			&#125;</span><br><span class="line">			</span><br><span class="line">			ENDCG</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		Pass &#123; </span><br><span class="line">			Tags &#123; &quot;LightMode&quot;=&quot;ForwardAdd&quot; &#125;</span><br><span class="line">			</span><br><span class="line">			Blend One One</span><br><span class="line">		</span><br><span class="line">			CGPROGRAM</span><br><span class="line">			</span><br><span class="line">			#pragma multi_compile_fwdadd</span><br><span class="line">			// Use the line below to add shadows for point and spot lights</span><br><span class="line">//			#pragma multi_compile_fwdadd_fullshadows</span><br><span class="line">			</span><br><span class="line">			#pragma vertex vert</span><br><span class="line">			#pragma fragment frag</span><br><span class="line">			</span><br><span class="line">			#include &quot;Lighting.cginc&quot;</span><br><span class="line">			#include &quot;AutoLight.cginc&quot;</span><br><span class="line">			</span><br><span class="line">			fixed4 _Color;</span><br><span class="line">			sampler2D _MainTex;</span><br><span class="line">			float4 _MainTex_ST;</span><br><span class="line">			sampler2D _BumpMap;</span><br><span class="line">			float4 _BumpMap_ST;</span><br><span class="line">			float _BumpScale;</span><br><span class="line">			fixed4 _Specular;</span><br><span class="line">			float _Gloss;</span><br><span class="line">			</span><br><span class="line">			struct a2v &#123;</span><br><span class="line">				float4 vertex : POSITION;</span><br><span class="line">				float3 normal : NORMAL;</span><br><span class="line">				float4 tangent : TANGENT;</span><br><span class="line">				float4 texcoord : TEXCOORD0;</span><br><span class="line">			&#125;;</span><br><span class="line">			</span><br><span class="line">			struct v2f &#123;</span><br><span class="line">				float4 pos : SV_POSITION;</span><br><span class="line">				float4 uv : TEXCOORD0;</span><br><span class="line">				float4 TtoW0 : TEXCOORD1;  </span><br><span class="line">                float4 TtoW1 : TEXCOORD2;  </span><br><span class="line">                float4 TtoW2 : TEXCOORD3;</span><br><span class="line">				SHADOW_COORDS(4)</span><br><span class="line">			&#125;;</span><br><span class="line">			</span><br><span class="line">			v2f vert(a2v v) &#123;</span><br><span class="line">			 	v2f o;</span><br><span class="line">			 	o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">			 </span><br><span class="line">			 	o.uv.xy = v.texcoord.xy * _MainTex_ST.xy + _MainTex_ST.zw;</span><br><span class="line">			 	o.uv.zw = v.texcoord.xy * _BumpMap_ST.xy + _BumpMap_ST.zw;</span><br><span class="line"></span><br><span class="line">				float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;  </span><br><span class="line">                fixed3 worldNormal = UnityObjectToWorldNormal(v.normal);  </span><br><span class="line">                fixed3 worldTangent = UnityObjectToWorldDir(v.tangent.xyz);  </span><br><span class="line">                fixed3 worldBinormal = cross(worldNormal, worldTangent) * v.tangent.w; </span><br><span class="line">	</span><br><span class="line">  				o.TtoW0 = float4(worldTangent.x, worldBinormal.x, worldNormal.x, worldPos.x);</span><br><span class="line">			  	o.TtoW1 = float4(worldTangent.y, worldBinormal.y, worldNormal.y, worldPos.y);</span><br><span class="line">			  	o.TtoW2 = float4(worldTangent.z, worldBinormal.z, worldNormal.z, worldPos.z);  </span><br><span class="line">			 	</span><br><span class="line">			 	TRANSFER_SHADOW(o);</span><br><span class="line">			 	</span><br><span class="line">			 	return o;</span><br><span class="line">			&#125;</span><br><span class="line">			</span><br><span class="line">			fixed4 frag(v2f i) : SV_Target &#123;</span><br><span class="line">				float3 worldPos = float3(i.TtoW0.w, i.TtoW1.w, i.TtoW2.w);</span><br><span class="line">				fixed3 lightDir = normalize(UnityWorldSpaceLightDir(worldPos));</span><br><span class="line">				fixed3 viewDir = normalize(UnityWorldSpaceViewDir(worldPos));</span><br><span class="line">				</span><br><span class="line">				fixed3 bump = UnpackNormal(tex2D(_BumpMap, i.uv.zw));</span><br><span class="line">				bump = normalize(half3(dot(i.TtoW0.xyz, bump), dot(i.TtoW1.xyz, bump), dot(i.TtoW2.xyz, bump)));</span><br><span class="line">				</span><br><span class="line">				fixed3 albedo = tex2D(_MainTex, i.uv.xy).rgb * _Color.rgb;</span><br><span class="line">				</span><br><span class="line">			 	fixed3 diffuse = _LightColor0.rgb * albedo * max(0, dot(bump, lightDir));</span><br><span class="line">			 	</span><br><span class="line">			 	fixed3 halfDir = normalize(lightDir + viewDir);</span><br><span class="line">			 	fixed3 specular = _LightColor0.rgb * _Specular.rgb * pow(max(0, dot(bump, halfDir)), _Gloss);</span><br><span class="line">			</span><br><span class="line">				UNITY_LIGHT_ATTENUATION(atten, i, worldPos);</span><br><span class="line"></span><br><span class="line">				return fixed4((diffuse + specular) * atten, 1.0);</span><br><span class="line">			&#125;</span><br><span class="line">			</span><br><span class="line">			ENDCG</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; </span><br><span class="line">	FallBack &quot;Specular&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>查看内置宏时的一些参考链接</p>
+</blockquote>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zengjunjie59/article/details/111051249">UnityClipSpaceShadowCasterPos–投射阴影时的顶点法向偏差</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.codenong.com/cs111036094/">UnityApplyLinearShadowBias — Unity中计算阴影bias的方法</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/342940250">有没有大神能解释一下normal bias到底是怎么作用的?</a></li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/b409fafc/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity Shader入门精要-章节10 高级纹理</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/a10ea70/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity Shader入门精要-章节08 透明效果</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

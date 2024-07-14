@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>Unity Shader入门精要-章节14 非真实感渲染 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">Unity Shader入门精要-章节14 非真实感渲染</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2022-10-24T14:33:00.000Z" itemprop="datePublished">2022-10-24</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-07-14T09:03:59.225Z" itemprop="dateUpdated">2024-07-14</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/">🏷️ Unity Shader入门精要</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <p>求知若饥，虚心若愚</p>
+<span id="more"></span>
+<blockquote>
+<p>尽管游戏渲染一般都是以<strong>照相写实主义(photorealism)</strong> 作为主要目标，但也有许多游戏使用了<strong>非真实感渲染(Non-Photorealistic Rendering, NPR)</strong> 的方法来渲染游戏画面。非真实感渲染的一个主要目标是，使用一些渲染方法使得画面达到和某些特殊的绘画风格相似的效果，例如卡通、水彩风格等。</p>
+</blockquote>
+<h3 id="卡通风格的渲染">卡通风格的渲染</h3>
+<p>使用这种风格的游戏画面通常有一些共有的特点，例如物体被黑色的线条描边，分明的明暗变化等。</p>
+<p>实现卡通渲染的方法之一是<strong>基于色调的着色技术（tone-based shading）</strong></p>
+<ol>
+<li>使用漫反射系数对一维纹理采样，来控制漫反射的色调</li>
+<li>高光往往是一块块分界明显的纯色区域</li>
+<li>通常要在物体边缘部分绘制轮廓（这里使用基于模型的描边而不是后处理，这种更加简单，效果还不错）</li>
+</ol>
+<center>
+<img src="http://static.zybuluo.com/candycat/aa2hjqkoibcqmq5g5azdkrfb/okami_announce_screens6.jpg"/>
+<p>游戏《大神》（英文名：Okami）的游戏截图</p>
+</center>
+<h6 id="渲染轮廓线">渲染轮廓线</h6>
+<p>近20年，有许多绘制模型轮廓线的方法被先后提出来，在《Real Time Rendering, third edition》一书中，作者把这些方法分成了5种类型：</p>
+<ul>
+<li>基于观察角度和表面法线的轮廓线渲染，使用视角方向和表面法线的点乘结果来得到轮廓线的信息。简单快速，效果不好，只需要一个Pass。</li>
+<li>过程式几何轮廓线渲染：使用两个Pass渲染，先渲染背面的面片使轮廓可见，再正常渲染正面的面片。快速有效，适合绝大多数表面光滑的模型，不适合类似立方体这样平整的模型</li>
+<li>基于图像处理的轮廓线渲染：12、13章介绍的边缘检测方法。适用于任何种类的模型，但一些深度和法线变化很小的无法检测，如桌子上的纸张</li>
+<li>基于轮廓边检测的轮廓线渲染：前面的方法无法控制轮廓线的渲染风格，这种可以检测出精准的轮廓边，然后直接渲染它们。判断相邻两个三角面片，是否一个朝正面一个朝背面，判断是否满足(n0·v&gt;0)≠(n1·v&gt;0)，通过几何着色器帮助下完成。缺点是实现相对复杂，而且还有动画连贯性问题，因为是逐帧单独提取，所以帧与帧之间会出现跳跃</li>
+<li>混合上述几种渲染方法：例如先找到精确的轮廓边，把模型和轮廓边渲染到纹理中，再用图像处理的方法识别出轮廓线，并在图像空间下进行风格化渲染</li>
+</ul>
+<p>这里使用过程式几何轮廓线渲染的方法。在第一个Pass中，使用轮廓线颜色渲染整个背面面片，在视角空间下把模型顶点沿着法线方向向外扩展一段距离，让背部轮廓线可见：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">viewPos = viewPos + viewNormal * _Outline;</span><br></pre></td></tr></table></figure>
+<p>为了防止内凹模型发生背面面片遮挡正面的情况，扩张之前要对顶点法线的z分量进行处理使它们等于定值，然后法线归一化再扩张顶点。这样的好处是扩张后的背面更加扁平化，降低了遮挡正面的可能性：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">viewNormal.z = -0.5;</span><br><span class="line">viewNormal = normalize(viewNormal);</span><br><span class="line">viewPos = viewPos + viewNormal * _Outline;</span><br></pre></td></tr></table></figure>
+<h6 id="添加高光">添加高光</h6>
+<p>卡通高光反射光照模型和Blinn-Phong模型类似，同样要计算normal和halfDir的点乘结果，然后和一个阈值进行比较。使用step函数进行比较，第一个参数是参考值，第二个是带比较的数值，如果后者大于前者，就返回1，否则0：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">float spec = dot(worldNormal, worldHalfDir);</span><br><span class="line">spec = step(threshold, spec);</span><br></pre></td></tr></table></figure>
+<p>但这种方法会在边界造成锯齿，这是因为高光区域的边缘不是平滑渐变的，而是0突变到1。所以需要进行抗锯齿处理，可以在边界处很小的一块区域进行平滑处理。使用了CG的smoothstep函数，w是一个很小的值，当spec-threshold小于-w时返回0，大于w时返回1，否则在0到1之间进行差值。w的值可以通过CG的fwidth函数得到领域像素之间的近似导数值：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">float spec = dot(worldNormal, worldHalfDir);</span><br><span class="line">spec = lerp(0, 1, smoothstep(-w, w, spec - threshold));</span><br></pre></td></tr></table></figure>
+<center>
+<img src="http://static.zybuluo.com/candycat/z8c9f6kzclslbl0wdw7gxach/antialiasing.png"/>
+<p>左图：未对高光区域进行抗锯齿处理。右图：使用fwidth函数对高光区域进行抗锯齿处理</p>
+</center>
+<h6 id="实现">实现</h6>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Unity Shaders Learn/Chapter14/Toon Shading&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Color (&quot;Color Tint&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _MainTex (&quot;Main Tex&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _Ramp (&quot;Ramp Tex&quot;, 2D) = &quot;white&quot; &#123;&#125;                         //控制漫反射色调的渐变纹理</span><br><span class="line">        _Outline (&quot;Outline&quot;, Range(0, 1)) = 0.1                     //控制轮廓线宽度</span><br><span class="line">        _OutlineColor (&quot;Outline Color&quot;, Color) = (0,0,0,1)</span><br><span class="line">        _Specular (&quot;Specular&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _SpecularScale (&quot;Specular Scale&quot;, Range(0, 0.1)) = 0.01     //用于控制高光反射使用的阈值</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        CGINCLUDE</span><br><span class="line">        fixed4 _Color;</span><br><span class="line">        sampler2D _MainTex;</span><br><span class="line">        float4 _MainTex_ST;</span><br><span class="line">        sampler2D _Ramp;</span><br><span class="line">        fixed _Outline;</span><br><span class="line">        fixed4 _OutlineColor;</span><br><span class="line">        fixed4 _Specular;</span><br><span class="line">        fixed _SpecularScale;</span><br><span class="line"></span><br><span class="line">        #include &quot;Lighting.cginc&quot;</span><br><span class="line">        #include &quot;AutoLight.cginc&quot;</span><br><span class="line">        #include &quot;UnityCG.cginc&quot;</span><br><span class="line">        ENDCG</span><br><span class="line">        //画轮廓线</span><br><span class="line">        Pass </span><br><span class="line">        &#123;</span><br><span class="line">            NAME &quot;OUTLINE&quot;</span><br><span class="line">            Cull Front</span><br><span class="line">            </span><br><span class="line">            CGPROGRAM</span><br><span class="line">            #pragma vertex vert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line"></span><br><span class="line">            struct a2v</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line"></span><br><span class="line">                float4 pos = mul(UNITY_MATRIX_MV, v.vertex);</span><br><span class="line">                float3 normal = mul((float3x3)UNITY_MATRIX_IT_MV, v.normal);</span><br><span class="line">                normal.z = -0.5;</span><br><span class="line">                pos = pos + float4(normalize(normal), 0) * _Outline;</span><br><span class="line">                o.pos = mul(UNITY_MATRIX_P, pos);</span><br><span class="line"></span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            float4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                return float4(_OutlineColor.rgb, 1.0f);</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        //渲染卡通光照</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123;&quot;LightMode&quot; = &quot;ForwardBase&quot;&#125;</span><br><span class="line">            Cull Back</span><br><span class="line">            </span><br><span class="line">            CGPROGRAM</span><br><span class="line">            #pragma vertex vert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line"></span><br><span class="line">            #pragma multi_compile_fwdbase</span><br><span class="line"></span><br><span class="line">            struct a2v</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">                float4 texcoord : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line">                float3 worldNormal : TEXCOORD1;</span><br><span class="line">                float3 worldPos : TEXCOORD2;</span><br><span class="line">                SHADOW_COORDS(3)</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line"></span><br><span class="line">                o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">                o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);</span><br><span class="line">                o.worldNormal = UnityObjectToWorldNormal(v.normal);</span><br><span class="line">                o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;</span><br><span class="line">                TRANSFER_SHADOW(o);</span><br><span class="line">                </span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            float4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                fixed3 worldNormal = normalize(i.worldNormal);</span><br><span class="line">                fixed3 worldLightDir = UnityWorldSpaceLightDir(i.worldPos);</span><br><span class="line">                fixed3 worldViewDir = UnityWorldSpaceViewDir(i.worldPos);</span><br><span class="line">                fixed3 worldHalfDir = normalize(worldLightDir + worldViewDir);</span><br><span class="line"></span><br><span class="line">                fixed4 c = tex2D(_MainTex, i.uv);</span><br><span class="line">                fixed3 albedo = c.rgb * _Color.rgb;</span><br><span class="line"></span><br><span class="line">                fixed3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz * albedo;</span><br><span class="line"></span><br><span class="line">                UNITY_LIGHT_ATTENUATION(atten, i, i.worldPos);</span><br><span class="line"></span><br><span class="line">                fixed diff = dot(worldNormal, worldLightDir);</span><br><span class="line">                diff = (diff * 0.5 + 0.5) * atten;  //半兰伯特*光照衰减和阴影</span><br><span class="line"></span><br><span class="line">                // 使用漫反射系数对渐变纹理采样</span><br><span class="line">                fixed3 diffuse = _LightColor0.rgb * albedo * tex2D(_Ramp, float2(diff, diff)).rgb;</span><br><span class="line"></span><br><span class="line">                fixed spec = dot(worldNormal, worldHalfDir);</span><br><span class="line">                // 对高光区域的边界值进行抗锯齿处理</span><br><span class="line">                fixed w = fwidth(spec) * 2.0;</span><br><span class="line">                // 将高光系数和阈值比较，在[-w,w]区间内得到一个平滑[0,1]变化的spec值</span><br><span class="line">                // step(0.0001, _SpecularScale)是为了_SpecularScale为0时可以完全消除高光</span><br><span class="line">                fixed3 specular = _Specular.rgb * lerp(</span><br><span class="line">                    0, 1, smoothstep(-w, w, spec + _SpecularScale - 1)) * step(0.0001, _SpecularScale);</span><br><span class="line"></span><br><span class="line">                return fixed4(ambient + diffuse + specular, 1.0);</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    FallBack &quot;Diffuse&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<center>
+<img src="http://static.zybuluo.com/candycat/0x7o2vyl6fn74gwtunvdgufp/toon_shading.png"/>
+<p>卡通风格的渲染效果</p>
+</center>
+<h3 id="素描风格的渲染">素描风格的渲染</h3>
+<p>微软研究院的Praun等人在2001年的SIGGRAPH上发表了论文，使用提前生成的素描纹理来实现实时的素描风格渲染，这些纹理组成了一个<strong>色调艺术映射（Tonal Art Map, TAM）</strong> ，如下图从左到右笔触逐渐增多，用于模拟不同光照下的漫反射效果。下图从上到下对应每张纹理的多级渐远纹理（mipmaps），这些多级渐远纹理的生成并不是简单的对上一层纹理进行降采样，而是需要保持笔触之间的间隔，以便更真实的模拟素描效果：</p>
+<center>
+<img src="http://static.zybuluo.com/candycat/9h63lflg1a7f759pw5cwfqvz/TAM.png"/>
+<p>一个TAM的例子（来源：Praun E, et al. Real-time hatching4）</p>
+</center>
+<p>这里使用简化版，不考虑mipmaps的生成，直接使用6张素描纹理进行渲染。在顶点着色器计算逐顶点的光照，根据光照结果决定6张纹理的混合权重，并传给片元着色器。在片元着色器中根据这些权重来混合6张纹理的采样结果。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Unity Shaders Learn/Chapter14/Hatching&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Color (&quot;Color Tint&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _Outline (&quot;Outline&quot;, Range(0, 1)) = 0.1</span><br><span class="line">        _TileFactor (&quot;Tile Factor&quot;, Float) = 1  //纹理的平铺系数，_TileFactor越大，模型上的素描线条越密</span><br><span class="line">        _Hatch0 (&quot;Hatch 0&quot;, 2D) = &quot;white&quot; &#123;&#125;    //对应了6张素描纹理，线条密度依次增大</span><br><span class="line">        _Hatch1 (&quot;Hatch 1&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _Hatch2 (&quot;Hatch 2&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _Hatch3 (&quot;Hatch 3&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _Hatch4 (&quot;Hatch 4&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _Hatch5 (&quot;Hatch 5&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags &#123;&quot;RenderType&quot;=&quot;Opaque&quot; &quot;Queue&quot;=&quot;Geometry&quot;&#125;</span><br><span class="line">        </span><br><span class="line">        UsePass &quot;Unity Shaders Learn/Chapter14/Toon Shading/OUTLINE&quot;</span><br><span class="line">        </span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123;&quot;LightMode&quot;=&quot;ForwardBase&quot;&#125;</span><br><span class="line">            CGPROGRAM</span><br><span class="line">            #pragma vertex vert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line"></span><br><span class="line">            fixed4 _Color;</span><br><span class="line">            fixed _Outline;</span><br><span class="line">            float _TileFactor;</span><br><span class="line">            sampler2D _Hatch0;</span><br><span class="line">            sampler2D _Hatch1;</span><br><span class="line">            sampler2D _Hatch2;</span><br><span class="line">            sampler2D _Hatch3;</span><br><span class="line">            sampler2D _Hatch4;</span><br><span class="line">            sampler2D _Hatch5;</span><br><span class="line"></span><br><span class="line">            #include &quot;UnityCG.cginc&quot;</span><br><span class="line">            #include &quot;AutoLight.cginc&quot;</span><br><span class="line"></span><br><span class="line">            #pragma multi_compile_fwdbase</span><br><span class="line"></span><br><span class="line">            struct a2v</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">                float4 texcoord : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line">                fixed3 hatchWeights0 : TEXCOORD1;</span><br><span class="line">                fixed3 hatchWeights1 : TEXCOORD2;</span><br><span class="line">                float3 worldPos : TEXCOORD3;</span><br><span class="line">                SHADOW_COORDS(4)</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line">                o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">                o.uv = v.texcoord.xy * _TileFactor;</span><br><span class="line"></span><br><span class="line">                // 根据漫反射系数来决定素描纹理权重</span><br><span class="line">                fixed3 worldLightDir = normalize(WorldSpaceLightDir(v.vertex));</span><br><span class="line">                fixed3 worldNormal = UnityObjectToWorldNormal(v.normal);</span><br><span class="line">                fixed diff = saturate(dot(worldLightDir, worldNormal));</span><br><span class="line"></span><br><span class="line">                o.hatchWeights0 = fixed3(0,0,0);</span><br><span class="line">                o.hatchWeights1 = fixed3(0,0,0);</span><br><span class="line"></span><br><span class="line">                // 将hatchFactor划分为7个子区间（六张纹理和纯白色），判断hatchFactor所处子区间来计算对应的纹理混合权重</span><br><span class="line">                float hatchFactor = diff * 7.0;</span><br><span class="line">                if (hatchFactor &gt; 6.0)</span><br><span class="line">                &#123;</span><br><span class="line">                    // Pure white, do nothing</span><br><span class="line">                &#125;else if (hatchFactor &gt; 5.0)</span><br><span class="line">                &#123;</span><br><span class="line">                    o.hatchWeights0.x = hatchFactor - 5.0;</span><br><span class="line">                &#125;else if (hatchFactor &gt; 4.0)</span><br><span class="line">                &#123;</span><br><span class="line">                    o.hatchWeights0.x = hatchFactor - 4.0;</span><br><span class="line">                    o.hatchWeights0.y = 1 - o.hatchWeights0.x;</span><br><span class="line">                &#125;else if (hatchFactor &gt; 3.0)</span><br><span class="line">                &#123;</span><br><span class="line">                    o.hatchWeights0.y = hatchFactor - 3.0;</span><br><span class="line">                    o.hatchWeights0.z = 1 - o.hatchWeights0.y;</span><br><span class="line">                &#125;</span><br><span class="line">                else if (hatchFactor &gt; 2.0)</span><br><span class="line">                &#123;</span><br><span class="line">                    o.hatchWeights0.z = hatchFactor - 2.0;</span><br><span class="line">                    o.hatchWeights1.x = 1 - o.hatchWeights0.z;</span><br><span class="line">                &#125;else if (hatchFactor &gt; 1.0)</span><br><span class="line">                &#123;</span><br><span class="line">                    o.hatchWeights1.x = hatchFactor - 1.0;</span><br><span class="line">                    o.hatchWeights1.y = 1 - o.hatchWeights1.x;</span><br><span class="line">                &#125;</span><br><span class="line">                else</span><br><span class="line">                &#123;</span><br><span class="line">                    o.hatchWeights1.y = hatchFactor;</span><br><span class="line">                    o.hatchWeights1.z = 1 - o.hatchWeights1.y;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;</span><br><span class="line"></span><br><span class="line">                TRANSFER_SHADOW(o);</span><br><span class="line"></span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            fixed4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                // 计算六张纹理和白色的混合</span><br><span class="line">                fixed4 hatchTex0 = tex2D(_Hatch0, i.uv) * i.hatchWeights0.x;</span><br><span class="line">                fixed4 hatchTex1 = tex2D(_Hatch1, i.uv) * i.hatchWeights0.y;</span><br><span class="line">                fixed4 hatchTex2 = tex2D(_Hatch2, i.uv) * i.hatchWeights0.z;</span><br><span class="line">                fixed4 hatchTex3 = tex2D(_Hatch3, i.uv) * i.hatchWeights1.x;</span><br><span class="line">                fixed4 hatchTex4 = tex2D(_Hatch4, i.uv) * i.hatchWeights1.y;</span><br><span class="line">                fixed4 hatchTex5 = tex2D(_Hatch5, i.uv) * i.hatchWeights1.z;</span><br><span class="line">                fixed4 whiteColor = fixed4(1,1,1,1) *</span><br><span class="line">                    (1 - i.hatchWeights0.x - i.hatchWeights0.y - i.hatchWeights0.z</span><br><span class="line">                       - i.hatchWeights1.x - i.hatchWeights1.y - i.hatchWeights1.z);</span><br><span class="line">                fixed4 hatchColor = hatchTex0 + hatchTex1 + hatchTex2 + hatchTex3 + hatchTex4 + hatchTex5 + whiteColor;</span><br><span class="line"></span><br><span class="line">                UNITY_LIGHT_ATTENUATION(atten, i, i.worldPos);</span><br><span class="line"></span><br><span class="line">                return fixed4(hatchColor.rgb * _Color.rgb * atten, 1.0);</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    FallBack &quot;Diffuse&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<center>
+<img src="http://static.zybuluo.com/candycat/60jzr7ly5yqqcg09rfrc3icb/hatching.png"/>
+<p>素描风格的渲染效果</p>
+</center>
+<h3 id="扩展阅读">扩展阅读</h3>
+<ol>
+<li>国际讨论会NPAR(Non-Photorealistic Animation and Rendering)上有许多关于非真实感渲染的论文</li>
+<li>浙江大学耿卫东《艺术化绘制的图形学原理与方法》（英文名：The Algorithms and Principles of Non-photorealistic Graphics）</li>
+<li>Unity资源商店一个免费的卡通资源包，实现了包括轮廓线渲染等卡通风格的渲染，ToonShaderFree：<a target="_blank" rel="noopener" href="https://assetstore.unity.com/packages/vfx/shaders/toon-shader-free-21288">https://assetstore.unity.com/packages/vfx/shaders/toon-shader-free-21288</a></li>
+<li>Unity资源商店一个收费的卡通资源包，包含了更多的卡通风格UnityShader，ToonStylesShaderPack</li>
+<li>收费资源包，铅笔渲染、蜡笔渲染等多种手绘风格的NPR效果，HandDrawnShaderPack：<a target="_blank" rel="noopener" href="https://assetstore.unity.com/packages/vfx/shaders/hand-drawn-shader-pack-12465">https://assetstore.unity.com/packages/vfx/shaders/hand-drawn-shader-pack-12465</a></li>
+</ol>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/ee23abba/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity Shader入门精要-章节15 使用噪声</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/6f79e3e1/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity Shader入门精要-章节13 使用深度和法线纹理</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

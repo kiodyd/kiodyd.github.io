@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>Unity Shader入门精要-章节08 透明效果 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">Unity Shader入门精要-章节08 透明效果</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2022-10-10T14:33:00.000Z" itemprop="datePublished">2022-10-10</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-07-14T09:03:59.223Z" itemprop="dateUpdated">2024-07-14</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/">🏷️ Unity Shader入门精要</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <p>求知若饥，虚心若愚</p>
+<span id="more"></span>
+<blockquote>
+<p>在实时渲染中要实现透明效果，通常会在渲染模型时控制它的透明通道。<br>
+当开启透明混合后，当一个物体被渲染到屏幕上时，每个片元除了颜色值和深度值之外，它还有另一个属性–透明度。</p>
+</blockquote>
+<p>++<em><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/28557283">参考文章</a></em>++</p>
+<h3 id="为什么渲染顺序很重要">为什么渲染顺序很重要</h3>
+<p>在渲染不透明物体时由于深度缓冲的存在，即使不去理会渲染顺序也不打紧。渲染每个片元时，会对比深度缓冲里的值，当这个片元离摄像机更近时（缓冲值比较）才会覆盖原来颜色缓冲的像素值，并将这个片元更新到深度缓冲中。</p>
+<p>但是渲染不透明物体时，需要关闭深度写入。原因是透明物体背面的物体本身可以看到，但如果透明物体写入了深度缓冲中，由于背后这个物体深度测试不过，便会被舍弃，也就达不到我们预期的效果。</p>
+<p>但是关闭深度写入，会带来其他问题。<br>
+<img src="http://static.zybuluo.com/candycat/48l0aapqc57v0gn367tk2akx/render_order_0.png" alt="image"></p>
+<p>假如有透明物体A和不透明物体B，A先渲染，由于A不透明所以关闭了深度写入，接着渲染B，此时深度缓冲中没有值，所以直接覆盖掉A的颜色，这就导致渲染出错了。同理即使两个物体都是不透明物体，先渲染离摄像机近的也会得到错误的结果。</p>
+<p>基于这两点，渲染引擎一般都会先渲染不透明物体，并开启他们的深度测试和深度写入。然后将半透明物体按它们距离摄像机的远近排序，按从后往前的顺序渲染半透明物体，并开启它们的深度测试，但不开启深度写入。<em><strong>但实际上情况并没有那么理想，存在半透明物体在z轴上交叉的情况，并不能准确排序，除非将模型分割网格。</strong></em></p>
+<p><img src="http://static.zybuluo.com/candycat/hi3bbsss5t48uvmi83uzjle8/render_order_2.png" alt="image"></p>
+<h3 id="Unity-Shader的渲染顺序">Unity Shader的渲染顺序</h3>
+<p>渲染队列，值越小越先渲染。</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>队列索引号</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Background</td>
+<td>1000</td>
+<td>这个渲染队列会在任何其他队列之前渲染，通常用来渲染那些应该在背景的物体</td>
+</tr>
+<tr>
+<td>Geometry</td>
+<td>2000</td>
+<td>默认的渲染队列，大多数物体都使用这个渲染队列，不透明物体使用这个队列</td>
+</tr>
+<tr>
+<td>AlphaTest</td>
+<td>2450</td>
+<td>需要透明度测试的物体使用这个队列，在Unity5中从Geometry队列单独分离出来，这样会更高效。</td>
+</tr>
+<tr>
+<td>Transparent</td>
+<td>3000</td>
+<td>这个队列的物体会在前面那些队列后面渲染，再按从后到前的顺序进行渲染（按照Unity3D的默认做法，在对透明物体在渲染之前的排序，是根据多边形中心点与摄像机的远近来比较的。），任何使用了透明度混合（关闭了深度写入）的物体都应该使用这个队列。</td>
+</tr>
+<tr>
+<td>Overlay</td>
+<td>4000</td>
+<td>该队列用于实现一些叠加效果，任何需要在最后渲染的物体应该使用这个队列</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">// 透明度测试应包含：</span><br><span class="line">SubShader &#123;</span><br><span class="line">    Tags &#123;&quot;Queue&quot;=&quot;AlphaTest&quot;&#125;</span><br><span class="line">    pass &#123;</span><br><span class="line">        ···</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 透明度混合应包含：</span><br><span class="line">SubShader &#123;</span><br><span class="line">    Tags &#123;&quot;Queue&quot;=&quot;Transparent&quot;&#125;</span><br><span class="line">    pass &#123;</span><br><span class="line">        ZWrite Off</span><br><span class="line">        ···</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="透明度测试">透明度测试</h3>
+<p><strong>透明度测试</strong>：只要一个片元的透明度不满足条件（通常是小于某个阈值），那么它对应的片元就会被舍弃。被舍弃的片元不会再进行任何处理，也不会对颜色缓冲产生任何影响，否则会按照正常的不透明片元来处理。</p>
+<p>通常会使用clip函数来处理</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">//参数有多个重载版本，可以是标量也可以是矢量</span><br><span class="line">void clip(float4 x)</span><br><span class="line">&#123;</span><br><span class="line">    if (any(x &lt; 0))</span><br><span class="line">        discard</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>实践</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;UnityShadersLearn/Chapter8/Alpha Test&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Color (&quot;Main Tint&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _MainTex (&quot;Main Tex&quot;, 2D) = &quot;white&quot;&#123;&#125;</span><br><span class="line">        _Cutoff (&quot;Alpha Cutoff&quot;, Range(0, 1)) = 0.5</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        // 具体含义可参考https://zhuanlan.zhihu.com/p/51080323</span><br><span class="line">        // RenderType其实就是分组，可以配合camera.SetReplacementShader (EffectShader, Tag)进行着色器替换</span><br><span class="line">        // 比如要将某个RenderType的物体的shader切换成选中的shader（可以overlay突出）</span><br><span class="line">        Tags &#123;&quot;Queue&quot;=&quot;AlphaTest&quot; &quot;IgnoreProjector&quot;=&quot;True&quot; &quot;RenderType&quot;=&quot;TransparentCutout&quot;&#125;</span><br><span class="line">        Pass </span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123;&quot;LightMode&quot; = &quot;ForwardBase&quot;&#125;</span><br><span class="line">            CGPROGRAM</span><br><span class="line">            #pragma vertex vert;</span><br><span class="line">            #pragma fragment frag;</span><br><span class="line"></span><br><span class="line">            #include &quot;Lighting.cginc&quot;</span><br><span class="line"></span><br><span class="line">            fixed4 _Color;</span><br><span class="line">            sampler2D _MainTex;</span><br><span class="line">            float4 _MainTex_ST;</span><br><span class="line">            fixed _Cutoff;</span><br><span class="line"></span><br><span class="line">            struct a2v</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">                float4 texcoord : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line">                float3 worldNormal : TEXCOORD1;</span><br><span class="line">                float3 worldPos : TEXCOORD2;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line">                o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">                o.uv = v.texcoord.xy * _MainTex_ST.xy + _MainTex_ST.zw;</span><br><span class="line">                o.worldNormal = UnityObjectToWorldNormal(v.normal);</span><br><span class="line">                o.worldPos = mul(unity_ObjectToWorld, v.vertex);</span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            fixed4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                fixed3 worldNormal = normalize(i.worldNormal);</span><br><span class="line">                fixed3 worldLightDir = normalize(UnityWorldSpaceLightDir(i.worldPos));</span><br><span class="line"></span><br><span class="line">                fixed4 texColor = tex2D(_MainTex, i.uv);</span><br><span class="line"></span><br><span class="line">                clip(texColor.a - _Cutoff);</span><br><span class="line">                // if (texColor.a - _Cutoff &lt; 0)</span><br><span class="line">                //     discard;</span><br><span class="line"></span><br><span class="line">                fixed3 albedo = texColor.rgb * _Color.rgb;</span><br><span class="line">                fixed3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz * albedo;</span><br><span class="line">                fixed3 diffuse = _LightColor0.rgb * albedo * saturate(dot(worldNormal, worldLightDir));</span><br><span class="line"></span><br><span class="line">                return fixed4(ambient + diffuse, 1.0);</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    // 保证透明度测试的物体能正确向其他物体投射阴影</span><br><span class="line">    FallBack &quot;Transparent/Cutout/VertexLit&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="透明度混合">透明度混合</h3>
+<p><strong>透明度混合</strong>：这种方法可以得到真正的半透明效果，它会使用当前片元的透明度作为混合因子，与已经存储在颜色缓冲中的颜色值进行混合，从而得到新的颜色。但是由于需要关闭深度写入，这使得我们要非常小心物体的渲染顺序。</p>
+<p>想要半透明效果，blend命令，设置混合因子，以及打开混合模式必不可少。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;UnityShadersLearn/Chapter8/Alpha Blend&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Color (&quot;Main Tint&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _MainTex (&quot;Main Tex&quot;, 2D) = &quot;white&quot;&#123;&#125;</span><br><span class="line">        _AlphaScale (&quot;Alpha Scale&quot;, Range(0, 1)) = 1</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        // 具体含义可参考https://zhuanlan.zhihu.com/p/51080323</span><br><span class="line">        // RenderType其实就是分组，可以配合camera.SetReplacementShader (EffectShader, Tag)进行着色器替换</span><br><span class="line">        // 比如要将某个RenderType的物体的shader切换成选中的shader（可以overlay突出）</span><br><span class="line">        Tags &#123;&quot;Queue&quot;=&quot;Transparent&quot; &quot;IgnoreProjector&quot;=&quot;True&quot; &quot;RenderType&quot;=&quot;Transparent&quot;&#125;</span><br><span class="line">        Pass </span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123;&quot;LightMode&quot; = &quot;ForwardBase&quot;&#125;</span><br><span class="line">            // 关闭深度写入以及设置混合因子（会自动打开混合模式）</span><br><span class="line">            ZWrite Off</span><br><span class="line">            Blend SrcAlpha OneMinusSrcAlpha</span><br><span class="line">            </span><br><span class="line">            CGPROGRAM</span><br><span class="line">            #pragma vertex vert;</span><br><span class="line">            #pragma fragment frag;</span><br><span class="line"></span><br><span class="line">            #include &quot;Lighting.cginc&quot;</span><br><span class="line"></span><br><span class="line">            fixed4 _Color;</span><br><span class="line">            sampler2D _MainTex;</span><br><span class="line">            float4 _MainTex_ST;</span><br><span class="line">            fixed _AlphaScale;</span><br><span class="line"></span><br><span class="line">            struct a2v</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">                float4 texcoord : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line">                float3 worldNormal : TEXCOORD1;</span><br><span class="line">                float3 worldPos : TEXCOORD2;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            v2f vert(a2v v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line">                o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">                o.uv = v.texcoord.xy * _MainTex_ST.xy + _MainTex_ST.zw;</span><br><span class="line">                o.worldNormal = UnityObjectToWorldNormal(v.normal);</span><br><span class="line">                o.worldPos = mul(unity_ObjectToWorld, v.vertex);</span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            fixed4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                fixed3 worldNormal = normalize(i.worldNormal);</span><br><span class="line">                fixed3 worldLightDir = normalize(UnityWorldSpaceLightDir(i.worldPos));</span><br><span class="line"></span><br><span class="line">                fixed4 texColor = tex2D(_MainTex, i.uv);</span><br><span class="line">                </span><br><span class="line">                fixed3 albedo = texColor.rgb * _Color.rgb;</span><br><span class="line">                fixed3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz * albedo;</span><br><span class="line">                fixed3 diffuse = _LightColor0.rgb * albedo * saturate(dot(worldNormal, worldLightDir));</span><br><span class="line"></span><br><span class="line">                return fixed4(ambient + diffuse, texColor.a * _AlphaScale);</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    // 保证透明度测试的物体能正确向其他物体投射阴影</span><br><span class="line">    FallBack &quot;Transparent/VertexLit&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="开启深度写入的半透明效果">开启深度写入的半透明效果</h3>
+<p><strong>存在问题</strong>：当模型网格之间有互相交叉的结构时，往往会得到错误的半透明效果<br>
+<img src="http://static.zybuluo.com/candycat/4thev7v5xczq02bz824witrf/transparent_order_wrong.png" alt="image"></p>
+<p>这是由于关闭了深度写入而造成的排序问题。按照Unity3D的默认做法，在对透明物体在渲染之前的排序，是根据多边形中心点与摄像机的远近来比较的。</p>
+<p>可以多使用一个Pass来写入深度缓冲，但不输出颜色（使用ColorMask），这个Pass必须为第一个。（疑问：这和直接开启深度写入有什么区别？也是会写入深度缓冲，测试了下好像效果差不多）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;UnityShadersLearn/Chapter8/Alpha Blend Z Write&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Color (&quot;Main Tint&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _MainTex (&quot;Main Tex&quot;, 2D) = &quot;white&quot;&#123;&#125;</span><br><span class="line">        _AlphaScale (&quot;Alpha Scale&quot;, Range(0, 1)) = 1</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        // 具体含义可参考https://zhuanlan.zhihu.com/p/51080323</span><br><span class="line">        // RenderType其实就是分组，可以配合camera.SetReplacementShader (EffectShader, Tag)进行着色器替换</span><br><span class="line">        // 比如要将某个RenderType的物体的shader切换成选中的shader（可以overlay突出）</span><br><span class="line">        Tags &#123;&quot;Queue&quot;=&quot;Transparent&quot; &quot;IgnoreProjector&quot;=&quot;True&quot; &quot;RenderType&quot;=&quot;Transparent&quot;&#125;</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            // 开启深度写入，并不输出颜色</span><br><span class="line">            ZWrite On</span><br><span class="line">            ColorMask 0</span><br><span class="line">        &#125;</span><br><span class="line">        Pass </span><br><span class="line">        &#123;</span><br><span class="line">            ···</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    // 保证透明度测试的物体能正确向其他物体投射阴影</span><br><span class="line">    FallBack &quot;Transparent/VertexLit&quot;</span><br></pre></td></tr></table></figure>
+<h3 id="Shaderlab的混合命令">Shaderlab的混合命令</h3>
+<p>混合还有很多其他的用处，不仅仅是用于透明度的混合。当片元着色器产生一个颜色的时候，可以选择与颜色缓存中的颜色进行混合。这样一来混合就和两个操作数有关：源颜色和目标颜色。源颜色我们可用S表示，指的是由片元着色器产生的颜色值：目标颜色我们用D表示，指的是从颜色缓存中读取到的颜色值。对对他们进行混合后得到的输出颜色，我们用O来表示，他会重新写入到颜色缓存中，需要注意的是，当我们谈及混合中的源颜色目标颜色和输出颜色时，他们都包含了RGBA四个通道的值，而并非仅仅是RGB通道。</p>
+<p>想要使用混合，我们必须开启它。在Unity中，当我们使用Blend命令时，除了设置混合状态以外也开启了混合。但是，在其他图形api中我们是需要手动开启的。</p>
+<h6 id="混合等式和参数">混合等式和参数</h6>
+<p>混合是一个逐片元操作，不可编程但高度可配置。</p>
+<ul>
+<li>
+<p>操作</p>
+  <div>默认为加操作，但除此之外还能修改为以下：(使用<b>BlendOp BlendOperation</b>命令)</div>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Add</td>
+<td>将混合后的源颜色和目标颜色相加。默认的混合操作。使用的混合等式是：<div> <img src="https://math.now.sh?inline=O_%7Brgb%7D%20%3D%20SrcFactor%20%5Ctimes%20S_%7Brgb%7D%20%2B%20DstFactor%20%5Ctimes%20D_%7Brgb%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></div><div><img src="https://math.now.sh?inline=O_%7Ba%7D%20%3D%20SrcFactorA%20%5Ctimes%20S_%7Ba%7D%20%2B%20DstFactorA%20%5Ctimes%20D_%7Ba%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></div></td>
+</tr>
+<tr>
+<td>Sub</td>
+<td>用混合后的源颜色减去混合后的目标颜色。使用的混合等式是：<div><img src="https://math.now.sh?inline=O_%7Brgb%7D%20%3D%20DstFactor%20%5Ctimes%20D_%7Brgb%7D%20-%20DstFactor%20%5Ctimes%20D_%7Brgb%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></div><div><img src="https://math.now.sh?inline=O_%7Ba%7D%20%3D%20SrcFactorA%20%5Ctimes%20S_%7Ba%7D%20-%20DstFactorA%20%5Ctimes%20D_%7Ba%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></div></td>
+</tr>
+<tr>
+<td>RevSub</td>
+<td>用混合后的目标颜色减去混合后的源颜色。使用的混合等式是：<div><img src="https://math.now.sh?inline=O_%7Brgb%7D%20%3D%20DstFactor%20%5Ctimes%20D_%7Brgb%7D%20-%20SrcFactor%20%5Ctimes%20S_%7Brgb%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></div><div><img src="https://math.now.sh?inline=O_%7Ba%7D%20%3D%20DstFactorA%20%5Ctimes%20D_%7Ba%7D%20-%20SrcFactorA%20%5Ctimes%20S_%7Ba%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></div></td>
+</tr>
+<tr>
+<td>Min</td>
+<td>使用源颜色和目标颜色中最小的值，是逐分量比较的。使用的混合等式是：<div><img src="https://math.now.sh?inline=O_%7Brgb%7D%20%3D%20%28min(S_%7Br%7D%2C%20D_%7Br%7D%29%2C%20min(S_%7Bg%7D%2C%20D_%7Bg%7D)%2C%20min(S_%7Bb%7D%2C%20D_%7Bb%7D)%2C%20min(S_%7Ba%7D%2C%20D_%7Ba%7D))" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></div></td>
+</tr>
+<tr>
+<td>Max</td>
+<td>使用源颜色和目标颜色中最大的值，是逐分量比较的。使用的混合等式是：<div><img src="https://math.now.sh?inline=O_%7Brgb%7D%20%3D%20%28max(S_%7Br%7D%2C%20D_%7Br%7D%29%2C%20max(S_%7Bg%7D%2C%20D_%7Bg%7D)%2C%20max(S_%7Bb%7D%2C%20D_%7Bb%7D)%2C%20max(S_%7Ba%7D%2C%20D_%7Ba%7D))" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></div></td>
+</tr>
+<tr>
+<td>其他逻辑操作</td>
+<td>仅在DirectX.11.1中支持</td>
+</tr>
+</tbody>
+</table>
+  <div>混合操作通常是和混合因子一起工作的，但在Min和Max混合因子就不起作用了。</div>
+</li>
+<li>
+<p>因子</p>
+ <div>ShaderLab中设置混合因子的命令</div>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Blend SrcFactor DstFactor</td>
+<td>开启混合，并设置混合因子。源颜色（该片元产生的颜色）会乘以SrcFactor，而目标颜色（已经存在于颜色缓存的颜色）会乘以DstFactor,然后把两者相加入后再存入颜色缓冲中</td>
+</tr>
+<tr>
+<td>Blend SrcFactor DstFactor SrcFactorA DstFactorA</td>
+<td>和上面几乎一样，只是使用不同的因子来混合透明通道</td>
+</tr>
+</tbody>
+</table>
+ <div>Shade Lab中的混合因子</div>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>One</td>
+<td>因子为1</td>
+</tr>
+<tr>
+<td>Zero</td>
+<td>因子为0</td>
+</tr>
+<tr>
+<td>SrcColor</td>
+<td>因子为源颜色值。当用于混合RGB的混合等式时，使用SrcColor的RGB分量作为混合因子；当用于混合A的混合等式时，使用SrcColor的A分量作为混合因子</td>
+</tr>
+<tr>
+<td>SrcAlpha</td>
+<td>因子因为源颜色的透明度值（A通道）</td>
+</tr>
+<tr>
+<td>DstColor</td>
+<td>因子为目标颜色值。当用于混合RGB通道的混合等式时，使用DstColor的RGB分量作为混合因子；当用于A通道的混合等式时，使用DstColor的A分量作为混合因子</td>
+</tr>
+<tr>
+<td>DstAlpha</td>
+<td>因子为目标颜色的透明度值（A通道）</td>
+</tr>
+<tr>
+<td>OneMinusSrcColor</td>
+<td>因子为（1-源颜色）。当用于混合RGB的混合等式时，使用结果的RGB分量作为混合因子；当用于混合A的混合等式时，使用结果的A分量作为混合因子</td>
+</tr>
+<tr>
+<td>OneMinusSrcAlpha</td>
+<td>因子为（1-源颜色的透明度值）</td>
+</tr>
+<tr>
+<td>OneMinusDstColor</td>
+<td>因子为（1-目标颜色）。当用于混合RGB的混合等式时，使用结果的RGB分量作为混合因子；当用于混合A的混合等式时，使用结果的A分量作为混合因子</td>
+</tr>
+<tr>
+<td>OneMinusSrcAlpha</td>
+<td>因子为（1-目标颜色的透明度值）</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+<h6 id="常见的混合类型">常见的混合类型</h6>
+<p>通过混合操作和混合因子命令的组合，我们可以得到一些类似Photoshop混合模式中的混合效果：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">//正常，即透明度混合</span><br><span class="line">Blend SrcAlpha OneMinusSrcAlpha</span><br><span class="line"></span><br><span class="line">//柔和相加</span><br><span class="line">Blend OneMinnusDstColor One</span><br><span class="line"></span><br><span class="line">//正片叠低，即相乘</span><br><span class="line">Blend DstColor Zero</span><br><span class="line"></span><br><span class="line">//两倍相乘</span><br><span class="line">Blend DstColor SrcColor</span><br><span class="line"></span><br><span class="line">//变暗</span><br><span class="line">BlendOp Min</span><br><span class="line">Blend One One</span><br><span class="line"></span><br><span class="line">//变亮</span><br><span class="line">BlendOp Max</span><br><span class="line">Blend One One</span><br><span class="line"></span><br><span class="line">//滤色</span><br><span class="line">Blend OneMinusDstColor One</span><br><span class="line">//等同于</span><br><span class="line">Blend One OneMinusSrcColor</span><br><span class="line"></span><br><span class="line">//线性减淡</span><br><span class="line">Blend One One</span><br></pre></td></tr></table></figure>
+<p><img src="http://static.zybuluo.com/candycat/uvoq8qpet472e7fquzdu479t/blend.png" alt="image"></p>
+<h3 id="双面渲染的透明效果">双面渲染的透明效果</h3>
+<p>默认情况下渲染引擎剔除了物体背面（相对于摄像机的方向）的渲染图元，而只渲染了物体的正面。如果我们想要得到双面渲染的效果（需要渲染的图元数目成倍增长），可以使用Cull指令来控制需要剔除的哪个面的渲染图元。<br>
+在Unity中，Cull指令的语法如下：</p>
+<blockquote>
+<p>Cull Back | Front | Off</p>
+</blockquote>
+<h6 id="透明度测试的双面渲染">透明度测试的双面渲染</h6>
+<p>直接在Pass加上Cull Off即可</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Pass &#123;</span><br><span class="line">    Tags &#123;&quot;LightMode&quot; = &quot;ForwardBase&quot;&#125;</span><br><span class="line">    Cull Off</span><br><span class="line">    ···</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="透明度混合的双面渲染">透明度混合的双面渲染</h6>
+<p>关闭深度写入后，需要小心控制渲染顺序来得到正确的深度关系。所以直接关闭剔除功能，将无法保种同一个物体的正面和背面图元的渲染顺序，就有可能得到错误的半透明效果。<br>
+解决办法是用两个Pass，一个渲染背面一个渲染正面。由于SubShader会顺序执行各个Pass，所以保证背面先画即可</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;UnityShadersLearn/Chapter8/Alpha Blend Both Sided&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Color (&quot;Main Tint&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _MainTex (&quot;Main Tex&quot;, 2D) = &quot;white&quot;&#123;&#125;</span><br><span class="line">        _AlphaScale (&quot;Alpha Scale&quot;, Range(0, 1)) = 1</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        // 具体含义可参考https://zhuanlan.zhihu.com/p/51080323</span><br><span class="line">        // RenderType其实就是分组，可以配合camera.SetReplacementShader (EffectShader, Tag)进行着色器替换</span><br><span class="line">        // 比如要将某个RenderType的物体的shader切换成选中的shader（可以overlay突出）</span><br><span class="line">        Tags &#123;&quot;Queue&quot;=&quot;Transparent&quot; &quot;IgnoreProjector&quot;=&quot;True&quot; &quot;RenderType&quot;=&quot;Transparent&quot;&#125;</span><br><span class="line">        Pass </span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123;&quot;LightMode&quot; = &quot;ForwardBase&quot;&#125;</span><br><span class="line">            Cull Front</span><br><span class="line">            ZWrite Off</span><br><span class="line">            Blend SrcAlpha OneMinusSrcAlpha</span><br><span class="line">            </span><br><span class="line">            CGPROGRAM</span><br><span class="line">            ···</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">        Pass </span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123;&quot;LightMode&quot; = &quot;ForwardBase&quot;&#125;</span><br><span class="line">            Cull Back</span><br><span class="line">            ZWrite Off</span><br><span class="line">            Blend SrcAlpha OneMinusSrcAlpha</span><br><span class="line">            </span><br><span class="line">            CGPROGRAM</span><br><span class="line">            ···</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    // 保证透明度测试的物体能正确向其他物体投射阴影</span><br><span class="line">    FallBack &quot;Transparent/VertexLit&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/554a67f2/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity Shader入门精要-章节09 更复杂的光照</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/95e50749/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity Shader入门精要-章节07 基础纹理</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形 3.7 移动端TB(D)R架构基础 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形 3.7 移动端TB(D)R架构基础</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-02-17T12:57:59.000Z" itemprop="datePublished">2023-02-17</time>
+          </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<blockquote>
+<p>本节配合3.4作业参考链接使用更佳</p>
+</blockquote>
+<h2 id="移动端硬件概述">移动端硬件概述</h2>
+<h4 id="CPU">CPU</h4>
+<p>从手机CPU(SoC)厂商来看，高通占比最大，相比于其他厂商有较大的优势</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_16d536530750172fc1c9cdad332e85c1.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_16d536530750172fc1c9cdad332e85c1.png"></p>
+<p><em>碎碎念：SOC近几年变化有点大，麒麟被制裁，发哥崛起，骁龙经历几代三星工艺后终于在2022换台积电工艺后有超苹果趋势</em></p>
+<blockquote>
+<p>性能相关可以看极客湾的评测：<a target="_blank" rel="noopener" href="https://www.socpk.com/">https://www.socpk.com/</a></p>
+</blockquote>
+<h4 id="GPU">GPU</h4>
+<p>高通的Adreno与Mali的GPU市场占比大，PowerVR-GPU在安卓机器上使用较少</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_dd65619134b8908b146ca3ab9fb6f113.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_dd65619134b8908b146ca3ab9fb6f113.png"></p>
+<h4 id="与桌面端功耗对比">与桌面端功耗对比</h4>
+<ul>
+<li>
+<p>桌面端</p>
+<ul>
+<li>主流性能平台，功耗一般300w</li>
+<li>游戏主机，功耗一般150-200w</li>
+</ul>
+</li>
+<li>
+<p>移动端</p>
+<ul>
+<li>入门和旗舰笔记本，功耗一般100w</li>
+<li>主流笔记本为50-60w，超极本为15-25w</li>
+<li>旗舰平板为8-15w</li>
+<li>旗舰手机为5-8w</li>
+<li>主流手机为3-5w</li>
+</ul>
+</li>
+<li>
+<p>令移动端羡慕的功耗，100倍的差距，几乎可以看做无限功耗和带宽（移动端视角）</p>
+</li>
+</ul>
+<h4 id="与桌面端带宽对比">与桌面端带宽对比</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_e84872cb8178c6a5aeccc1f5e7e35770.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_e84872cb8178c6a5aeccc1f5e7e35770.png"></p>
+<ul>
+<li>桌面端是将近100起步，最多可到400左右</li>
+<li>移动端相比之下就少的可怜（骁龙888的移动带宽是32）</li>
+<li><em>近几年在老黄核弹带领下，又有所突破，家用电源都1000w了（还是三星工艺这个罪魁祸首）</em></li>
+</ul>
+<h2 id="名词解释">名词解释</h2>
+<h4 id="SOC（System-on-Chip）">SOC（System on Chip）</h4>
+<ul>
+<li>
+<p>SOC是把cpu、gpu、内存、通信基带、GPS模块等整合到一起的芯片</p>
+</li>
+<li>
+<p>常见的</p>
+<ul>
+<li>苹果：A系SOC、M系SOC（Apple Silicon）</li>
+<li>骁龙SOC（高通）</li>
+<li>麒麟SOC（华为）</li>
+<li>联发科SOC</li>
+<li>猎户座SOC（三星）</li>
+</ul>
+</li>
+<li>
+<p>M系SOC的出现，说明手机、笔记本、pc的通用SOC已经出现了。（目前就差手机没用上，但功耗还是不容小觑的）</p>
+</li>
+</ul>
+<h4 id="System-Memory">System Memory</h4>
+<ul>
+<li>
+<p>System Memory</p>
+<ul>
+<li>就是手机内存</li>
+<li>是Soc中cpu和gpu共用的一片LPDDR物理内存（桌面端是分开的，内存和显存）</li>
+<li>一般为几个G（如今12/16G都有了，就很离谱）</li>
+</ul>
+</li>
+<li>
+<p>On-Chip Memory</p>
+<ul>
+<li>除了系统内存外，cpu和gpu还分别有自己的高速SRAM的Cache缓存，叫作On-Chip Memory</li>
+<li>一般为几百K~几百M</li>
+<li>类似CPU的一缓二缓三缓</li>
+</ul>
+</li>
+<li>
+<p>访问不同距离的内存需要消耗的时间不同</p>
+<ul>
+<li>距离越近的时间消耗越低</li>
+<li>读取System Memory 的时间消耗大约是 读取On-Chip Memory的几倍~几十倍</li>
+<li>尽量避免cache miss</li>
+</ul>
+</li>
+</ul>
+<h4 id="On-Chip-Memory">On-Chip Memory</h4>
+<ul>
+<li>在TBDR架构下，会存储Tile的颜色、深度和模板缓冲</li>
+<li>其读写、修改速度都非常快</li>
+</ul>
+<h4 id="Stall">Stall</h4>
+<ul>
+<li>当一个GPU核心的两次计算之间有依赖关系而必须串行时，等待的过程就是Stall</li>
+</ul>
+<h4 id="FillRate">FillRate</h4>
+<ul>
+<li>像素填充率 = ROP运行的时钟频率  × ROP的个数 × 每个时钟的ROP可以处理的像素个数</li>
+<li>衡量GPU性能的有效工具</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/470413251">补充资料</a></li>
+</ul>
+<h2 id="桌面端GPU架构：立即渲染（IMR）">桌面端GPU架构：立即渲染（IMR）</h2>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_45e811d3e54bd8d70adb22691112ff47.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_45e811d3e54bd8d70adb22691112ff47.png"></p>
+<ul>
+<li>先经过vertex shader的处理</li>
+<li>再经过一个类似管道（先进先出）的顺序，最终提交给Fragment Shader（收到三角形就开始渲染）</li>
+<li>Fragment Shader最终将结果刷新到FrameBuffer</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ed09ee9c07341d78ea8540333fc9f9bf.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ed09ee9c07341d78ea8540333fc9f9bf.png"></p>
+<ul>
+<li>每个renderpass中有各种DrawCall</li>
+<li>每个DrawCall里有很多图元</li>
+<li>我们首先要对每个图元中的顶vertex shader进行处理
+<ul>
+<li>如果这个图元没被剔除，就对它里面的fragment进行Fragment shader的处理</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_d306e8a3be18346889d41b69efa687d8.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_d306e8a3be18346889d41b69efa687d8.png"></p>
+<ul>
+<li>用户数据经过：顶点处理 → 剔除，投影 → 光栅化 → Early Visibility Test → Alpha Test → Late Visibility Test → Alpha Blend 最终将结果刷到FrameBuffer里</li>
+<li>整个过程直接和系统内存进行交互</li>
+</ul>
+<h2 id="移动端GPU架构：基于块元的渲染（TBDR）">移动端GPU架构：基于块元的渲染（TBDR）</h2>
+<h4 id="简述">简述</h4>
+<ul>
+<li>TB(D)R（Tile-Based（Deferred）Rendering），是目前主流移动GPU的渲染架构，对应一般PC上的GPU架构则为IMR</li>
+<li>个人理解
+<ul>
+<li>屏幕被分块（16*16 or 32*32）渲染，先决定每块内有哪些图元，所以需要等所有顶点着色器完毕，由于on chip memery比较小，所以一个块一个块渲染，渲染完毕后再记录回系统内存。这样做不能提高帧率，但可以降低功耗和带宽使用</li>
+</ul>
+</li>
+</ul>
+<h4 id="TBR和TBDR的区别">TBR和TBDR的区别</h4>
+<ul>
+<li>TBR：VS - Defer - RS（光栅化） - PS</li>
+<li>TBDR：VS - Defer1 - RS - Defer2 - PS</li>
+<li>通过这第二个Defer，PowerVR的渲染架构真正最大程度上实现了“延后（Defer）PS的执行”，以避免执行不必要的PS计算与相关资源调用的带宽开销，以达到最少的性能消耗和最高的渲染效率</li>
+<li>有些文章会将TBR叫作TBDR，所以看资料的时候，要搞清楚它说的&quot;D&quot;是指第一个Defer还是第二个</li>
+<li>现在的手机基本都是TBDR架构了，但是受到提出TBDR的PowerVR公司的产权保护限制，大家都不敢说是TBDR架构</li>
+</ul>
+<h4 id="Defer的理解">Defer的理解</h4>
+<ul>
+<li>字面上是：延迟</li>
+<li>渲染数据角度来看，Defer就是“阻塞+批处理”（GPU累积一帧的多个数据，最后一起处理）</li>
+<li>下面会介绍两个Defer做了什么</li>
+</ul>
+<h2 id="TBDR的渲染顺序">TBDR的渲染顺序</h2>
+<h4 id="TBDR详细的渲染流程">TBDR详细的渲染流程</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_5a060e03607c49a42ea62203a3bd0bae.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_5a060e03607c49a42ea62203a3bd0bae.png"></p>
+<ul>
+<li>
+<p>第一阶段</p>
+<ul>
+<li>执行所有与几何相关的处理，并生成Primitive List（图元列表）</li>
+<li>并且确定每个Tile（块）上有哪些Primitve（图元）</li>
+<li><em>这里形成了Defer，要等第一阶段处理完，而且这一阶段还会将数据写入系统内存和第二阶段交互，所以顶点数据过大会成为瓶颈</em></li>
+</ul>
+</li>
+<li>
+<p>第二阶段</p>
+<ul>
+<li>执行光栅化及后续处理</li>
+<li>并在完成后，将FrameBuffe从Tile Buffe写会到System Memory中（相比于传统的立即渲染架构，不是直接写回系统内存，而是写到片上内存（On-chip Memory）里）</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_97b0714d4d5bd69f0f8673d6d1321883.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_97b0714d4d5bd69f0f8673d6d1321883.png"></p>
+<ul>
+<li>TBDR架构中，多了一步Tiling的过程，这一步是：将顶点处理经过剔除、投影的几何数据刷到系统内存(System Memory)​上</li>
+<li>HSR：目的是筛选出Tile里所有片段中最终实际渲染的那一部分，这个过程本质上来说就是​<strong>改进版Early Depth Test</strong>​，用处也是用来减少overdraw</li>
+<li>Tiling：将顶点处理形成的各种几何数据刷到<strong>系统内存</strong>上</li>
+<li>把结果刷到片上内存，最终片上内存才会把内容刷到Frame Buffer里，也就是系统内存</li>
+</ul>
+<h4 id="伪代码">伪代码</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bbb1bd7f968050166f556935eb686a5b.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bbb1bd7f968050166f556935eb686a5b.png"></p>
+<ul>
+<li>
+<p>第一阶段（Pass one）</p>
+<ul>
+<li>对每个renderpass里的DrawCall，每个DrawCall里的图元，先进行Vertex shader处理</li>
+<li>找到每个块元（Tile）上有哪些图元（Primitve）</li>
+</ul>
+</li>
+<li>
+<p>第二阶段（Pass two）</p>
+<ul>
+<li>对每个块元执行每个renderpass</li>
+<li>对每个块元上的图元进行Fragment Shader处理</li>
+</ul>
+</li>
+</ul>
+<h4 id="总结">总结</h4>
+<ul>
+<li>核心目的</li>
+</ul>
+<ul>
+<li>为了降低带宽，减少功耗，但渲染帧率上并不比IMR快</li>
+</ul>
+<ul>
+<li>
+<p>优点</p>
+<ul>
+<li>
+<p>给消除OverDraw提供了机会：</p>
+<ul>
+<li>PowerVR有HSR技术，Mali有Forward Pixel Killing技术，都有为了最大限度减少被遮挡的pixel的texturing和shading</li>
+</ul>
+</li>
+<li>
+<p>缓存友好（Cache friendly），在cache的读写速度要比全局内存中快得多（以降低帧率为代价，降低带宽、功耗）</p>
+</li>
+</ul>
+</li>
+<li>
+<p>缺点</p>
+<ul>
+<li>binning过程是在vertex阶段之后，将输出的数据写到系统内存（DDR）上，然后才能被fragment shader读取，这样一来几何数据过多的管线，容易在此处有性能瓶颈</li>
+<li>如果某些三角形叠加在数个tile（块）上，会被绘制数次，这样就意味着：总渲染时间多于IMR</li>
+</ul>
+</li>
+</ul>
+<h2 id="IMR-和-TBR对比">IMR 和 TBR对比</h2>
+<h4 id="TBR简易图">TBR简易图</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f90491bd50bff8b395ba1104941a6b2b.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f90491bd50bff8b395ba1104941a6b2b.png"></p>
+<ul>
+<li>几何处理数据形成了FrameData（放在System Memory上）</li>
+<li>这些Frame Data经过片段处理，结果放在了Tile Buffer上（片的内存上）</li>
+<li>最后的结果会刷到FrameBuffer中（System Memory）</li>
+</ul>
+<h4 id="IMR简易图">IMR简易图</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_c441acfbbe55b2561002b703d3c0dcb3.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_c441acfbbe55b2561002b703d3c0dcb3.png"></p>
+<ul>
+<li>几何处理数据直接到片段处理，没有中间数据（Frame Data）</li>
+<li>直接刷到System Memory上了，没有经过片内存（On-Chip Memory）</li>
+</ul>
+<h4 id="渲染流程图对比">渲染流程图对比</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/v2-aac5ecfa0d8478e07e4fb58e641b6ba1_720w_aac5ecfa0d8478e07e4fb58e641b6ba1.gif" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/v2-aac5ecfa0d8478e07e4fb58e641b6ba1_720w_aac5ecfa0d8478e07e4fb58e641b6ba1.gif"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/v2-28f60eb6ee193b8a96ce2760ff5f6b5e_1440w_28f60eb6ee193b8a96ce2760ff5f6b5e.gif" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/v2-28f60eb6ee193b8a96ce2760ff5f6b5e_1440w_28f60eb6ee193b8a96ce2760ff5f6b5e.gif"></p>
+<p>可以看到TBR是分块渲染，而IMR是按三角形提交的顺序渲染</p>
+<h4 id="实际中GPU硬件中的乱序执行">实际中GPU硬件中的乱序执行</h4>
+<p>从蓝到黄表示执行时序（蓝-&gt;黄-&gt;蓝-&gt;黄）</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/v2-d03fb7b35513ad748a748623bb79a9aa_1440w_d03fb7b35513ad748a748623bb79a9aa.jpg" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/v2-d03fb7b35513ad748a748623bb79a9aa_1440w_d03fb7b35513ad748a748623bb79a9aa.jpg"></p>
+<ul>
+<li>IMR架构（IMR-NVIDIA Quadro 600）
+<ul>
+<li>从左到右，再从右到左的渲染顺序</li>
+<li>蓝黄交界的地方会有很多犬牙交错的地方，这些地方是因为GPU乱序执行，具有一定的随机性<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_0d3d0a9c197a3f3c883d892497ea330b.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_0d3d0a9c197a3f3c883d892497ea330b.png"></li>
+</ul>
+</li>
+<li>TBR架构（TBR-Qualcomm Adreno 430）
+<ul>
+<li>顺序是按照块状的渲染顺序执行的</li>
+<li>黄色跟蓝色的过渡的地方有一些犬牙交错的现象<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ddd5a5e72d1ffe659d7356ec19b89d40.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ddd5a5e72d1ffe659d7356ec19b89d40.png"></li>
+</ul>
+</li>
+</ul>
+<h2 id="第一个Defer：Binning过程">第一个Defer：Binning过程</h2>
+<ul>
+<li>​目的：确定哪些图元属于哪些块元渲染</li>
+<li>过程：
+<ul>
+<li>第二幅图里的红色三角形，只用一个块元就能渲染，所以它只会被分配到一个块元中</li>
+<li>第四幅图里的棕色三角形，需要多个块元才能渲染，所以它需要分配到9个块元中一起渲染<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4340b1fe699b8919c49c3c4909c9c32b.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4340b1fe699b8919c49c3c4909c9c32b.png"></li>
+</ul>
+</li>
+<li>帧调试软件
+<ul>
+<li>一款老的骁龙gpu调试器下的binning参数（红线代表tile的范围）可以显示每个块元的性能参数<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_da4a34b0b6255d013db7bb3a2e4e91e2.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_da4a34b0b6255d013db7bb3a2e4e91e2.png"></li>
+<li>binning过程的耗时占比参考，如果你的项目中binning过程相比其他耗时长的话，就要考虑一下是不是几何数据过多了<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_1e3a6144e9b7e6ea93480070626deb58.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_1e3a6144e9b7e6ea93480070626deb58.png"></li>
+</ul>
+</li>
+</ul>
+<h2 id="第二个Defer：不同GPU-的-Early-Depth-Test">第二个Defer：不同GPU 的 Early-Depth-Test</h2>
+<blockquote>
+<p>和EarlyZ的本质区别：<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/425740956">https://www.zhihu.com/question/425740956</a></p>
+</blockquote>
+<h4 id="Adreno的LRZ模块">Adreno的LRZ模块</h4>
+<ul>
+<li>采用外置模块LRZ</li>
+<li>在正常渲染管线之前，先多执行一次vs生成低精度depth texture，来提前剔除不可见的三角形（实现细节不知）</li>
+<li>用硬件实现occlusion culling（遮挡剔除），功能类似软光栅中的遮挡剔除</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6fb21c789be5fe69cf01553a6df81c56.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6fb21c789be5fe69cf01553a6df81c56.png"></p>
+<h4 id="Mail的FPK">Mail的FPK</h4>
+<ul>
+<li>
+<p>采用Forward Pixel Kill技术</p>
+</li>
+<li>
+<p>位于管线的位置：发生在Early-z之后</p>
+</li>
+<li>
+<p>数据模型：先进先出的队列</p>
+</li>
+<li>
+<p>简单概括一下：</p>
+<ul>
+<li>队列中有4个Quad（可以理解为2×2像素的平面），每个Quad有屏幕上位置的数据和Z数据</li>
+<li>Z越大代表离摄像机越远</li>
+<li>根据屏幕上相同位置（pos）的不同z，对不透明的像素进行替换（有近的就不渲染远的），这个过程叫作killed</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302191100702.png" alt=""></p>
+</li>
+</ul>
+<h4 id="PVR的HSR">PVR的HSR</h4>
+<ul>
+<li>Hide Surface Removal隐形面剔除</li>
+<li>大体实现原理：
+<ul>
+<li>虚拟出一个射线，当它遇到第一个不透明的物体时就会停下来，这样就会打断后面三角形的后续ps处理</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_55026b0375c1c1ae8ed7b1c2bd9e60c4.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_55026b0375c1c1ae8ed7b1c2bd9e60c4.png"></p>
+<h2 id="优化建议">优化建议</h2>
+<ol>
+<li>记得在不使用FrameBuffer的时候clear或discard</li>
+</ol>
+<ul>
+<li>这样做主要是为了清空积存在tile buffer上的中间数据</li>
+<li>所以对Unity里的rt（render texture）的使用也特别说明一下，当我们不再使用这个rt的时候，尽量调用一次Discard</li>
+<li>在OpenGl ES上，要善用glclear，glInvalidateFrameBuffer，避免不必要的Resolve（tile buff刷新到system memory）行为</li>
+</ul>
+<ol start="2">
+<li>不要在一帧里频繁的切换FrameBuffer的绑定</li>
+</ol>
+<ul>
+<li>本质：减少tile buffer和system memory之间的stall（同步）操作</li>
+</ul>
+<ol start="3">
+<li>对于移动平台，建议使用Alpha混合，而非Alpha测试</li>
+</ol>
+<ul>
+<li>是一个经验性的结论</li>
+<li>在实际使用的过程中应该使用比较两者的表现</li>
+<li>通常情况下，移动端应该避免使用Alpha混合来实现透明，如果确实要用，尝试缩小混合区域的覆盖范围</li>
+</ul>
+<ol start="4">
+<li>手机上必须用Alpha Test时，先做一遍Depth Prepass（参考Alpha Test 的双pass优化思路）</li>
+<li>图片尽量压缩，例如ASTC 、ETC2</li>
+<li>图片尽量走mipmap</li>
+<li>尽量使用从vertex shader传来的Varying变量uv值采样贴图（连续的），不要在Fragment shader里动态计算贴图的uv值（非连续的），否则CacheMiss</li>
+<li>在延迟渲染中，尽量利用Tile Buffer（参考传统延迟渲染和TBDR）</li>
+<li>如果在Unity中调整ProjectSetting—Quality—Rendering—Texture Quality的不同设置，或者不同分辨率下，帧率有很大的变化，大概率是带宽出问题了</li>
+<li>MASS在TBDR下反而是非常快速的</li>
+</ol>
+<ul>
+<li>MSAA是硬件上的，发生在片上的</li>
+<li>相比FSAA，MSAA在手机上是非常快的</li>
+</ul>
+<ol start="11">
+<li>少在Fragment shader中使用discard函数，调用gl_FragDepth从而打断Early-DT的过程（hlsl中为Clip，glsl中为discard）</li>
+<li>在shader使用浮点数精度值时，有目的的区分使用float，half</li>
+</ol>
+<ul>
+<li>优点
+<ul>
+<li>带宽减少</li>
+<li>GPU中用的周期数减少，因为着色器编译器可以优化你的代码来提高并行化程度</li>
+<li>要求的统一变量寄存器的数量减少，这样反而又降低了寄存器数量溢出风险</li>
+<li>具体参考：熊大的优化建议、shader数学计算优化技巧</li>
+</ul>
+</li>
+</ul>
+<ol start="13">
+<li>在移动端的TBDR架构中，顶点处理部分（Binning过程）容易成为瓶颈</li>
+</ol>
+<ul>
+<li>避免使用曲面细分shader，置换贴图等负操作</li>
+<li>提倡使用模型LOD，（本质上减少Frame Data的压力）</li>
+<li>Unity中尽早的在应用阶段做umbra（Unity内置）遮挡剔除、gpu的occlusion cull</li>
+</ul>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li>[GPU性能指标 ]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.gpuinsight.com/gpu_performance/">https://www.gpuinsight.com/gpu_performance/</a></p>
+<ul>
+<li>[三星的GPU-FrameBuff指导]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html">https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html</a></p>
+<ul>
+<li>[英伟达的TBR教学文章]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.techpowerup.com/231129/on-nvidias-tile-based-rendering">https://www.techpowerup.com/231129/on-nvidias-tile-based-rendering</a></p>
+<ul>
+<li>[ARM的TBR教学文章]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://developer.arm.com/solutions/graphics-and-gaming/developer-guides/learn-the-basics/tile-based-rendering/single-page">https://developer.arm.com/solutions/graphics-and-gaming/developer-guides/learn-the-basics/tile-based-rendering/single-page</a></p>
+<ul>
+<li>[苹果OpenGL程序开发指南]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/Performance/Performance.html">https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/Performance/Performance.html</a></p>
+<ul>
+<li>[OpenGL Insights]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.seas.upenn.edu/~pcozzi/OpenGLInsights/OpenGLInsights-TileBasedArchitectures.pdf">https://www.seas.upenn.edu/~pcozzi/OpenGLInsights/OpenGLInsights-TileBasedArchitectures.pdf</a></p>
+<ul>
+<li>[知乎文章：Tile-based 和 Full-screen 方式的 Rasterization 相比有什么优劣]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/49141824">https://www.zhihu.com/question/49141824</a></p>
+<ul>
+<li>[移动设备GPU架构知识汇总]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/112120206">https://zhuanlan.zhihu.com/p/112120206</a></p>
+<ul>
+<li>[再议移动平台的AlphaTest效率问题]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/33127345">https://zhuanlan.zhihu.com/p/33127345</a></p>
+<ul>
+<li>[移动平台GPU硬件学习与理解]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/347001411">https://zhuanlan.zhihu.com/p/347001411</a></p>
+<ul>
+<li>[PowerVR开发者指南]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="http://cdn.imgtec.com/sdk-documentation/Introduction_to_PowerVR_for_Developers.pdf">http://cdn.imgtec.com/sdk-documentation/Introduction_to_PowerVR_for_Developers.pdf</a></p>
+<ul>
+<li>[Performance Tunning for Tile-Based Architecture Tile-Based架构下的性能调校]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/gameknife/p/3515714.html">https://www.cnblogs.com/gameknife/p/3515714.html</a></p>
+<ul>
+<li>[TBDR的HSR流程细节和使用AlphaBlend的效率提升程度]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/49141824">https://www.zhihu.com/question/49141824</a></p>
+<ul>
+<li>[当我们谈优化时，我们谈些什么]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/68158277">https://zhuanlan.zhihu.com/p/68158277</a></p>
+<p><a target="_blank" rel="noopener" href="https://edu.uwa4d.com/course-intro/1/179">https://edu.uwa4d.com/course-intro/1/179</a></p>
+<ul>
+<li>[Alpha Test的双pass 优化思路]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/58017068">https://zhuanlan.zhihu.com/p/58017068</a></p>
+<ul>
+<li>[个人收藏]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://github.com/killop/anything_about_game#gpu-architecture">https://github.com/killop/anything_about_game#gpu-architecture</a></p>
+<ul>
+<li>[Adreno Hardware Tutorial 3: Tile Based Rendering]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=SeySx0TkluE&amp;pbjreload=101">https://www.youtube.com/watch?v=SeySx0TkluE&amp;pbjreload=101</a></p>
+<ul>
+<li>[Mali GPU的独有特性]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/hamwj1991/p/12404551.html">https://www.cnblogs.com/hamwj1991/p/12404551.html</a></p>
+<ul>
+<li>[Mali-T880]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="http://grmanet.sogang.ac.kr/ihm/cs170/20/HC27.25.531-Mali-T880-Bratt-ARM-2015_08_23.pdf">http://grmanet.sogang.ac.kr/ihm/cs170/20/HC27.25.531-Mali-T880-Bratt-ARM-2015_08_23.pdf</a></p>
+<ul>
+<li>[熊大的优化建议]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="http://www.xionggf.com/post/unity3d/shader/u3d_shader_optimization/">http://www.xionggf.com/post/unity3d/shader/u3d_shader_optimization/</a></p>
+<ul>
+<li>[GPU画像素的顺序是什么]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/22232448">https://zhuanlan.zhihu.com/p/22232448</a></p>
+<ul>
+<li>[Tile-based Rasterization in Nvidia GPUs with David Kanter of Real World Tech]</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=Nc6R1hwXhL8&amp;t=973s&amp;pbjreload=101">https://www.youtube.com/watch?v=Nc6R1hwXhL8&amp;t=973s&amp;pbjreload=101</a></p>
+<ul>
+<li>[Arm Mali GPU Training]<br>
+<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=n9SOfC4Haj4&amp;list=PLKjl7IFAwc4QUTejaX2vpIwXstbgf8Ik7&amp;index=3">https://www.youtube.com/watch?v=n9SOfC4Haj4&amp;list=PLKjl7IFAwc4QUTejaX2vpIwXstbgf8Ik7&amp;index=3</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/347001411"> 移动平台GPU硬件学习与理解</a></li>
+<li><a target="_blank" rel="noopener" href="https://community.arm.com/arm-community-blogs/b/graphics-gaming-and-vr-blog/posts/deferred-shading-on-mobile">Deferred shading on mobile: An API overview</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.sohu.com/a/83561143_119711">移动图形芯片的故事(下)IMR与TBR/TBDR两大流派的爱恨情仇</a></li>
+<li>大佬笔记
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/482448457">https://zhuanlan.zhihu.com/p/482448457</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_36005498/article/details/119064606">https://blog.csdn.net/qq_36005498/article/details/119064606</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/zhuying-7uqy4/kipb65/ddf0sd#MCdl1">https://www.yuque.com/zhuying-7uqy4/kipb65/ddf0sd#MCdl1</a></li>
+<li><a target="_blank" rel="noopener" href="https://xzyw7.github.io/post/Lyp-tjMR_/">https://xzyw7.github.io/post/Lyp-tjMR_/</a></li>
+</ul>
+</li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/d0e77717/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 3.6 纹理压缩</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/21fde781/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-3.5 Early-Z 、Z Prepass（Pre-Z）</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

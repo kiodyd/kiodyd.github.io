@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>卡渲入门の攻略 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">卡渲入门の攻略</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-03-30T08:48:16.000Z" itemprop="datePublished">2023-03-30</time>
+          </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/">🏷️ 卡通渲染</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<blockquote>
+<p><em>本文为初步入门学到的一些东西，并且由脑图转换而来，所以大多只是列一下这个知识点。</em></p>
+</blockquote>
+<h2 id="日式卡渲技术要点">日式卡渲技术要点</h2>
+<h3 id="描边">描边</h3>
+<h4 id="z-bias法（一般不用）">z-bias法（一般不用）</h4>
+<p>将顶点在观察空间的坐标偏移一定bias</p>
+<h4 id="法线外扩-翻转法线-Back-Facing（常用）">法线外扩/翻转法线/Back Facing（常用）</h4>
+<ol>
+<li>正常着色</li>
+<li>延法线外扩，剔除前面着色
+<ul>
+<li>保证拉近屏幕描边粗度不变化（以下任选一种）
+<ul>
+<li>使用NDC空间的距离进行外扩，ndc坐标是方形空间，还需要计算屏幕宽高比</li>
+<li>正常使用顶点坐标外扩，但对z坐标进行修改</li>
+<li>使用屏幕空间坐标外扩，和ndc类似</li>
+</ul>
+</li>
+<li>正方体使用这个描边会不连续，原因是顶点法线都垂直于面，延展开就分离了。可以将顶点法线平均保存在切线信息中，然后再用切线信息来外扩。（但如果像采样法线贴图、各向异性高光等需要用到切线信息，就要另做打算了）
+<ul>
+<li>如果要用到切线信息，可以存在uv8或顶点色，但是骨骼动画不会跟着变，所以需要存切线空间的，使用时再变换一次世界空间</li>
+</ul>
+</li>
+<li>还可以利用顶点色写入描边消隐和描边粗细，主要是有些部分美术可能不希望有描边，以及描边的粗细不要一致。虽然常见的是使用贴图，但这也是一个优化的思路，是为了排除像素精度带来的影响。因为采样极度依赖于分辨率，除非是超高分辨率，否则在特写镜头下很容易出现锯齿，而使用顶点属性则会根据屏幕分辨率来插值，达到更清晰的表现。</li>
+</ul>
+</li>
+<li>背面深度比前面深，所以不用担心遮挡问题，后渲染描边，可以利用深度测试去除大部分重复，增加效率</li>
+</ol>
+<h4 id="后处理描边">后处理描边</h4>
+<p>方案：</p>
+<ul>
+<li>Sobel算子</li>
+<li>Laplace算子</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>无法控制描边或者说很难像外扩描边一样精细的控制描边效果，同时还会把内描边也检测出来</li>
+</ul>
+<h4 id="内描边">内描边</h4>
+<ul>
+<li>本村线
+<ul>
+<li>表现衣服上的褶皱等折痕</li>
+<li>由美术制作贴图</li>
+<li>为了防锯齿，uv会特殊处理（只有横竖的uv），制作比较麻烦</li>
+<li>但会扭曲贴图上的文字和花纹，可以用贴花加上</li>
+</ul>
+</li>
+<li>后处理内描边
+<ul>
+<li>二之国分享</li>
+<li>可能是美术标记，然后后处理描上，具体还要去了解···</li>
+</ul>
+</li>
+<li>基于SDF的内描边抗锯齿</li>
+</ul>
+<h3 id="着色">着色</h3>
+<h4 id="漫反射">漫反射</h4>
+<ul>
+<li>PBR
+<ul>
+<li>主要是为了展示更多的材质效果</li>
+<li>常用于建筑物渲染</li>
+<li>一般会将PBR效果降阶使用，或者和赛璐璐/Ramp等技术混合使用</li>
+</ul>
+</li>
+<li>Ramp
+<ul>
+<li>普通的是一维，使用兰伯特计算去采样</li>
+<li>实现类似菲涅尔现象的卡通渲染，可以用二维ramp，第二维是法线与视角方向相关（类似菲涅尔计算）</li>
+<li>原神用的是5维，并且区分昼夜。使用哪一维数据由ILM图a通道决定</li>
+</ul>
+</li>
+<li>CelShading
+<ul>
+<li>赛璐璐风格，代表作《罪恶装备》</li>
+</ul>
+</li>
+<li>CellBandsShading</li>
+<li>Tone Based Shading
+<ul>
+<li>多层叠加</li>
+<li>Diffuse ramp贴图和Specular ramp有点像真实皮肤渲染用的预积分LUT贴图。猜测借此来表现出卡通角色皮肤的次表面散射效果</li>
+</ul>
+</li>
+</ul>
+<h4 id="高光">高光</h4>
+<h5 id="常用头发高光">常用头发高光</h5>
+<ul>
+<li>各向异性（这里以常用的Kajiya-Kay算法为例）
+<ul>
+<li>将头发看作圆柱体</li>
+<li>一个像素可以看作很短的圆柱体–圆</li>
+<li>用副切线ToH推导法线NoH
+<ul>
+<li>为什么不直接用法线：
+<ul>
+<li>个人理解是平常像素可能表达的是物体的一小块，法线是确定的。</li>
+<li>这里一个像素可能表达了一小段头发，类似圆，法线是不确定的（各向异性），同理切线也不确定，但是副切线是确定的</li>
+</ul>
+</li>
+<li>H离N越近，就说明离T越远</li>
+<li>只要看上去能对那就是对的，所以唯一我们能算出来NdotH的时候只能是NHT处于同一平面，画图得三角函数关系<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">float dotTH = dot(T, H);</span><br><span class="line">float sinTH = sqrt(1.0 - dotTH \* dotTH);</span><br><span class="line">NoH = sinTH</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>法线+高光控制贴图(ilm)实现天使环</li>
+</ul>
+<h5 id="金属-非金属高光（remap）">金属/非金属高光（remap）</h5>
+<ul>
+<li>基于Blinn-Phong，使用ILM图来控制高光范围和强度</li>
+<li>金属部分高光可以结合Matcap贴图补充反射效果</li>
+</ul>
+<h5 id="PBR-GGX">PBR_GGX</h5>
+<h5 id="Blinn-Phong">Blinn_Phong</h5>
+<h3 id="阴影">阴影</h3>
+<ul>
+<li>自带阴影方案（直接用会比较丑，依赖模型）</li>
+<li>基于深度阴影–2d额发阴影</li>
+<li>二值化阴影</li>
+<li>脸部距离场阴影（伦勃朗光）</li>
+<li>细节加强
+<ul>
+<li>阴影残留</li>
+<li>阴影色调分离</li>
+</ul>
+</li>
+</ul>
+<h3 id="边缘光">边缘光</h3>
+<h4 id="基于菲涅尔">基于菲涅尔</h4>
+<ul>
+<li>NdotV表示的是世界空间法线和视线的点积，反应的是从当前视线看去，像素点处于边缘的可能性</li>
+<li>需要遮罩图屏蔽部分不想亮的（在一些有平面的物体，当平面和视线接近垂直的时候，会导致整个平面都有边缘光。这会让一些不该有边缘光的地方出现边缘光）</li>
+</ul>
+<h4 id="基于深度图">基于深度图</h4>
+<ul>
+<li>需要屏幕深度图</li>
+<li>采样深度贴图获得当前深度，然后沿着一个特定的方向偏移屏幕空间的深度贴图uv坐标，再采样一个偏移后的深度。对比这2个深度，如果超出一定的阈值，将差值转化为深度边缘光强度</li>
+<li>宽度比较统一</li>
+</ul>
+<h3 id="眼睛">眼睛</h3>
+<h4 id="贴图法">贴图法</h4>
+<p>最简单省事的就是贴图，最多一层baseMap和一层高光足够了。放在高品质游戏里难免有点敷衍</p>
+<p>新樱花大战中的做法比较复杂。眼睛的建模实际是两层，外层是向外凸的半透明层，用来绘制高光和反射，表示人眼的角膜；内层微微内凹，表示人眼的虹膜与中心的瞳孔。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-5cb7be831ad82b0bc7626721b2143c55_1440w.png" alt=""></p>
+<ul>
+<li>C：Albedo Map，基本贴图，表现出人眼的虹膜效果。</li>
+<li>D：对基本贴图的加算图</li>
+<li>E：高光图，也是通过加法计算，会通过UV动画进行移动</li>
+<li>F：环境反射图</li>
+</ul>
+<h4 id="视差">视差</h4>
+<p>模拟瞳孔</p>
+<h4 id="反深度睫毛-眉毛">反深度睫毛/眉毛</h4>
+<ul>
+<li>因为一般会被丢弃
+<ul>
+<li>利用深度测试，绘制两次法
+<ul>
+<li>使用RenderQueue按头发-脸-内眉毛-外眉毛的顺序绘制，眉毛绘制两遍</li>
+<li>第一个用ZTest LEqual绘制没被头发挡住的眉毛，第二个用ZTest GEqual绘制盖在头发上的眉毛</li>
+<li>眉毛的计算量并不多，这种做法会更省一点</li>
+</ul>
+</li>
+<li>模板测试
+<ul>
+<li>不过这样会多用一张模板贴图，在手机上对带宽不友好。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="面部修正">面部修正</h3>
+<ul>
+<li>修改面部法线
+<ul>
+<li>使用mask贴图</li>
+<li>或使用顶点色通道</li>
+</ul>
+</li>
+<li>如果使用了sdf面部阴影，一般就不用面部修正？</li>
+</ul>
+<h3 id="Bloom">Bloom</h3>
+<ul>
+<li>和PBR常见bloom不同，需要手动控制哪里需要bloom
+<ul>
+<li>遮罩纹理</li>
+<li>利用a通道，适合不透明物体，如果要半透明，就要用双pass保存a了</li>
+</ul>
+</li>
+</ul>
+<h3 id="多光源加权">多光源加权</h3>
+<h2 id="效果展示">效果展示</h2>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_43363cc3f4bcd11cd82f2f9fcb52d382.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_43363cc3f4bcd11cd82f2f9fcb52d382.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_204df211135293ded924de1ae826b2f3.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_204df211135293ded924de1ae826b2f3.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_14faf8b00a6446e2f0777d862b771164.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/3/image_14faf8b00a6446e2f0777d862b771164.png"></p>
+<h2 id="参考文章">参考文章</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/csuyuanxing/article/details/123519895">Unity下的日式卡通渲染实现-着色篇（一）</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/csuyuanxing/article/details/123525635">Unity下的日式卡通渲染实现-阴影篇（二）</a></li>
+<li>GitHub-FernNPR，<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1jX4y1f7Pc/?spm_id_from=333.999.0.0">b站介绍视频</a>，需要把里面提到的关键点原理搞懂</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/109101851">从0开始的卡通渲染</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/129291888">日式卡通渲染</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/86726394">卡通渲染技术总结</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1h14y177bp">原神角色渲染</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qjh5606/article/details/119958786">SDF面部阴影图生成</a></li>
+<li><a target="_blank" rel="noopener" href="https://gitee.com/JasonMa0012/JasonMaToonRenderPipeline">基于HDRP的卡通渲染</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/107664564">顶点色ag通道存平滑法线的方案，评论区提出可以存偏移量精度更高</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/139318012">引擎中画顶点色工具</a></li>
+<li><a target="_blank" rel="noopener" href="https://xiaopengcheng.top/categories/Rendering/">大佬博客</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/619582749">卡渲技术总结</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/420473327">MatCap纹理</a>
+<ul>
+<li>因为Matcap是非完全物理的，属于trick，使用的时候要格外的小心，避免对游戏整体的PBR环境有过大的影响</li>
+<li>用在冰面等材质低成本添加cubemap反射的效果</li>
+<li>角色在暗的地方整体亮度和高光强度都不够，适当使用matcap加强下表现</li>
+</ul>
+</li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/a7f4980f/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">《Unity性能优化》-- 1. 初探项目</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/6f3d2e2b/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 3.72 command buffer及urp概述</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

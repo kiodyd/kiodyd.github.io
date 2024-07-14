@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形 3.6 纹理压缩 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形 3.6 纹理压缩</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-02-20T06:33:41.000Z" itemprop="datePublished">2023-02-20</time>
+          </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="什么是纹理压缩">什么是纹理压缩</h2>
+<p>为了解决<strong>内存、带宽</strong>问题，专为在计算机图形渲染系统中存储纹理而使用的<strong>图像压缩</strong>技术</p>
+<h4 id="区分图片格式和纹理压缩格式">区分图片格式和纹理压缩格式</h4>
+<h5 id="图片格式">图片格式</h5>
+<ul>
+<li>是图片文件的存储格式，通常在硬盘、内存中存储，传输文件时使用。常见的有jpg、png、bmp、gif</li>
+<li>图片压缩格式是基于整张图片进行压缩，像素之间解码过程中存在<strong>依赖</strong>关系</li>
+<li>无法实现单个像素级的解析，发挥不了显卡的并行能力</li>
+<li>在显卡解码后都是RGBA的纹理格式</li>
+<li>总结：无法减少显存的占用率，且需要CPU解压后才能被GPU读取，导致增加了CPU性能损耗和带宽</li>
+</ul>
+<h5 id="纹理压缩格式">纹理压缩格式</h5>
+<ul>
+<li>是显卡能直接进行采样的​纹理数据格式，通常在向显卡中加载纹理时才使用</li>
+<li>基于块压缩，能够更快的读取像素所属字节块进行解压缩，以支持快速访问</li>
+<li>随机访问：如果渲染一个物体时，需要在某个坐标上采样纹理，那么GPU只需要读取该像素所属固定大小字节块，对其进行解压即可</li>
+<li>而且如果不进行纹理压缩，传给GPU的是RGBA32格式，未经压缩所占用的内存和带宽是不能接受的</li>
+<li>纹理压缩相对正常图片格式，能够直接被GPU采样，发挥GPU强大的并行能力，且优化了带宽问题</li>
+</ul>
+<h2 id="为什么要纹理压缩">为什么要纹理压缩</h2>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_a7cad530ea8818c73ad3e13de5345a93.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_a7cad530ea8818c73ad3e13de5345a93.png"></p>
+<ul>
+<li>
+<p>图片压缩格式下</p>
+<ul>
+<li>无法实现像素级解析，无法发挥GPU并行能力，无法减少显存的占用率</li>
+<li>需要在到GPU之间使用CPU解压缩，增加了CPU的时间和带宽</li>
+</ul>
+</li>
+<li>
+<p>纹理压缩格式下</p>
+<ul>
+<li>GPU可以直接读取贴图，不需要经过中间CPU解码/解压缩的步骤</li>
+<li>还支持“随机访问”</li>
+</ul>
+</li>
+</ul>
+<h2 id="常见纹理压缩格式">常见纹理压缩格式</h2>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_e2db1e18004d90f6192504a8c6138d2b.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_e2db1e18004d90f6192504a8c6138d2b.png"><br>
+<em>黄色为常用格式</em></p>
+<h4 id="纹理格式知识">纹理格式知识</h4>
+<ul>
+<li>
+<p>RGBA8888（RGBA32）</p>
+<ul>
+<li>R、G、B、A四个通道各占8位</li>
+<li>一个像素占：4 * 8 = 32位（bit）= 4字节（byte）</li>
+</ul>
+</li>
+<li>
+<p>RGBA4444（RGBA16）</p>
+<ul>
+<li>四个通道各占4位内存</li>
+<li>一个像素占：4 * 4 = 16位 = 2字节</li>
+</ul>
+</li>
+<li>
+<p>RGB888（RBG24）</p>
+<ul>
+<li>一个像素占：3 * 8 = 24位（bit）= 3字节（byte）</li>
+</ul>
+</li>
+<li>
+<p>RGB565(RGB16)</p>
+<ul>
+<li>一个像素占：：​5+6+5 = 16 位 = 2字节（可能是人眼对绿色敏感点，所以绿色通道精度高点，屏幕像素排列也类似）</li>
+</ul>
+</li>
+<li>
+<p>总结</p>
+<ul>
+<li>带透明通道的，单通道可以是4位、8位</li>
+<li>不带透明通道的，单通道可以是8位，或者在RGB分16位（565、绿通道多给1位）</li>
+</ul>
+</li>
+</ul>
+<h4 id="DXTC系列">DXTC系列</h4>
+<p>DCTC纹理压缩格式来源于S3公司提出的S3TC算法，基本思想是把4×4的像素块压缩成一个64或128位的数据块，优点为创建了一个固定大小且独立的编码片段，没有共享查找表或其他依赖关系，简化了解码过程</p>
+<h5 id="DXT1-BC1">DXT1(BC1)</h5>
+<p>将4×4的像素块压缩成了一个64位的数据块，这个64位的数据块的内容为：16位RGB565 + 16位RGB565 + 32位颜色索引值。</p>
+<p>两个RGB颜色是4×4像素块中的两个极端颜色值，然后通过线性插值计算出剩余的两个中间颜色，一共四个颜色用于查找。</p>
+<p>32位索引值分配给16个像素，每个像素占两位，即00 01 10 11四个位置，用于索引上面说的四种颜色。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bb3232f18c179b0a5f18a7171511adeb.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bb3232f18c179b0a5f18a7171511adeb.png"></p>
+<p>需要注意的地方：</p>
+<ul>
+<li>
+<p>存储极端颜色的格式是RGB565，也就是说绿（G）通道的精度比其他两个通道精度高一些（所以有把信息放绿通道精度更高的说法）</p>
+</li>
+<li>
+<p>DXT1格式适用于不具有透明度信息或者具有一位透明度信息（表示完全透明or完全不透明）的贴图</p>
+<ul>
+<li>对于有Alpha信息的贴图
+<ul>
+<li>极端颜色插值时，中间颜色只有一个，另一个表示完全透明or完全不透明</li>
+<li>每个像素索引时，极端颜色+中间颜色表示完全不透明，另外一个表示完全透明</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>DXT1的压缩率：</p>
+<ul>
+<li>参照对象：RGB24（DXT1主要用于没有Alpha信息的贴图）</li>
+<li>DXT1: 总数据块为64位，16个像素共用 =&gt;一个像素4位</li>
+<li>压缩率为：24 / 4  =  6:1</li>
+</ul>
+<h5 id="DXT2-3-BC2">DXT2/3 (BC2)</h5>
+<p>颜色信息和DXT1一样占用64位，多出64位用来增加Alpha信息</p>
+<p>Alpha信息并没有插值，只是单纯的为每一个像素多给4位信息，用来记录Alpha信息，每个像素就占4+4=8位</p>
+<p>DXT2和DXT3的区别：</p>
+<ul>
+<li>DXT2是已经完成了颜色与Alpha的混合，当透明度发生改变时，直接改变整体颜色值，不再单独进行复合</li>
+<li>DXT3的Alpha信息相对独立（分开压缩）</li>
+</ul>
+<p>DXT2、3的压缩率</p>
+<ul>
+<li>参照对象：RGBA（32位）</li>
+<li>总数据块为128位，16个像素共用 =&gt;一个像素8位</li>
+<li>压缩率为：32 / 8 = 4:1</li>
+</ul>
+<h5 id="DXT4-5-BC3">DXT4/5 (BC3)</h5>
+<p>与DXT2/3的区别：</p>
+<ul>
+<li>
+<p>Alpha信息是通过线性插值得来的</p>
+</li>
+<li>
+<p>表示颜色信息的64位同上</p>
+</li>
+<li>
+<p>多出的64位：</p>
+<ul>
+<li>2个8位的极端值</li>
+<li>每个像素3位的索引值（16*3）</li>
+</ul>
+</li>
+</ul>
+<p>DXT4和DXT5的区别：</p>
+<ul>
+<li>DXT4是已经完成了颜色与Alpha的混合，当透明度发生改变时，直接改变整体颜色值，不再单独进行复合</li>
+<li>DXT5的Alpha信息相对独立（分开压缩）</li>
+</ul>
+<p>DXT4、5的压缩率：同为4:1</p>
+<h5 id="拓展知识">拓展知识</h5>
+<p>Unity将贴图类型选为法线时，会采用DXTnm格式</p>
+<ul>
+<li>它基于DXT5，会把法线贴图的R通道存入A通道，然后将RB通道清除为1</li>
+<li>这样就可以把法线xy信息分别存入到RGB和A中进行压缩，来获得更高的精度</li>
+<li>最后再根据xy构建出z的信息</li>
+<li>可以去看一下法线贴图unpack函数</li>
+</ul>
+<h4 id="ATI系列">ATI系列</h4>
+<h5 id="ATI1（BC4）">ATI1（BC4）</h5>
+<ul>
+<li>64位，每一个数据块中存储的是单个颜色通道的数据</li>
+<li>主要用于存储：高度图、光滑度贴图等单通道信息</li>
+<li>ATI1的压缩方式：
+<ul>
+<li>和DXT5中，对于Alpha数据处理一样</li>
+</ul>
+</li>
+</ul>
+<h5 id="ATI2-BC5">ATI2 (BC5)</h5>
+<ul>
+<li>
+<p>128位，和ATI1的区别在于，它存储了两个颜色通道的数据，类似处理两个颜色通道版本的BC4</p>
+</li>
+<li>
+<p>ATI2的压缩方式：</p>
+<ul>
+<li>处理方式也是相同的，相当于存储了两个ATI1的数据块</li>
+</ul>
+</li>
+<li>
+<p>如果想要节省通道只存储法线xy通道时，就可以采用BC5（ATI2）压缩格式</p>
+</li>
+<li>
+<p>因为每个通道都会有自己的索引，会单独压缩，所以法线贴图的xy信息可以比DXT1中有更多保真度，但需要使用两倍内存，需要更多的带宽才能将纹理传递到着色器中</p>
+</li>
+<li>
+<p>压缩比（<strong>一些资料上显示BC4和5的压缩比为4/1，可能是由于将单个像素按32位的大小计算</strong>）：</p>
+<ul>
+<li>ATI1（参照对象：单通道 8位）：
+<ul>
+<li>总数据块为 64位，16个像素，所以每个像素4位</li>
+<li>压缩比为：8 / 4 =2:1</li>
+</ul>
+</li>
+<li>ATI2（参照对象：两个通道 16位）：
+<ul>
+<li>总数据块为 128位，16个像素，所以每个像素4位</li>
+<li>压缩比为：16 / 8 = 2:1</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h5 id="BC6-7">BC6/7</h5>
+<ul>
+<li>
+<p>每个块占用16字节，仅在D3D11及以上图形硬件中受到支持</p>
+</li>
+<li>
+<p>BC6</p>
+<ul>
+<li>针对RGB半精度浮点数数据进行压缩</li>
+<li>是专门针对HDR（高动态范围）图像设计的压缩算法</li>
+<li>压缩比为6:1</li>
+</ul>
+</li>
+<li>
+<p>BC7</p>
+<ul>
+<li>针对8位RGB或RGBA的图像进行压缩</li>
+<li>是专门针对LDR（低动态范围）图像设计的压缩算法，该格式用于高质量的RGBA压缩，可以显著减少由于压缩法线带来的错误效果</li>
+<li>压缩比为3:1</li>
+</ul>
+</li>
+<li>
+<p>Reference：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://docs.microsoft.com/zh-cn/windows/uwp/graphics-concepts/bc6h-format">https://docs.microsoft.com/zh-cn/windows/uwp/graphics-concepts/bc6h-format</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.microsoft.com/zh-cn/windows/uwp/graphics-concepts/bc7-format">https://docs.microsoft.com/zh-cn/windows/uwp/graphics-concepts/bc7-format</a></li>
+</ul>
+</li>
+</ul>
+<h4 id="ETC系列">ETC系列</h4>
+<p>DirectX选择DXTC作为标准压缩格式，而OpenGL选择了爱立信研发的ETC格式</p>
+<p>几乎所有安卓设备都支持ETC格式，所以它在移动端应用广泛</p>
+<p>基本思想：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_5f5d25d2f50aeb5d8ecab1c854e8917e.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_5f5d25d2f50aeb5d8ecab1c854e8917e.png"></p>
+<p>ETC的方案同样将4×4的像素单元压缩成64位数据块，同时，将像素单元水平或竖直朝向分为两个区块，每个像素颜色等于基础颜色加上索引指向的亮度范围</p>
+<p>即每个区块中有12位用来存储颜色信息（12*2），16位存储其8个像素的索引（每个像素2位，16*2），4位存储亮度索引（4*2）</p>
+<h5 id="ETC1">ETC1</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6cb1215b40591dbfc9edd841053e59f4.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6cb1215b40591dbfc9edd841053e59f4.png"></p>
+<p>上表为<strong>亮度索引值</strong>表</p>
+<ul>
+<li>每个区块的亮度索引值（3位，0-7）会 从8个亮度索引值中获取当前像素单元的亮度表</li>
+<li><em>注：课程里讲的是4位，0-15个亮度索引值，但资料中显示的是3位索引值，表中也是</em></li>
+</ul>
+<p>​<strong>像素索引值</strong>​（上表，竖直方向）：</p>
+<ul>
+<li>每个像素的像素索引值（2位，0-3）可以从亮度表的四个值中选取对应的亮度补充值</li>
+</ul>
+<p>最终的颜色 = 12位基础颜色信息 + 亮度补偿值</p>
+<p>理解：</p>
+<ul>
+<li>
+<p>原理：</p>
+<ul>
+<li>将4×4的像素块编码为2×4或者4×2像素的两个块</li>
+<li>每个块指定一个基色，每个像素的颜色➕一个编码为相对于这个基色偏移的灰度值确定（上面提到的亮度）</li>
+</ul>
+</li>
+<li>
+<p>​位数占比：</p>
+<ul>
+<li>亮度索引3位*2</li>
+<li>像素索引2位*16</li>
+<li>基础颜色12位（444*2，或者555+333）*2</li>
+<li>flip1位（控制水平或者竖直划分）*2</li>
+<li>总位数 = 3*2 + 2*16 + 12*2 + 1*2 = 64位</li>
+<li>//注：*2是因为有两个块，*16是因为有16个像素</li>
+</ul>
+</li>
+</ul>
+<p>压缩率：</p>
+<ul>
+<li>参照标准：RBG24</li>
+<li>总共有64个数据块，针对16个像素，也就是每个像素4位</li>
+<li>压缩比 = 24 / 4 = 6:1</li>
+</ul>
+<p>对于ETC1不支持Alpha通道的解决方案</p>
+<ul>
+<li>采用两张纹理混合的方式</li>
+</ul>
+<p>ETC1的适用情况</p>
+<ul>
+<li>长宽为2的幂次的贴图</li>
+<li>不适用于带透明通道的贴图</li>
+<li>适用于基本所有安卓设备</li>
+</ul>
+<h5 id="ETC2">ETC2</h5>
+<ul>
+<li>ETC2是ETC1的扩展，支持了Alpha通道（内存占用大于ETC1）</li>
+<li>硬件要求OpenGL ES3.0和OpenGL 4.3以上</li>
+</ul>
+<h4 id="ASTC">ASTC</h4>
+<ul>
+<li>
+<p>ASTC是由ARM和AMD联合开发的纹理压缩格式</p>
+</li>
+<li>
+<p>优点：</p>
+<ul>
+<li>可以根据不同图片选择不同压缩率的算法</li>
+<li>图片长宽不需要是2的次幂</li>
+<li>同时支持HDR和LDR</li>
+</ul>
+</li>
+<li>
+<p>缺点：</p>
+<ul>
+<li>兼容性不够完善</li>
+<li>解码时间较长</li>
+<li>无法在iphone6以下的设备运行</li>
+</ul>
+</li>
+<li>
+<p>基本思想：</p>
+<ul>
+<li>同样是基于块的压缩算法，与BC7类似</li>
+<li>数据块大小固定为128位</li>
+<li>块中的像素数量可变，从4×4到12×12像素都有</li>
+</ul>
+</li>
+<li>
+<p>每个数据块中存储了两个插值端点</p>
+<ul>
+<li>存储的不一定是颜色信息，也可能是Layer信息，这样可以用来对Normal或Alpha进行更好的压缩（根据贴图类型进行针对性压缩）</li>
+</ul>
+</li>
+<li>
+<p>块中的每个纹素，存储其对应插值点的权重值</p>
+<ul>
+<li>权重值数量可以 少于纹素数量，可以通过插值得到每个纹素的权重值，再进行颜色计算</li>
+</ul>
+</li>
+<li>
+<p>128位数据块中存储的信息：</p>
+<ul>
+<li>11位，权重、高度信息、特殊块标识</li>
+<li>2位，Part数量</li>
+<li>4位，16中插值端点模式（LDR/HDR、RGB/RGBA）</li>
+<li>111位，插值端点信息、纹素权重值、配置信息</li>
+</ul>
+</li>
+</ul>
+<h4 id="PVRTC">PVRTC</h4>
+<p>PVRTC是由Imagination公司专为PowerVR显卡设计的压缩格式（iphone、ipad，部分安卓机）</p>
+<p>不是基于块的算法，而是将图像分为了低频和高频信号</p>
+<ul>
+<li>低频信号由两张低分辨率图像AB组成</li>
+<li>高频信号则是一张记录了每个像素混合的权重值的全分辨率低精度的调制图像</li>
+<li>解码时，AB图像经过双线性插值放大，然后根据调制图像权重进行混合</li>
+</ul>
+<p>压缩原理</p>
+<ul>
+<li>
+<p>分为4-bpp 和 2-bpp（bpp = Bit Per Pixel，即每个像素占的位数）</p>
+</li>
+<li>
+<p>4-bpp为例：</p>
+<ul>
+<li>把4×4的像素单元压成一个64位数据块
+<ul>
+<li>64位数据块中包含了A、B两张图（在原图基础上压缩到1/4的低分辨率图像）</li>
+<li>不同模式下每个像素调制数据可以得到不同的混合值，根据这个混合值用A和B混合得出最终颜色值</li>
+</ul>
+</li>
+<li>位数占比：
+<ul>
+<li>32位的调制数据（2*16）</li>
+<li>1位的调制标志（也称为模式）</li>
+<li>15位的颜色A（554或4433），1位颜色A的不透明标志</li>
+<li>14位颜色B（555或4443），1位颜色B的不透明标志</li>
+<li>共计：32 +1 + 16 + 15 = 64位</li>
+</ul>
+</li>
+<li>压缩率
+<ul>
+<li>以RGB为参照标准
+<ul>
+<li>压缩率 = 24 / (64/16) = 6:1</li>
+</ul>
+</li>
+<li>以RGBA为参照标准
+<ul>
+<li>压缩率 = 32 / (64/16) = 8:1</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>2-bpp</p>
+<ul>
+<li>把一个8×4的像素单元压成了64位数据块</li>
+</ul>
+</li>
+</ul>
+<h2 id="实际应用中的选择">实际应用中的选择</h2>
+<h4 id="画质对比">画质对比</h4>
+<p>RGBA &gt; ASTC 4×4&gt; ASTC6×6 &gt; TEC2 ≈ ETC1<br>
+<em>（画质较为主观，且不同的贴图针对不同压缩格式也不同，仅供参考</em></p>
+<h4 id="压缩比">压缩比</h4>
+<table>
+<thead>
+<tr>
+<th>纹理格式</th>
+<th>压缩比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DXT1</td>
+<td>6:1</td>
+</tr>
+<tr>
+<td>DXT2/3</td>
+<td>4:1</td>
+</tr>
+<tr>
+<td>DXT4/5</td>
+<td>4:1</td>
+</tr>
+<tr>
+<td>ATI1</td>
+<td>4:1</td>
+</tr>
+<tr>
+<td>ATI2</td>
+<td>4:1</td>
+</tr>
+<tr>
+<td>BC6</td>
+<td>6:1</td>
+</tr>
+<tr>
+<td>BC7</td>
+<td>3:1</td>
+</tr>
+<tr>
+<td>ETC1</td>
+<td>6:1</td>
+</tr>
+<tr>
+<td>PVRTC</td>
+<td>6:1</td>
+</tr>
+<tr>
+<td>ASTC</td>
+<td>4:1~35.95:1</td>
+</tr>
+</tbody>
+</table>
+<h4 id="选择">选择</h4>
+<p>PC</p>
+<ul>
+<li>低质量使用DXT1格式不支持A通道，使用DXT5格式支持A通道</li>
+<li>高质量使用BC7格式，支持A通道</li>
+</ul>
+<p>安卓</p>
+<ul>
+<li>低质量使用ETC1格式，但不支持A通道</li>
+<li>低质量使用ETC2格式，支持A通道，需要在OpenGL ES 3.0/OpenGL 4.3以上版本</li>
+<li>高质量使用ASTC格式，需要在Android 5.0/OpenGL ES 3.1以上版本</li>
+</ul>
+<p>IOS</p>
+<ul>
+<li>高质量使用ASTC格式，需要Iphone6以上版本</li>
+<li>低质量使用PVRTC2格式，支持Iphone6以下版本</li>
+</ul>
+<h4 id="补充">补充</h4>
+<p><strong>实际手机端项目中，我们比较常用ASTC（安卓和IOS通用）</strong></p>
+<p>英伟达和Unity官方对于不同类型贴图给出了不同的压缩方案建议：</p>
+<ul>
+<li>Using ASTC Texture Compression for Game Assets | NVIDIA Developer</li>
+<li>Unity - Manual: Recommended, default, and supported texture compression formats, by platform (<a target="_blank" rel="noopener" href="http://unity3d.com">unity3d.com</a>)</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_45eee89f8b0d03f8ed9308cbd9c8077f.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_45eee89f8b0d03f8ed9308cbd9c8077f.png"></p>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/237940807">https://zhuanlan.zhihu.com/p/237940807</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Av411K7bt?p=2&amp;vd_source=70bc7ae6fffa87a625b84efc083c90bb">https://www.bilibili.com/video/BV1Av411K7bt?p=2&amp;vd_source=70bc7ae6fffa87a625b84efc083c90bb</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/read/cv12456790">https://www.bilibili.com/read/cv12456790</a></li>
+<li>大佬笔记
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/wuyuhui-38h5d/bgdk81/gqzry3">https://www.yuque.com/wuyuhui-38h5d/bgdk81/gqzry3</a>?</li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/6527chen/ldyt32/bmfypw#ea0d5089">https://www.yuque.com/6527chen/ldyt32/bmfypw#ea0d5089</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/zhuying-7uqy4/kipb65/pmm7tc">https://www.yuque.com/zhuying-7uqy4/kipb65/pmm7tc</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_36005498/article/details/119576518">https://blog.csdn.net/qq_36005498/article/details/119576518</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/whitebreeze/article/details/119333627">https://blog.csdn.net/whitebreeze/article/details/119333627</a></li>
+</ul>
+</li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/43c67814/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 4.1 Bloom算法</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/84673fb5/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 3.7 移动端TB(D)R架构基础</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

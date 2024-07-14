@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形-2.3 常用函数介绍 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形-2.3 常用函数介绍</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-01-17T12:00:00.000Z" itemprop="datePublished">2023-01-17</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2023-01-18T06:41:50.000Z" itemprop="dateUpdated">2023-01-18</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <p>求知若饥，虚心若愚</p>
+<span id="more"></span>
+<h2 id="前言">前言</h2>
+<p>常用的着色语言有以下几种：</p>
+<ul>
+<li>Cg（C for Graphics），由NVIDIA公司开发，目前已不怎么维护。</li>
+<li>GLSL（OpenGL Shading Language），由 OpenGL ARB 所建立。</li>
+<li>HLSL（High Level Shader Language），是由微软拥有及开发的一种着色器语言，维护积极。</li>
+</ul>
+<p>本节主要以HLSL语言为例，但其实也大差不差，原理搞懂即可。</p>
+<blockquote>
+<p>官方文档：<a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-intrinsic-functions">https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-intrinsic-functions</a></p>
+</blockquote>
+<h2 id="函数介绍">函数介绍</h2>
+<blockquote>
+<p>IQ大佬的可以查看函数图像的网站：<a target="_blank" rel="noopener" href="https://graphtoy.com">https://graphtoy.com</a></p>
+<p>mac os 自带的Grapher也挺好用的</p>
+</blockquote>
+<h5 id="基本数学运算">基本数学运算</h5>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>max(a, b)</td>
+<td>返回较大的那个</td>
+</tr>
+<tr>
+<td>min(a, b)</td>
+<td>返回较小的那个</td>
+</tr>
+<tr>
+<td>mul(a, b)</td>
+<td>两数相乘，常用于矩阵运算</td>
+</tr>
+<tr>
+<td>abs(a)</td>
+<td>返回输入值的绝对值</td>
+</tr>
+<tr>
+<td>round(x)</td>
+<td>返回与x最近的整数</td>
+</tr>
+<tr>
+<td>sqrt(x)</td>
+<td>返回指定值的平方根</td>
+</tr>
+<tr>
+<td>rsqrt(x)</td>
+<td>返回指定值的平方根的倒数</td>
+</tr>
+<tr>
+<td>degrees(x)</td>
+<td>转换成弧度</td>
+</tr>
+<tr>
+<td>radians(x)</td>
+<td>将角度转为弧度制</td>
+</tr>
+<tr>
+<td>noise(x)</td>
+<td>噪声函数，将uv的坐标作为x传入，返回一个随机的[-1,1]的值，默认应该是柏林噪声（有多种噪声实现方案）</td>
+</tr>
+</tbody>
+</table>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301171447695.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301171447686.png" alt=""></p>
+<h5 id="幂指对于偏导数">幂指对于偏导数</h5>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pow(x, y)</td>
+<td>x的y次幂(x和y均可为自变量或具体的数)，即<img src="https://math.now.sh?inline=x%5E%7By%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+</tr>
+<tr>
+<td>ldexp(x, exp)</td>
+<td>返回x与2的exp次方的乘积，即<img src="https://math.now.sh?inline=x*2%5E%7Bexp%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+</tr>
+<tr>
+<td>exp(x)</td>
+<td>返回以e为底的指数函数，即<img src="https://math.now.sh?inline=e%5Ex" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+</tr>
+<tr>
+<td>exp2(value x)</td>
+<td>返回以2为底，x为幂的指数，即<img src="https://math.now.sh?inline=2%5Ex" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+</tr>
+<tr>
+<td>log(x)</td>
+<td>返回指定值的以e为底的对数，即<img src="https://math.now.sh?inline=ln%20x" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+</tr>
+<tr>
+<td>log10(x)</td>
+<td>求以10为底的对数，即<img src="https://math.now.sh?inline=log_%7B10%7Dx" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+</tr>
+<tr>
+<td>log2(x)</td>
+<td>求以2为底的对数，即<img src="https://math.now.sh?inline=log_%7B2%7Dx" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+</tr>
+<tr>
+<td>frexp(x, out exp)</td>
+<td>把浮点数 x 分解成尾数和指数返回值是尾数，exp参数返回的值是指数<br>(如果x参数为0，则此函数的尾数和指数均返回0)，<br>公式为<img src="https://math.now.sh?inline=x%3Dret*2%5E%7Bexp%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/>，返回值为ret，并给exp赋值。<br>  是按照计算机存储浮点数的方式分解的，例如1.2这个数，是分为两部分的，尾数为12，指数为0.1</td>
+</tr>
+</tbody>
+</table>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301171459421.png" alt=""></p>
+<h5 id="三角函数与双曲线函数">三角函数与双曲线函数</h5>
+<blockquote>
+<p>双曲线的解释：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/20042215">https://zhuanlan.zhihu.com/p/20042215</a> <br>具体在图形学的用途等后面了解更多再补充~</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>asin(x)</td>
+<td>返回输入值的反正弦值</td>
+</tr>
+<tr>
+<td>acos(x)</td>
+<td>返回输入值反余弦值</td>
+</tr>
+<tr>
+<td>atan(x)</td>
+<td>返回输入值的反正切值</td>
+</tr>
+<tr>
+<td>atan2(y,x)</td>
+<td>返回y/x的反正切值</td>
+</tr>
+<tr>
+<td>sin(x)、cos(x)、tan(x)、tan(y, x)</td>
+<td>常用三角函数</td>
+</tr>
+<tr>
+<td>sincos(x, out s, out c)</td>
+<td>返回x的正弦值和余弦值</td>
+</tr>
+<tr>
+<td>sinh(x)</td>
+<td>返回x的双曲正弦值，即<img src="https://math.now.sh?inline=0.5*%28e%5Ex-e%5E%7B-x%7D%29" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+</tr>
+<tr>
+<td>cosh(x)</td>
+<td>返回x的双曲余弦值，即<img src="https://math.now.sh?inline=0.5*%28e%5Ex%2Be%5E%7B-x%7D%29" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+</tr>
+<tr>
+<td>tanh(x)</td>
+<td>返回x双曲正切值，即<img src="https://math.now.sh?inline=%5Cfrac%7Be%5Ex-e%5E%7B-x%7D%7D%7Be%5Ex%2Be%5E%7B-x%7D%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+</tr>
+</tbody>
+</table>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301171507359.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301171507161.png" alt=""></p>
+<h5 id="数据范围类">数据范围类</h5>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ceil(x)</td>
+<td>返回大于或等于x的最小整数，向上取整</td>
+</tr>
+<tr>
+<td>floor(x)</td>
+<td>返回小于或等于x的最大整数，向下取整</td>
+</tr>
+<tr>
+<td>step(x, y)</td>
+<td>x &lt;= y为1，否则为0</td>
+</tr>
+<tr>
+<td>saturate(x)</td>
+<td>返回将x钳制到0和1之间的值</td>
+</tr>
+<tr>
+<td>clamp(x, min, max)</td>
+<td>把x限制在[min, max]范围内，小于返回min，大于返回max</td>
+</tr>
+<tr>
+<td>frac(x)</td>
+<td>返回x部分的小数</td>
+</tr>
+<tr>
+<td>fmod(a, b)</td>
+<td>返回x对y取余的余数</td>
+</tr>
+<tr>
+<td>modf(x, out ip)</td>
+<td>将值x分为小数和整数部分(各部分符号与x相同) ip写入整数部分，函数返回小数部分</td>
+</tr>
+<tr>
+<td>lerp(a, b, s)</td>
+<td>按照s在a到b之间插值，返回<img src="https://math.now.sh?inline=a*%281-s%29%2Bb*s" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+</tr>
+<tr>
+<td>smoothstep(min, max, x)</td>
+<td>如果x在[min，max]范围内，则返回介于0和1之间的平滑Hermite插值<br>使用smoothstep 在两个值之间创建平滑过渡。<br>例如，使用此功能平滑地混合两种颜色</td>
+</tr>
+</tbody>
+</table>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301171516656.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301171516917.png" alt=""></p>
+<h5 id="类型判断类">类型判断类</h5>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>all(x)</td>
+<td>确定指定量的所有分量是否均为非零，均非零则返回true，否则返回false<br> （处理由浮点型、整型、布尔型数据定义的标量、向量或者矩阵）</td>
+</tr>
+<tr>
+<td>clip(x)</td>
+<td>如果输入值小于零，则丢弃当前像素<br> 常用于判定范围(不仅仅针对0, 返回值为void)<br>常用于测试alpha，如果每个分量代表到平面的距离，还可以用来模拟剪切平面</td>
+</tr>
+<tr>
+<td>sign(x)</td>
+<td>返回x的正负性，如果x小于零返回-1，如果x等于零返回0，如果x大于零返回1</td>
+</tr>
+<tr>
+<td>isinf(x)</td>
+<td>如果x参数为+INF或-INF(无穷+无穷=无穷，0x3f3f3f3f)，返回true，否则返回False</td>
+</tr>
+<tr>
+<td>isfinite(x)</td>
+<td>判断x参数是有限，即有界的，与isinf(x)相反</td>
+</tr>
+<tr>
+<td>isnan(x)</td>
+<td>如果x参数为NAN(非数字)，返回true，否则返回false</td>
+</tr>
+</tbody>
+</table>
+<h5 id="向量与矩阵类">向量与矩阵类</h5>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>length(v)</td>
+<td>返回向量的长度</td>
+</tr>
+<tr>
+<td>normalize(v)</td>
+<td>向量归一化，<img src="https://math.now.sh?inline=%5Cfrac%20%7Bx%7D%7Blength%28x%29%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/>，方向向量归一化，单位向量</td>
+</tr>
+<tr>
+<td>distance(a, b)</td>
+<td>返回两个点的距离</td>
+</tr>
+<tr>
+<td>dot(a, b)</td>
+<td>返回a和b这两个向量的标积/内积/数量积/点积<br> a在b上的投影长，<img src="https://math.now.sh?inline=%5Cvec%7Ba%7D%20%5Ccdot%20%5Cvec%7Bb%7D%20%3D%20%7C%5Cvec%7Ba%7D%7C%20*%20%7C%5Cvec%7Bb%7D%7C%20*%20cos%CE%B8" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+</tr>
+<tr>
+<td>cross(a, b)</td>
+<td>返回a和b这两个向量的矢积/外积/向量积/叉积<br> 返回值是个向量，而且与a、b都垂直，大小上<img src="https://math.now.sh?inline=%7C%20%5Cvec%7Ba%7D%20%5Ctimes%20%5Cvec%7Bb%7D%20%7C%20%3D%20%7C%5Cvec%7Ba%7D%7C%20*%20%7C%5Cvec%7Bb%7D%7C%20*%20sin%5Ctheta" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+</tr>
+<tr>
+<td>determinant(m)</td>
+<td>返回指定浮点矩阵的按行列式方式计算的值，几何意义可看3BLUE1BROWN的线代课</td>
+</tr>
+<tr>
+<td>transpose(m)</td>
+<td>返回矩阵m的转置矩阵</td>
+</tr>
+</tbody>
+</table>
+<h5 id="光线运算类">光线运算类</h5>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>reflect(i, n)</td>
+<td>以i为入射向量，n为法线方向的反射光</td>
+</tr>
+<tr>
+<td>refract(i, n, ri)</td>
+<td>以i为入射向量，n为法线方向，ri为折射率的折射光</td>
+</tr>
+<tr>
+<td>lit(n_dot_l, n_dot_h，m)</td>
+<td>输入标量(法线点乘光照方向, 法线点乘半程向量，镜面反射系数m)<br>返回光照向量(环境光，漫反射光，镜面高光反射，1)</td>
+</tr>
+<tr>
+<td>faceforward(n, i, ng)</td>
+<td>-n * sign(dot(i, ng))<br> 函数接受一个输入向量和两个面的法线<br>如果数据向量与第二个法线的点积是负数，那么它会返回第一个法线<br>否则返回第一个法线取反的结果向量。<br>你可能已经猜到了，这个函数可以去判断一个面在某个视角下 是正面还是反面</td>
+</tr>
+</tbody>
+</table>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301171542005.png" alt=""></p>
+<h5 id="纹理查找">纹理查找</h5>
+<blockquote>
+<p>《GPU 编程与CG语言之阳春白雪下里巴人》: <a target="_blank" rel="noopener" href="https://blog.csdn.net/liu_lin_xm/article/details/4810266">https://blog.csdn.net/liu_lin_xm/article/details/4810266</a></p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Mipmap">https://en.wikipedia.org/wiki/Mipmap</a><br>
+<br><a target="_blank" rel="noopener" href="https://developer.download.nvidia.com/cg/tex2Dbias.html">https://developer.download.nvidia.com/cg/tex2Dbias.html</a><br>
+<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/u013467442/article/details/46444673">https://blog.csdn.net/u013467442/article/details/46444673</a><br>
+<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/u010019717/article/details/91352180">https://blog.csdn.net/u010019717/article/details/91352180</a><br>
+<br><a target="_blank" rel="noopener" href="https://www.gamedev.net/forums/topic/612268-information-on-how-to-do-texture-lod/">https://www.gamedev.net/forums/topic/612268-information-on-how-to-do-texture-lod/</a></p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/windows/win32/direct3d11/overviews-direct3d-11-resources-textures-intro#3d-textures">https://docs.microsoft.com/en-us/windows/win32/direct3d11/overviews-direct3d-11-resources-textures-intro#3d-textures</a><br>
+<br><a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/windows/win32/direct3d9/texture-coordinates">https://docs.microsoft.com/en-us/windows/win32/direct3d9/texture-coordinates</a><br>
+<br><a target="_blank" rel="noopener" href="http://www.3dtexture.eu/">http://www.3dtexture.eu/</a></p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/windows/win32/direct3d9/cubic-environment-mapping">https://docs.microsoft.com/en-us/windows/win32/direct3d9/cubic-environment-mapping</a></p>
+</blockquote>
+<h6 id="前置知识">前置知识</h6>
+<ul>
+<li>
+<p>纹理查找：GPU在片元着色阶段在屏幕空间XY坐标系中对每一个像素去对应的纹理中查找对应的纹素来确定像素的颜色</p>
+</li>
+<li>
+<p>纹理查找函数都可以分为三类：普通的、微分的、投影的</p>
+</li>
+<li>
+<p>微分类介绍，主要使用了偏导函数ddx、ddy</p>
+<ul>
+<li>如果函数 ddx 的参数为 myVar，该参数对应的像素点记为p（i，j），则 ddx(myVar)的值为 “像素点 p（i+1，j）的值减去myVar” （ddy同理）</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301172027866.png" alt=""></p>
+<ul>
+<li>如果函数 ddx 和 ddy 的输入参数为常数，则函数返回值永远为 0。</li>
+<li>函数 ddx 和 ddy 用于求取相邻像素间某属性的差值</li>
+<li>函数 ddx 和 ddy 的输入参数通常是纹理坐标</li>
+<li>函数 ddx 和 ddy 返回相邻像素键的属性差值；偏导数的物理含义是：在某一个方向上的变化快慢。
+<ul>
+<li>ddx 求的是 X 方向上，相邻两个像素的某属性值的变化量</li>
+<li>ddy 求的是 Y方向上，</li>
+</ul>
+</li>
+<li>由于 ddx 和 ddy 指令是作用于像素级的，所以 ddx 和 ddy 函数只被片段程序所支持</li>
+<li>mipmap在选择到底用哪一层mipmap的level时，有一种查找方法就是偏导数。</li>
+</ul>
+</li>
+<li>
+<p>投影纹理是指：将纹理当做一张幻灯片投影到场景中，使用投影纹理技术需要计算投影纹理坐标，然后使用投影纹理坐标进行查询。</p>
+<ul>
+<li>float existingDepth01 = tex2D(_CameraDepthTexture, UNITY_PROJ_COORD(i.screenPosition.xy / i.screenPosition.w)).r;<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301171620139.png" alt=""></li>
+</ul>
+</li>
+<li>
+<p>Mipmap使用相关</p>
+<ul>
+<li>lod，采样mipmap指定层数</li>
+<li>bias，偏置后再采样（由t.w决定）</li>
+<li>grad，使用微分来选择mip的层，进行采样</li>
+</ul>
+</li>
+</ul>
+<h6 id="1D纹理查找">1D纹理查找</h6>
+<ul>
+<li>tex1D(s, t)，普通一维纹理查找，返回纹理采样器s在标量t位置的color4</li>
+<li>tex1D(s, t, ddx, ddy) 使用微分查询一维纹理，t和ddx、ddy均为vector</li>
+<li>tex1Dlod(s, t)，使用LOD查找纹理s在t.w位置的color4</li>
+<li>tex1Dbias(s, t)，将t.w决定的某个Mipmap层偏置后的一维纹理查找</li>
+<li>tex1Dgrad(s, t, ddx, ddy)，使用微分并指Mipmap层的一维纹理查找</li>
+<li>tex1Dproj(s, t)，把纹理当做一张幻灯片投影到场景中，先使用投影纹理技术需要计算出投影纹理坐标t(坐标t.w除以透视值)，然后使用投影纹理坐标进行查询</li>
+</ul>
+<h6 id="2D纹理查找">2D纹理查找</h6>
+<ul>
+<li>tex2D(s, t)，普通二维纹理查找，返回纹理采样器s在vector t位置的颜色</li>
+<li>tex2D(s, t, ddx, ddy)，使用微分查询二维纹理 t和ddx、ddy均为vector</li>
+<li>tex2Dlod(s, t)，使用LOD查找纹理s在t.w位置的color4</li>
+<li>tex2Dbias(s, t)，将t.w决定的某个Mipmap层偏置后的二维纹理查找</li>
+<li>tex2Dgrad(s, t, ddx, ddy)，使用微分并指定Mipmap层的二维纹理查找</li>
+<li>tex2Dproj(s, t)，把纹理当做一张幻灯片投影到场景中，先使用投影纹理技术需要计算出投影纹理坐标t(坐标t.w除以透视值)，然后使用投影纹理坐标进行查询</li>
+</ul>
+<h6 id="3D纹理查找">3D纹理查找</h6>
+<ul>
+<li>tex3D(s, t)，普通三维纹理查找，返回纹理采样器s在vector t位置的颜色</li>
+<li>tex3D(s, t, ddx, ddy)，使用微分查询三维纹理 t和ddx、ddy均为vector</li>
+<li>tex3Dlod(s, t)，使用LOD查找纹理s在t.w位置的color4</li>
+<li>tex3Dbias(s, t)，将t.w决定的某个Mipmap层偏置后的三维纹理查找</li>
+<li>tex3Dgrad(s, t, ddx, ddy)，使用微分并指定Mipmap层的三维纹理查找</li>
+<li>tex3Dproj(s, t)，把纹理当做一张幻灯片投影到场景中，先使用投影纹理技术需要计算出投影纹理坐标t(坐标t.w除以透视值)，然后使用投影纹理坐标进行查询</li>
+</ul>
+<h6 id="立体纹理查找">立体纹理查找</h6>
+<ul>
+<li>texCUBE(s,t)，返回纹理采样器s在vector t位置的颜色</li>
+<li>texCUBE(s, t, ddx, ddy)，使用微分查询立方体维纹理 t和ddx、ddy均为vector</li>
+<li>texCUBEDload(s, t)，使用LOD查找纹理s在t.w位置的color4</li>
+<li>texCUBEbias(s, t)，将t.w决定的某个Mipmap层偏置后的立方体纹理查找</li>
+<li>texCUBEgrad(s, t, ddx, ddy)，使用微分并指定Mipmap层的立方体纹理查找</li>
+<li>texCUBEproj(s, t)，使用投影方式的立方体纹理查找</li>
+</ul>
+<h2 id="Task：ddx-ddy的实际使用测试">Task：ddx ddy的实际使用测试</h2>
+<h5 id="纹理Mipmap层级采样">纹理Mipmap层级采样</h5>
+<p>由于纹理采样时，可以传入ddx、ddy来计算mipmap的层级，差值越大，层级越高。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301172011271.png" alt=""></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// mipmap采样测试</span><br><span class="line">// 获取ddx， ddy</span><br><span class="line">// float dx = ddx(i.uv);</span><br><span class="line">// float dy = ddy(i.uv);</span><br><span class="line">half4 col = _MainTex.SampleGrad(sampler_MainTex, i.uv, _Ddx, _Ddy);</span><br></pre></td></tr></table></figure>
+<h5 id="边缘锐化">边缘锐化</h5>
+<p>ddx、ddy物理意义是寻找在某一个方向上的变化快慢，正常连续的颜色变换不会太大，边缘处变化应该是较明显的。有点像后期处理中的卷积查找边缘操作，于是乎可以用ddx、ddy来将边缘锐化。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301172017083.png" alt=""></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">// 边缘锐化</span><br><span class="line"> half4 col = _MainTex.Sample(sampler_MainTex, i.uv);</span><br><span class="line"> col += (ddx(col) + ddy(col)) * _Range;</span><br><span class="line"> </span><br><span class="line"> //用这个会返回指定值的偏导数的绝对值。所以不会有负值，画面更亮</span><br><span class="line"> //// fwidth（v） = abs( ddx(v) )+ abs(ddy(v))</span><br><span class="line"> // col += fwidth(col) * _Range; </span><br></pre></td></tr></table></figure>
+<h5 id="计算面法线">计算面法线</h5>
+<p>如果对于坐标应用ddx，那不就相当于数学中计算切线。分别计算沿x轴的切线和y轴的切线，进行叉乘处理即可得到法线。由于同个面上坐标变化不大，所以面上的法线应该是一致的。模型是网格组成的，对于三角形上的一个点的法线，使用切线叉乘计算的法线当然是原原本本的网格法线，而未经插值处理。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301172031186.png" alt=""></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">// 计算面法线</span><br><span class="line">// 实现类似flat shading的效果</span><br><span class="line">float3 normal = normalize(cross(ddx(i.positionWS), ddy(i.positionWS)).xyz);</span><br><span class="line">// [-1,1]-&gt;[0,1]</span><br><span class="line">normal = normal * 0.5 + 0.5;</span><br><span class="line">half4 col = half4(normal, 1.0f);</span><br></pre></td></tr></table></figure>
+<h5 id="更多应用">更多应用</h5>
+<ul>
+<li>优化IBL的接缝问题：<a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/cp846a">https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/cp846a</a></li>
+<li>模型对深度值ddxddy从而描边：<a target="_blank" rel="noopener" href="https://www.chinuno.com/blogv4/ta100-2300hlsl/">https://www.chinuno.com/blogv4/ta100-2300hlsl/</a></li>
+<li>利用偏导数做抗锯齿：<a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/fmiu0b#OJVza">https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/fmiu0b#OJVza</a></li>
+</ul>
+<h2 id="引用">引用</h2>
+<ul>
+<li>课程PPT：<a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DUVdsTFBJUnpsUGVV">https://docs.qq.com/slide/DUVdsTFBJUnpsUGVV</a></li>
+<li>大佬笔记
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/fmiu0b#OJVza">https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/fmiu0b#OJVza</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/xinghen-q7o8z/ru547n/uoxas8">https://www.yuque.com/xinghen-q7o8z/ru547n/uoxas8</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.chinuno.com/blogv4/ta100-2300hlsl/">https://www.chinuno.com/blogv4/ta100-2300hlsl/</a></li>
+<li><a target="_blank" rel="noopener" href="https://xzyw7.github.io/post/zezxM-QCJ/">https://xzyw7.github.io/post/zezxM-QCJ/</a></li>
+</ul>
+</li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/68eed964/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity序列化属性</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/a664ac2/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-2.2 模型与材质基础</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

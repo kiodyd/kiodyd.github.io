@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形 4.3 实时阴影介绍 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形 4.3 实时阴影介绍</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-02-27T07:27:24.000Z" itemprop="datePublished">2023-02-27</time>
+          </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="基于图片实时阴影技术">基于图片实时阴影技术</h2>
+<h4 id="平面投影映射">平面投影映射</h4>
+<h5 id="平面投影阴影">平面投影阴影</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_10b9f7d94ab5d21eea3d07474985392c.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_10b9f7d94ab5d21eea3d07474985392c.png"></p>
+<p>根据光的方向，把物体的每个顶点投影到平面地面上</p>
+<p><em>平面投影映射并不是一个基于图片的解决方案，归类这里是因为其思路值得借鉴，而且性能开销小</em></p>
+<p>数学原理：</p>
+<ul>
+<li>相似三角形</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>只能投影到平面（阴影的接收物只能是平面）</li>
+<li>投影物体必须在光线和平面之间</li>
+</ul>
+<h5 id="投影阴影">投影阴影</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_82691e51300cc3caddef6f2b4dd1db34.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_82691e51300cc3caddef6f2b4dd1db34.png"></p>
+<p>目的：</p>
+<ul>
+<li>为了解决平面投影阴影不能投射非平面上</li>
+</ul>
+<p>原理：</p>
+<ul>
+<li>把光源当做一个相机/投影器</li>
+<li>把阴影投影体渲染到阴影纹理中</li>
+<li>渲染阴影接收者时，与得到的阴影纹理混合</li>
+</ul>
+<h5 id="投影阴影在Unity中的实现">投影阴影在Unity中的实现</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_78b1e20e4afed9a2a71af77913bd0e44.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_78b1e20e4afed9a2a71af77913bd0e44.png"></p>
+<blockquote>
+<p>参考教程：Blob Shadow Projector - Fake Shadow：<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=hQcZA3dYGxg">https://www.youtube.com/watch?v=hQcZA3dYGxg</a></p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_10d6a7ee93daa3920762e816479dfa5e.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_10d6a7ee93daa3920762e816479dfa5e.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_77828d11dbf372c84ae54d8f092e5032.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_77828d11dbf372c84ae54d8f092e5032.png"></p>
+<h4 id="阴影映射（shadow-mapping）">阴影映射（shadow mapping）</h4>
+<h5 id="不同视角下的场景">不同视角下的场景</h5>
+<p>相机视角：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_0a9f6eed9a5e035c21e06cd8d9cf1ad7.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_0a9f6eed9a5e035c21e06cd8d9cf1ad7.png"></p>
+<p>光源视角（将光源当做相机渲染深度）：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_5eb18e06f664ef1311031f0bc80e3c01.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_5eb18e06f664ef1311031f0bc80e3c01.png"></p>
+<p>确定阴影：</p>
+<ul>
+<li>相机视角能见着 + 光源视角能见着 = 光照亮区域，无阴影</li>
+<li>相机视角能见着 + 光源视角不能见着 = 光照不到区域，有阴影</li>
+</ul>
+<h5 id="阴影映射流程">阴影映射流程</h5>
+<ul>
+<li>从光源的位置生成一张深度图（shadowmap），理论上一盏光源一张shadowmap</li>
+<li>渲染片元时，将坐标转化为光源所处坐标系，与记录在shadowmap中的深度作比较</li>
+<li>如果一个片元在阴影坐标的深度&gt;它在shadowmap中的深度，那么就认为它在阴影中（说明光被他前面的物体挡住）</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_87e0b4223283ca8d6096229713a3b4a2.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_87e0b4223283ca8d6096229713a3b4a2.png"></p>
+<h4 id="Unity中的屏幕空间阴影映射">Unity中的屏幕空间阴影映射</h4>
+<h5 id="流程">流程</h5>
+<p>该方法原本是延迟渲染中产生的方法，传统的阴影映射流程如上一节所述，对比深度时需要将片元的坐标转换到光源所在的坐标系中，多了一次矩阵运算。而屏幕空间的阴影是直接将shadowmap记录在屏幕空间下，方便后续比较深度。</p>
+<ol>
+<li>
+<p>渲染摄像机的深度纹理</p>
+</li>
+<li>
+<p>从光源方向渲染出shadowmap</p>
+</li>
+<li>
+<p>在屏幕空间做一次阴影收集计算（Shadows Collector，将前两步生成的图做深度比较）</p>
+<ul>
+<li>这次计算会得到一张屏幕空间的shadowmap（Collect Shadows）</li>
+<li>实际上就是对前两步的深度图做一个比较，得到一张新的深度图</li>
+</ul>
+</li>
+<li>
+<p>在绘制物体时，用物体的屏幕坐标uv采样第三步中生成的屏幕空间shadowmap，然后与摄像机的深度纹理作比较</p>
+</li>
+</ol>
+<p>需要补充的一点：</p>
+<ul>
+<li>生成shadowmap我们只需要深度信息</li>
+<li>所以如果走BassPass和AdditionalPass来正常渲染会浪费性能</li>
+<li>所以Unity使用了一个ShadowCaster的pass来生成阴影投射纹理</li>
+<li>shader中自定义这个pass，没有的话会从fallback找（只有开启了阴影投射的物体才会执行这个过程）</li>
+</ul>
+<h4 id="从FrameDebugger查看过程">从FrameDebugger查看过程</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_b7eaca65d1d977d3f51e335fd0654f20.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_b7eaca65d1d977d3f51e335fd0654f20.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_2f4dadaabf53b2da1a22fc6f15e68a88.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_2f4dadaabf53b2da1a22fc6f15e68a88.png"></p>
+<h2 id="阴影映射的优化">阴影映射的优化</h2>
+<h4 id="自阴影-自遮挡">自阴影/自遮挡</h4>
+<h5 id="问题与原因">问题与原因</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bb0d77d0cd98d13d8689ba814b85b82a.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bb0d77d0cd98d13d8689ba814b85b82a.png"></p>
+<p>由于阴影映射纹理的分辨率有限，离散的采样点以及数值上的偏差可能造成不正确的自阴影，也被成为Z-Fight或者阴影粉刺(Surface Acne)。</p>
+<p>产生的原因：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_16f003f5df27fcb060c74530aced5733.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_16f003f5df27fcb060c74530aced5733.png"></p>
+<p>从上图可以看到，表面上相当一块区域的阴影的阴影计算中用了阴影映射的同一个的纹素，那么在这一大块区域中，对应的阴影映射却是取的同一个值，那么这种误差就会导致一个自阴影。</p>
+<p>补充理解（GAMES101）：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_0e24ed420a7877370ee161b654296574.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_0e24ed420a7877370ee161b654296574.png"></p>
+<ul>
+<li>在光源眼中，shadowmap每个像素对应的深度是如红色斜线对应的深度（这片区域记录的都是同一个深度）</li>
+<li>而在相机眼中（蓝色虚线）进行计算阴影时，比如说计算的点为两条蓝色虚线的交点，实际上这个交点在shadowmap中由橙色线那块像素负责记录，导致记录的深度偏小一些，实际上这块屏幕应该都是光照能照射到，但在深度比较时出错了，导致了自遮挡现象</li>
+<li>其实还是分辨率有限，导致记录在shadowmap中的深度覆盖过大，特别还有光源角度的影响，如果光源方向几乎和相机方向垂直时，单像素记录的深度值会覆盖很大一片局域，导致误差最大</li>
+</ul>
+<h5 id="解决方案">解决方案</h5>
+<p>计算时增加偏移量，偏移单位为shadowmap中纹素大小</p>
+<ul>
+<li>深度偏移（Depth Bias），增加深度偏移会使该像素向光源靠近</li>
+<li>法线偏移（Normal Bias），沿着表面法线方向向外偏移</li>
+</ul>
+<h5 id="深度偏移造成的问题">深度偏移造成的问题</h5>
+<p>由于分辨率和光源角度问题，shadowmap中的一个纹素，可能对应屏幕上好几个像素</p>
+<p>假设是1:4的关系，记录的深度值为4个像素中间的深度，一种理想情况下，深度比较的结果会导致2个有阴影，2个没阴影</p>
+<p>但我们期待的假设是3个都无阴影，一个有阴影</p>
+<p>使用bias增加偏移后可能导致4个都通过比较，都无阴影</p>
+<p>在表现上就会出现阴影和人分开的问题：<strong>Peter panning</strong></p>
+<blockquote>
+<p>Peter panning，Peter是西方漫画中的人物，他和影子是可以分开的</p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_51327262ac5005ba3a0dbede2fce9815.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_51327262ac5005ba3a0dbede2fce9815.png"></p>
+<h5 id="补充理解">补充理解</h5>
+<blockquote>
+<p>自适应Shadow Bias算法：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/370951892">https://zhuanlan.zhihu.com/p/370951892</a></p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_755086bcca05eebfa420853b60a2e668.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_755086bcca05eebfa420853b60a2e668.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7ff0e2af5f5a9e912aabd461e9b7b56a.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7ff0e2af5f5a9e912aabd461e9b7b56a.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_cfb529fe1abecb7b4214e07db66b04e2.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_cfb529fe1abecb7b4214e07db66b04e2.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302272039531.png" alt=""></p>
+<h5 id="Unity中实现自阴影的优化">Unity中实现自阴影的优化</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_d676b38f2e7efef1e65aa06202acc8d0.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_d676b38f2e7efef1e65aa06202acc8d0.png"></p>
+<ul>
+<li>Shadow Caster阶段基于顶点的Normal Bias</li>
+<li>在Shadow Caster阶段让遮蔽物进行反向偏移（先偏移再记录）</li>
+<li>优点：性能高</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">//对于Normal Bias的使用，实际上就是对深度测试中的顶点做法线方向的反向偏移运算。</span><br><span class="line">//法线方向的反向偏移值运算就是根据光源方向和法线方向的夹角大小(这里的夹角大小通过Sin值反映)</span><br><span class="line">//夹角越大则偏移值越大，如果光源方向和法线方向重叠，那么就不会偏移。</span><br><span class="line">//而对于unity_LightShadowBias.z 实际上就是Unity中阴影设置中的法线偏移值。</span><br><span class="line">float4 UnityClipSpaceShadowCasterPos(float4 vertex, float3 normal)</span><br><span class="line">&#123;</span><br><span class="line">    float4 wPos = mul(unity_ObjectToWorld, vertex);</span><br><span class="line"></span><br><span class="line">    if (unity_LightShadowBias.z != 0.0)</span><br><span class="line">    &#123;</span><br><span class="line">        float3 wNormal = UnityObjectToWorldNormal(normal);</span><br><span class="line">        float3 wLight = normalize(UnityWorldSpaceLightDir(wPos.xyz));</span><br><span class="line"></span><br><span class="line">        // apply normal offset bias (inset position along the normal)</span><br><span class="line">        // bias needs to be scaled by sine between normal and light direction</span><br><span class="line">        // (http://the-witness.net/news/2013/09/shadow-mapping-summary-part-1/)</span><br><span class="line">        //</span><br><span class="line">        // unity_LightShadowBias.z contains user-specified normal offset amount</span><br><span class="line">        // scaled by world space texel size.</span><br><span class="line"></span><br><span class="line">        float shadowCos = dot(wNormal, wLight);</span><br><span class="line">        float shadowSine = sqrt(1-shadowCos*shadowCos);</span><br><span class="line">        float normalBias = unity_LightShadowBias.z * shadowSine;</span><br><span class="line"></span><br><span class="line">        wPos.xyz -= wNormal * normalBias;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return mul(UNITY_MATRIX_VP, wPos);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_b8298d43210705886670a1431dad1d40.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_b8298d43210705886670a1431dad1d40.png"></p>
+<h4 id="走样-锯齿">走样/锯齿</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f511575037b96a212c8b219900c1dc1c.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f511575037b96a212c8b219900c1dc1c.png"></p>
+<h5 id="以信号重建的过程来审视阴影映射">以信号重建的过程来审视阴影映射</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4f73a0d8089fe95715b8ef6fc223b3b7.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4f73a0d8089fe95715b8ef6fc223b3b7.png"></p>
+<ul>
+<li>初始采样：渲染阴影映射</li>
+<li>重采样：从摄像机视角对采样信号(阴影映射)重采样</li>
+<li>重建：使用滤波函数（例如PCF）</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_92769396760fce2c4d90f043b5689226.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_92769396760fce2c4d90f043b5689226.png"></p>
+<h5 id="初始采样阶段">初始采样阶段</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_78209946ee6fb4228a0d24ab0b9c0d5d.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_78209946ee6fb4228a0d24ab0b9c0d5d.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6db0c624c55ad8cdceccbb9edf50eaea.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6db0c624c55ad8cdceccbb9edf50eaea.png"></p>
+<p>透视采样问题</p>
+<ul>
+<li>shadowmap在世界空间均匀分配（左图的三段纹素对应的世界空间的一个像素大小是一样的）</li>
+<li>​经过透视投影后，根据近大远小的原理，原来大小不一样的近平面和远平面，在屏幕内占的像素便一样了。（右图）</li>
+<li>这时远平面对应在shadowmap中的纹素就比近平面大了</li>
+<li>这种离相机近的部分走样的情况一般称为<strong>透视误差</strong></li>
+</ul>
+<p>解决方案</p>
+<ul>
+<li>在生成shadowmap时就进行一次透视投影
+<ul>
+<li>因为我们在使用shadowmap时，相机是经过透视投影的，但生成shadowmap时并没有经过透视投影</li>
+</ul>
+</li>
+<li>尽量减少近平面和远平面之间的像素差距
+<ul>
+<li>Unity中的级联阴影映射(Cascaded Shadow Map)</li>
+</ul>
+</li>
+</ul>
+<h5 id="级联阴影映射：">级联阴影映射：</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_734f29f46a009fd1b159b2b855474190.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_734f29f46a009fd1b159b2b855474190.png"></p>
+<p>概述：</p>
+<ul>
+<li>透视走样最有效的解决方案</li>
+<li>把视锥体分割为多个子视锥体，然后为每个子视锥体计算独立的相等大小的阴影映射</li>
+<li>能在与相机不同的距离的位置采样不同的ShadowMap来解决透视走样问题</li>
+<li>缺点：会占用更多的内存</li>
+</ul>
+<p>首先需要对视锥体划分成若干层（每一层在主摄像机观察空间下的 z值范围 分别从哪到哪），有如下方法：</p>
+<ul>
+<li>通过自定义比例来分割</li>
+<li>通过对数比例分割：这是较理想的比例公式，能够减少 Shadow Perspective Alias 问题的出现</li>
+</ul>
+<p>分割好各层视锥体后，我们需要选择对应的 Shadow Map 来恰好包围住视锥体（即各层的 Light Camera 的光锥体刚好包围住视锥体）</p>
+<p>有了若干层 Shadow Map 后，渲染某个shading poing时该如何判断点在哪个层级：</p>
+<ul>
+<li>直接通过视锥分割的z值范围来判断所在是哪个层级</li>
+<li>通过各层 Light Camera 的 View 变换和 Projection 变换，得到点在该层 Shadow Map 的 UV 坐标，当 UV 坐标在 [0,1] 范围内时则说明在该层级内</li>
+</ul>
+<p><em>前面我们在视锥分割已经确定了z值划分范围，直接简单根据shading point的z值来判断层级不是更好吗？这是因为每一层的 Shadow Map 其实多多少少包含了更远一层的部分阴影信息，但是它的精准度明显要比更远层的 Shadow Map 要好，因此通过uv坐标判断点所属层，就可以尽量命中较近层的 Shadow Map。</em></p>
+<p>Unity中级联阴影的实现：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f7e6a3e8898b88de4bc582f4c8eb69f1.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f7e6a3e8898b88de4bc582f4c8eb69f1.png"></p>
+<p>位于Project Settings/Quality</p>
+<table>
+<thead>
+<tr>
+<th>名词</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shadowmask Mode</td>
+<td>包含Shadowmask和Distance Shadowmask的选择</td>
+</tr>
+<tr>
+<td>Shadows</td>
+<td>包含硬阴影和软阴影的选择</td>
+</tr>
+<tr>
+<td>Shadow Resolution</td>
+<td>Shadow Map的分辨率选项，低、中、高、非常高</td>
+</tr>
+<tr>
+<td>Shadow Projection</td>
+<td>这个选项会影响级联带的形状。一般是默认“Stable Fit”，在这个模式下，根据到相机的距离选择频段。另一个选项是“Close Fit”，根据相机的深度选择频段，这样可以更有效地使用阴影纹理，但是这个选项会导致改变相机位置的同时会产生阴影锯齿游泳的情况</td>
+</tr>
+<tr>
+<td>Shadow Distance</td>
+<td>阴影距离。即光源相机到物体的距离</td>
+</tr>
+<tr>
+<td>Shadow Near Plane Offset</td>
+<td>阴影近平面的偏移</td>
+</tr>
+<tr>
+<td>Shadow Cascads</td>
+<td>阴影的级联数选项。目前有1、2、4选项，1就是没有开启级联阴影</td>
+</tr>
+<tr>
+<td>Cascade splits</td>
+<td>显示每个级联阴影的距离范围占比</td>
+</tr>
+</tbody>
+</table>
+<h5 id="重采样阶段">重采样阶段</h5>
+<p>阴影映射是一张动态生成的纹理， 滤波是纹理采样误差的解决方案</p>
+<p>什么是滤波？</p>
+<ul>
+<li>图像处理中，通过滤波强调一些特征或者去除图像中一些不需要的部分；</li>
+<li>滤波是一个邻域操作算子，利用给定像素周围的像素的值决定此像素的最终的输出值。</li>
+</ul>
+<p>什么是阴影的滤波？</p>
+<ul>
+<li>使用一部分阴影映射采样点来计算某个指定View采样点的最终阴影结果的方法</li>
+</ul>
+<h5 id="PCF滤波-Percent-Closer-Filter">PCF滤波(Percent-Closer Filter)</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302271741366.png" alt=""></p>
+<p>流程：</p>
+<ul>
+<li>从光方向生成阴影映射</li>
+<li>从View视角渲染场景，用阴影映射进行深度测试</li>
+<li>当该着色点通过深度测试时，取该像素周围指定大小(滤波核)的范围，然后取这个范围的平均值作为输出。最后它的输出值就是&quot;可见采样点数/总采样点数&quot;,范围是[0,1]，代表着该像素的可见性</li>
+</ul>
+<p>采样数K（Filter的大小）</p>
+<ul>
+<li>使用规则滤波，3*3或者5*5等</li>
+<li>也可以采用泊松滤波（Poisson DIsk）的形式来分布一定数量的采样点</li>
+</ul>
+<p>Unity中用3*3高斯核做的一个滤波采样：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/clipboard.png" alt=""></p>
+<p><em>滤波的卷积运算总会涉及到多次采样，非常影响性能</em></p>
+<h2 id="软阴影方案">软阴影方案</h2>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_cd1426ba86874422cdc0781d27c0b81e.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_cd1426ba86874422cdc0781d27c0b81e.png"></p>
+<ul>
+<li>PCSS(Percentage Closer Soft Shadows)</li>
+<li>VSSM(Variance Soft Shadow Mapping)</li>
+<li>Moment Shadow Mapping</li>
+<li>Distance Field Soft Shadows</li>
+</ul>
+<p>相关内容推荐看GAMES202阴影部分，以及下面相关参考链接</p>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li>课程PPT（有部分课上没讲的内容）：<a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DUUJ6ZUhrRmxpRlBF">https://docs.qq.com/slide/DUUJ6ZUhrRmxpRlBF</a></li>
+<li>实时阴影技术（Real-time Shadows）：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/KillerAery/p/15201310.html">https://www.cnblogs.com/KillerAery/p/15201310.html</a></li>
+<li>影子传说—三种Shadowmap改进算法的原理与在Unity中的实现：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/382202359">https://zhuanlan.zhihu.com/p/382202359</a></li>
+<li>基础渲染系列（七）—阴影：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/144271158">https://zhuanlan.zhihu.com/p/144271158</a></li>
+<li>图形学基础 - 阴影 - ShadowMap及其延伸：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/384446688">https://zhuanlan.zhihu.com/p/384446688</a></li>
+<li>Unity Shader - Custom DirectionalLight ShadowMap 自定义方向光的ShadowMap：<a target="_blank" rel="noopener" href="https://blog.csdn.net/linjf520/article/details/105401157">https://blog.csdn.net/linjf520/article/details/105401157</a></li>
+<li>米哈游技术总监：开局一个人，我把《原神》搬上了PS4：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/300248303">https://zhuanlan.zhihu.com/p/300248303</a></li>
+<li>大佬笔记：
+<ul>
+<li><a target="_blank" rel="noopener" href="https://note.youdao.com/ynoteshare/index.html?id=1862682cd7251376c171628c55aabee5&amp;type=note&amp;_time=1632905337733">https://note.youdao.com/ynoteshare/index.html?id=1862682cd7251376c171628c55aabee5&amp;type=note&amp;_time=1632905337733</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/487457443">https://zhuanlan.zhihu.com/p/487457443</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/hejincan/shader/yy3wgs">https://www.yuque.com/hejincan/shader/yy3wgs</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/6527chen/ldyt32/frhzdy#9d592adc">https://www.yuque.com/6527chen/ldyt32/frhzdy#9d592adc</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/ddgf01/article/details/120443064">https://blog.csdn.net/ddgf01/article/details/120443064</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="作业">作业</h2>
+<h4 id="总结实时阴影的优化方案">总结实时阴影的优化方案</h4>
+<ul>
+<li>自阴影：使用深度偏移和法线偏移解决</li>
+<li>透视投影：使用级联阴影映射解决</li>
+<li>使用PCF解决重采样的问题，并产生软阴影的效果</li>
+</ul>
+<h4 id="尝试自己实现一套阴影方案">尝试自己实现一套阴影方案</h4>
+<p>先放上<a target="_blank" rel="noopener" href="https://github.com/kiodyd/GAMES202-HW/tree/main/homework1/homework1">GAMES202课上作业</a>：</p>
+<p>分别是基本shadowmap、PCF、PCSS<br>
+pcss部分噪点有点多，未做去噪处理</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7f79a7eda5b4338bb49359a36878a421.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7f79a7eda5b4338bb49359a36878a421.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_524f56ff611c7a64209153c415531384.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_524f56ff611c7a64209153c415531384.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_680ff6fafa4c4f19466aff8902f30c98.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_680ff6fafa4c4f19466aff8902f30c98.png"></p>
+<p>todo：在URP中实现</p>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/876aa24b/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 2.7.2 GPU硬件架构</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/3eb3a01c/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 4.2 SSAO算法 屏幕空间环境光遮蔽</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

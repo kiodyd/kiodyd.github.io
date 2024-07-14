@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形-2.6 伽马校正 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形-2.6 伽马校正</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-02-02T06:32:30.000Z" itemprop="datePublished">2023-02-02</time>
+          </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="Gamma校正">Gamma校正</h2>
+<h5 id="颜色空间">颜色空间</h5>
+<blockquote>
+<p>GAMES101中有详细说明：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1X7411F744?p=20">https://www.bilibili.com/video/BV1X7411F744?p=20</a></p>
+</blockquote>
+<ul>
+<li>通用：sRGB</li>
+<li>电影：DCI-P3</li>
+<li>电视：Rec-709、PAL等</li>
+<li>印刷：CMYK、Adobe RGB</li>
+<li>其他</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6ef11ff73e847d6036664c83b769ad50.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6ef11ff73e847d6036664c83b769ad50.png"></p>
+<p>图中sRGB和Rec.709的色域是差不多的，三原色的位置是相同的，不同的部分在于：<strong>传递函数</strong>不同。</p>
+<h5 id="传递函数">传递函数</h5>
+<p>传递函数：知道了颜色的颜色值之后，想要在电子设备上显示，就需要把它转换为视频信号，传递函数就是用来做转换的。</p>
+<ul>
+<li>OETF：光转电传递函数，负责把场景线性光转到非线性视频信号值</li>
+<li>EOTF：电转光传递函数，负责把非线性视频信号值转换成显示光亮度</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_3a33d03c09e13595f7d482e0e26f29f0.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_3a33d03c09e13595f7d482e0e26f29f0.png"></p>
+<h5 id="伽马校正是什么">伽马校正是什么</h5>
+<p>数学公式如下：</p>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=V_%7Bout%7D%20%3D%20V_%7Bin%7D%5E%7Bgamma%7D%0A" /></p><p>Gamma 是指对线性三色值和非线性视频信号之间进行<strong>编码</strong>和<strong>解码</strong>的操作</p>
+<ul>
+<li>编码：光信号-&gt;视频信号（存储）</li>
+<li>解码：视频信号-&gt;光信号（显示器显示）</li>
+</ul>
+<p><strong>示例如下：</strong></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_69b45f507de2d50a55b10e09fe9a5b56.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_69b45f507de2d50a55b10e09fe9a5b56.png"></p>
+<ul>
+<li>图像经过gamma编码存储在硬盘中，将获取到的物理数据做一次gamma值约为0.45（1/2.2）的映射，这样的过程叫做 gamma编码（由曲线可知，此时图像的像素比实际物理像素要更亮）</li>
+<li>在显示图像时，需要将每个像素做一次gamma值约为2.2的矫正，使最终的结果为正确的物理数据（经过显示的gamma校正之后，之前偏亮的图像亮度降低）</li>
+</ul>
+<h5 id="为什么要进行伽马校正">为什么要进行伽马校正</h5>
+<ul>
+<li>非线性转换的目的主要是为了<strong>优化存储空间和带宽</strong>，传递函数能够更好地帮我们利用编码空间</li>
+<li>由于我们用于显示图像数据都是8bit，且人眼对暗部变化更敏感，如果要充分利用带宽，那么就需要使用更多位置去存储暗部值。也就是说<strong>暗部使用更高精度保存，而亮部使用更低精度保存</strong></li>
+</ul>
+<h2 id="韦伯定律与CRT">韦伯定律与CRT</h2>
+<h5 id="韦伯定律">韦伯定律</h5>
+<p>即感觉的差别阈限随原来刺激量的变化而变化，而且表现为一定的规律性，用公式来表示，就是△Φ/Φ=C，其中Φ为原刺激量，△Φ为此时的差别阈限，C为常数，又称为韦柏率。</p>
+<p>简单来说就是，当所受刺激越大时，需要增加的刺激也要足够大才会让人感觉到明显变化，但是只适用于中等强度的刺激。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_2c40813a101b77f47cc3d5a7c6bf7f02.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_2c40813a101b77f47cc3d5a7c6bf7f02.png"></p>
+<p>使用：</p>
+<ul>
+<li>人眼对暗部变化比亮部更加敏感</li>
+<li>我们目前所使用的真彩格式RGBA32，每个颜色通道只有8位用于记录信息，为了合理使用带宽和存储空间，需要进行非线性转换。</li>
+<li>目前我们所普遍使用的sRGB颜色空间标准，他的传递函数gamma值为2.2(2.4)</li>
+</ul>
+<h5 id="CRT非线性响应">CRT非线性响应</h5>
+<p>早期我们使用的图像显示器都是CRT（学名:阴极射线显像管），人们发现这种设备的亮度与电压并不成线性关系，而是gamma值约为2.2类似幂律的关系。</p>
+<p>由于CRT的这个物理特性，刚好可以把亮度压暗，也就说，左图变亮的情况下，经过右图显示器的压低亮度校正，结果刚好可以显示正常。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7093badbc5650f61c0c9b05fd9cdc93b.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7093badbc5650f61c0c9b05fd9cdc93b.png"></p>
+<p>使用的转换函数</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7bcb8a4d2179021421085ccf82982500.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7bcb8a4d2179021421085ccf82982500.png"></p>
+<ol>
+<li>CRT非线性响应的历史原因</li>
+<li>人眼对暗部颜色变化更加敏感</li>
+</ol>
+<h2 id="线性工作流">线性工作流</h2>
+<h5 id="正常工作流">正常工作流</h5>
+<ul>
+<li>在生产的各个环节，正确使用gamma编码及gamma解码，使得最终得到的颜色数据与最初输入的物理数据一致。</li>
+<li>如果是使用Gamma空间的贴图，在传给着色器前需要从Gamma空间转到线性空间。</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_3373b13d845f5227bb2b14c48d2d9e84.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_3373b13d845f5227bb2b14c48d2d9e84.png"></p>
+<h5 id="如果不在线性空间下进行渲染工作，可能会产生的问题：">如果不在线性空间下进行渲染工作，可能会产生的问题：</h5>
+<ul>
+<li>
+<p>亮度叠加时</p>
+<ul>
+<li>可以看到非线性空间下亮度叠加出现了过曝（亮度&gt;1的）的情况</li>
+<li>因为Gamma空间经过gamma编码后的亮度值相对之前会变大。</li>
+</ul>
+</li>
+<li>
+<p>颜色混合时</p>
+<ul>
+<li>如果在混合前没有非线性的颜色进行转换，就会在纯色的边界出现一些黑边。</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_3a3a3bfe012134ab5395b4751a9fc318.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_3a3a3bfe012134ab5395b4751a9fc318.png"></p>
+</li>
+<li>
+<p>光照计算时</p>
+<ul>
+<li>在光照渲染结算时，如果我们把非线性空间下（视觉上的）的棕灰色0.5当做实际物理光强为0.5来计算时，就会出现左边这种情况</li>
+<li>在显示空间下是0.5，但在渲染空间下它的实际物理光强为0.18（如右图）</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_247d8dd26688eacdddd5270db54f458f.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_247d8dd26688eacdddd5270db54f458f.png"></p>
+</li>
+</ul>
+<h5 id="补充渲染中没有正确使用线性工作流的情况">补充渲染中没有正确使用线性工作流的情况</h5>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV15t411Y7cf">https://www.bilibili.com/video/BV15t411Y7cf</a></p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_d6001e95fecd4e700e5d840e90bad167.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_d6001e95fecd4e700e5d840e90bad167.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_dc170ac859ae359a5648eda5f556c4d6.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_dc170ac859ae359a5648eda5f556c4d6.png"></p>
+<h2 id="Unity中的颜色空间">Unity中的颜色空间</h2>
+<h5 id="选项开关（一般在player页签）">选项开关（一般在player页签）</h5>
+<ul>
+<li>当选择Gamma Space时，Unity不会做任何处理（贴图处理以及颜色输出到显示器时），此时理论上可以手动处理（没有利用到硬件特性会比较慢）。</li>
+<li>当选择Linear Space时，引擎的渲染流程在线性空间计算，理想情况下项目使用线性空间的贴图颜色，不需要勾选sRGB，如果勾选了sRGB的贴图，会通过硬件特性采样时进行线性转换。</li>
+</ul>
+<h5 id="硬件支持">硬件支持</h5>
+<p>线性空间需要图形API的硬件支持，目前支持的平台</p>
+<ol>
+<li>Windows，Mac OS x 和Linux(Standalone)</li>
+<li>Xbox One</li>
+<li>PS 4</li>
+<li>Android (OpenGL ES 3.0)</li>
+<li>iOS(Metal)</li>
+<li>WebGL</li>
+</ol>
+<h5 id="硬件特性支持">硬件特性支持</h5>
+<p>主要由两个硬件特性来支持：</p>
+<ul>
+<li>
+<p>sRGB Frame Buffer</p>
+<ul>
+<li>将Shader的计算结果输出到显示器前做Gamma校正</li>
+<li>作为纹理被读取时会自动把存储的颜色从sRGB空间转换到线性空间</li>
+<li>调用ReadPixels()、ReadBackImage()时，会直接返回sRGB空间下的颜色</li>
+<li>sRGB Frame Buffer只支持每通道为8bit的格式，不支持浮点格式</li>
+<li>HDR开启后会先把渲染结果绘制到浮点格式的FB中，最后绘制到sRGB FB上输出。</li>
+</ul>
+</li>
+<li>
+<p>sRGB Sampler</p>
+<ul>
+<li>将sRGB的贴图进行线性采样的转换。</li>
+</ul>
+</li>
+</ul>
+<p>使用硬件特性完成sRGB贴图的线性采样和shader计算结果的gamma校正，比起在shader里对贴图采样和计算结果的校正要快</p>
+<h5 id="资源导出问题">资源导出问题</h5>
+<h5 id="Substance-Painter">Substance Painter</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bdfaf8fc98ced43c26665c00413cb010.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bdfaf8fc98ced43c26665c00413cb010.png"></p>
+<p>当Substance的贴图导出时，线性的颜色值经过伽马变换，颜色被提亮了，所以需要在Unity中勾选sRGB选项，让它在采样时能还原回线性值。</p>
+<h5 id="PhotoShop">PhotoShop</h5>
+<h6 id="正常流程">正常流程</h6>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ad906bb78383a56b308761d6bba50f0e.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ad906bb78383a56b308761d6bba50f0e.png"></p>
+<ul>
+<li>使用线性空间，一般来说Photoshop可以什么都不改，导出的贴图只要勾上sRGB</li>
+<li>调整PhotoShop的伽玛值为1，导出的贴图在Unity中不需要勾选sRGB</li>
+</ul>
+<h6 id="使用Document-Color-Profile">使用Document Color Profile</h6>
+<ul>
+<li>PhotoShop对颜色管理特别精确，Unity里看到的颜色要经过显示器的伽玛变换，而PhotoShop不会，PhotoShop会读取显示器的Color Profile，反向补偿回去</li>
+<li>PhotoShop有第二个Color Profile，叫做Document Color Profile。通常它的默认值就是sRGB Color Profile，和显示器的Coor Profile一致，颜色是被这个Color Profile压暗了，所以PhotoShop中看到的结果才和Unity中一样。</li>
+</ul>
+<h6 id="PhotoShop中制作的半透明UI在Unity中效果不一样">PhotoShop中制作的半透明UI在Unity中效果不一样</h6>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_27f686de407bdcd3c2d85d218d4429df.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_27f686de407bdcd3c2d85d218d4429df.png"></p>
+<ul>
+<li>Unity中：
+<ul>
+<li>Unity进行半透明混合时，会先将它们转换到一个线性空间下然后再混合</li>
+</ul>
+</li>
+<li>PS中：
+<ul>
+<li>PS的图层和图层之间做混合时，每个上层的图层都会读取他们的Color Profile（gamma值），然后经过一个gamma变换再做混合，这样做得结果就会偏暗一些。</li>
+<li>可以在它的工作空间 的设置中进行更改，选择用灰度系数混合RGB颜色，参数设置为一，这样图层才是一个最终直接混合的结果</li>
+</ul>
+</li>
+</ul>
+<h2 id="Gamma校正尝试">Gamma校正尝试</h2>
+<h5 id="使用一个简单的Blinn-Phong光照模型进行尝试">使用一个简单的Blinn-Phong光照模型进行尝试</h5>
+<ul>
+<li>默认设置–Gamma空间下</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_3101eb283b26e455625c905a57f2794b.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_3101eb283b26e455625c905a57f2794b.png"></p>
+<ul>
+<li>
+<p>在Shader中进行手动Gamma<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_32c5852a1eb14c069066dc8607728a4b.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_32c5852a1eb14c069066dc8607728a4b.png"></p>
+</li>
+<li>
+<p>albedo纹理勾选sRGB，法线纹理选Normal选项（法线纹理本身为线性），同时开启Linear颜色空间（局部部分比默认Gamma下亮一丢丢，但与手动Gamma不一致）</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4b7451b36419df6c76445c48b258a964.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4b7451b36419df6c76445c48b258a964.png"></p>
+</li>
+<li>
+<p>albedo纹理不勾选sRGB（使用gimp确认原图使用了sRGB），法线纹理选Normal选项（法线纹理本身为线性），同时开启Linear颜色空间，明显过曝了</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4a39e9b6cc94b1b10f87cc88099636cb.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4a39e9b6cc94b1b10f87cc88099636cb.png"></p>
+</li>
+</ul>
+<h5 id="实验说明">实验说明</h5>
+<ul>
+<li>Unity_ColorSpaceDouble是一个Unity提供的与色彩空间相关的值，这个值在Gamma颜色空间时为2，在Linear Color Space时为4.594（2的2.2次方）。</li>
+<li>对于这个值可以这样来理解。一般在Gamma颜色空间中将两个Color值相乘后，为了避免颜色变得很暗，会在后面乘以2。</li>
+<li>也就是说，为了避免颜色变暗，应该扩大两倍，但是这个值在不同空间下不一样，所以要使用Unity_ColorSpaceDouble。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">//======================fs着色器部分代码========================</span><br><span class="line">                fixed3 tangentLightDir = normalize(i.lightDir);</span><br><span class="line">                fixed3 tangentViewDir = normalize(i.viewDir);</span><br><span class="line"></span><br><span class="line">                fixed4 packedNormal = tex2D(_BumpMap, i.uv.zw);</span><br><span class="line">                fixed3 tangentNormal;</span><br><span class="line">                // 自动将纹理范围转换为法线范围，且还能读取unity优化后的正确值（在贴图属性面板标记为Normal Map）</span><br><span class="line">                // tangentNormal.xy = packedNormal.xy * 2 - 1;</span><br><span class="line">                tangentNormal = UnpackNormal(packedNormal);</span><br><span class="line">                // 使用_BumpScale控制凹凸程度</span><br><span class="line">                tangentNormal.xy *= _BumpScale;</span><br><span class="line">                // 由于是单位矢量，且z方向确定，所以可以这样计算z</span><br><span class="line">                tangentNormal.z = sqrt(1.0 - saturate(dot(tangentNormal.xy, tangentNormal.xy)));</span><br><span class="line"></span><br><span class="line">                fixed3 albedo = tex2D(_MainTex, i.uv.xy).rgb * _Color.rgb;</span><br><span class="line">                float3 albedo_linear = GammaToLinearSpace(albedo);</span><br><span class="line">                fixed3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz * albedo_linear;</span><br><span class="line">                fixed3 diffuse = _LightColor0.rgb * albedo_linear * saturate(dot(tangentNormal, tangentLightDir));</span><br><span class="line"></span><br><span class="line">                fixed3 halfDir = normalize(tangentLightDir + tangentViewDir);</span><br><span class="line">                fixed3 specular = _LightColor0.rgb * _Specular.rgb * pow(saturate(dot(tangentNormal, halfDir)), _Gloss);</span><br><span class="line"></span><br><span class="line">                float3 col = ambient + diffuse + specular;</span><br><span class="line">                col = LinearToGammaSpace(col.rgb * unity_ColorSpaceDouble);</span><br><span class="line">                return fixed4(col, 1.0);</span><br></pre></td></tr></table></figure>
+<p>UnityCG.cginc</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">inline float GammaToLinearSpaceExact (float value)</span><br><span class="line">&#123;</span><br><span class="line">    if (value &lt;= 0.04045F)</span><br><span class="line">        return value / 12.92F;</span><br><span class="line">    else if (value &lt; 1.0F)</span><br><span class="line">        return pow((value + 0.055F)/1.055F, 2.4F);</span><br><span class="line">    else</span><br><span class="line">        return pow(value, 2.2F);//看灰色的return，调用的GammaToLinearSpaceExact ，rgb大于1时，pow 2.2曲线下压变暗</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">inline half3 GammaToLinearSpace (half3 sRGB)</span><br><span class="line">&#123;</span><br><span class="line">  </span><br><span class="line">    return sRGB * (sRGB * (sRGB * 0.305306011h + 0.682171111h) + 0.012522878h);</span><br><span class="line"></span><br><span class="line">    // Precise version, useful for debugging.</span><br><span class="line">    //return half3(GammaToLinearSpaceExact(sRGB.r), GammaToLinearSpaceExact(sRGB.g), GammaToLinearSpaceExact(sRGB.b));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">inline float LinearToGammaSpaceExact (float value)</span><br><span class="line">&#123;</span><br><span class="line">    if (value &lt;= 0.0F)</span><br><span class="line">        return 0.0F;</span><br><span class="line">    else if (value &lt;= 0.0031308F)</span><br><span class="line">        return 12.92F * value;</span><br><span class="line">    else if (value &lt; 1.0F)</span><br><span class="line">        return 1.055F * pow(value, 0.4166667F) - 0.055F;</span><br><span class="line">    else</span><br><span class="line">        return pow(value, 0.45454545F); //pow 1/2.2,曲线上突变亮</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">inline half3 LinearToGammaSpace (half3 linRGB)</span><br><span class="line">&#123;</span><br><span class="line">    linRGB = max(linRGB, half3(0.h, 0.h, 0.h));</span><br><span class="line">    return max(1.055h * pow(linRGB, 0.416666667h) - 0.055h, 0.h);</span><br><span class="line"></span><br><span class="line">    // Exact version, useful for debugging.</span><br><span class="line">    //return half3(LinearToGammaSpaceExact(linRGB.r), LinearToGammaSpaceExact(linRGB.g), LinearToGammaSpaceExact(linRGB.b));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="补充">补充</h5>
+<ul>
+<li>金属度官方PBR实现中，加了[Gamma]标记，会进行Gamma Correction Removed。这和底层的光照计算中考虑能量守恒的部分有关，Metallic代表了物体的“金属度”，如果值越大则反射(高光)越强，漫反射会越弱。在实际的计算中，这个强弱的计算和Color Space有关，所以需要加上[Gamma]项。</li>
+<li>在计算纹理的Mipmap时也需要注意。如果纹理存储在非线性空间中，那么在计算mipmap时就会在非线性空间里计算。由于mipmap的计算是种线性计算——即降采样的过程，需要对某个方形区域内的像素去平均值，这样就会得到错误的结果。正确的做法是，把非线性的纹理转换到线性空间后再计算Mipmap</li>
+<li>sRGB是Gamma0.45，显示器是2.2（可能更高，需要补偿亮度）</li>
+</ul>
+<h2 id="参考资料">参考资料</h2>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://chrisbrejon.com/cg-cinematography/chapter-1-color-management/">https://chrisbrejon.com/cg-cinematography/chapter-1-color-management/</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV15t411Y7cf">https://www.bilibili.com/video/BV15t411Y7cf</a></li>
+<li><a target="_blank" rel="noopener" href="https://edu.uwa4d.com/lesson-detail/116/365/0?isPreview=0">https://edu.uwa4d.com/lesson-detail/116/365/0?isPreview=0</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/candycat1992/article/details/46228771">https://blog.csdn.net/candycat1992/article/details/46228771</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.gameres.com/811214.html">https://www.gameres.com/811214.html</a></li>
+<li>大佬笔记：
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/hmdldi">https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/hmdldi</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43066332/article/details/118463724">https://blog.csdn.net/qq_43066332/article/details/118463724</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/whitebreeze/article/details/117234596">https://blog.csdn.net/whitebreeze/article/details/117234596</a></li>
+</ul>
+</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/66558476">https://zhuanlan.zhihu.com/p/66558476</a></li>
+</ol>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/92f331b3/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-2.7 LDR与HDR</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/e4d6aa4/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-美术-1.4 场景设计精要</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形-2.5 Bump Map 凹凸映射 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形-2.5 Bump Map 凹凸映射</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-02-03T08:11:12.000Z" itemprop="datePublished">2023-02-03</time>
+          </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="Bump-Mapping介绍">Bump Mapping介绍</h2>
+<h5 id="物体细节的表达">物体细节的表达</h5>
+<ul>
+<li>
+<p>宏观尺度</p>
+<ul>
+<li>特征可能覆盖很多个像素</li>
+<li>由顶点、三角形、其他几何图元表示</li>
+<li>例如：角色的四肢、头部</li>
+</ul>
+</li>
+<li>
+<p>中观尺度</p>
+<ul>
+<li>特征可能覆盖几个像素</li>
+<li>描述了宏观和微观尺度之间的特征</li>
+<li>包含的细节比较复杂，无法用单个三角形进行渲染</li>
+<li>细节相对较大，可以被观察者看到几个像素以上的变化</li>
+<li>例如：人脸上的皱纹、肌肉的褶皱、砖头的缝隙</li>
+</ul>
+</li>
+<li>
+<p>微观尺度</p>
+<ul>
+<li>特征可能是一个像素</li>
+<li>通常在着色模型，写在像素着色器中，并且使用<strong>纹理</strong>贴图作为参数</li>
+<li>模拟了物体表面微观几何的相互作用</li>
+<li>例如：
+<ul>
+<li>有光泽的物体表面是光滑的、漫反射的物体，在微观下表面是粗糙的</li>
+<li>角色的皮肤和衣服看起来也是不同的，因为使用了不同的着色模型/不同的参数</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h5 id="Bump-Mapping-定义">Bump Mapping 定义</h5>
+<ul>
+<li>
+<p>对物体表面贴图进行变化然后再进行光照计算</p>
+</li>
+<li>
+<p>在几何细节不够的情况下，像素着色时不再从原始模型读取法线等信息，而是通过额外的纹理读取并替代进行光照运算，从而达到以假乱真的效果。（对每个待渲染的像素在计算照明之前都要加上一个从高度图中找到的扰动，来模拟凹凸不平的视觉特征）</p>
+</li>
+<li>
+<p>例如可以：</p>
+<ul>
+<li>给法线分量添加噪音</li>
+<li>在一个保存扰动值的纹理图中进行查找</li>
+</ul>
+</li>
+<li>
+<p>是一种提升物体真实感的有效方法，但却不需要额外的提升物体的几何复杂度</p>
+</li>
+<li>
+<p>在提升物体的表面细节或者表面的不规则性方面有显著效果</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_e3b005fb989c8fbd2ca02db3a64bcc61.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_e3b005fb989c8fbd2ca02db3a64bcc61.png"></p>
+</li>
+</ul>
+<h5 id="Bump-Mapping（凹凸映射）的分类">Bump Mapping（凹凸映射）的分类</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_3b1096b28860b128aa626d2cb809dfe7.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_3b1096b28860b128aa626d2cb809dfe7.png"></p>
+<ul>
+<li>上述方法都是广泛的被使用，来增加模型的细节效果，或者用来做特殊的画面表现效果。</li>
+<li>最常用的是法线映射，一般的增加法线贴图后，会对局部的物体表面进行法线扰动，进而改变明暗关系，从而达到增加表面细节的效果。</li>
+</ul>
+<h2 id="Normal-Mapping-法线映射">Normal Mapping 法线映射</h2>
+<h5 id="原理">原理</h5>
+<ul>
+<li>
+<p>法线贴图是一张存有物体局部表面法线信息的一张贴图</p>
+</li>
+<li>
+<p>计算光照时使用：</p>
+<ul>
+<li>读取法线图</li>
+<li>获取到当前像素点的法线信息</li>
+<li>结合光线信息进行光照计算（一般是替代几何法线，但也有混合插值的做法）</li>
+</ul>
+</li>
+<li>
+<p>好处：</p>
+<ul>
+<li>让物体表现出更加丰富的细节</li>
+<li>随着光照方向的变换实时变化</li>
+<li>是普通纹理贴图不能表现出的</li>
+</ul>
+</li>
+<li>
+<p>生成法线贴图：</p>
+<ul>
+<li>一般由高模映射到对应的底模上来生成</li>
+<li>但像金属，木头等这些细节丰富的物体，可借助程序化的软件如：Photo Shop，Substance Designer等生成对应法线贴图</li>
+</ul>
+</li>
+</ul>
+<h5 id="法线纹理的存储">法线纹理的存储</h5>
+<p>可储存模型空间的法线信息或切线空间下的法线信息，一般用后者</p>
+<h6 id="切线空间">切线空间</h6>
+<ul>
+<li>以物体表面的切线，副切线和法线组成的几何空间</li>
+<li>每个顶点都有属于自己的切线空间，这个空间的原点是顶点本身，z轴是顶点的法线方向（n），x轴是顶点的切线方向（t），y轴有前边两个轴叉乘而来，被称为副切线（b）或者副法线。</li>
+<li>一般存储顶点法线和切线，副切线可以通过叉乘计算，详见<a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/05%20Advanced%20Lighting/04%20Normal%20Mapping/">learn-opengl法线贴图</a>部分</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_63d5dc29a939e9571231ca14ce99642d.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_63d5dc29a939e9571231ca14ce99642d.png"></p>
+<h6 id="世界空间与切线空间的转换">世界空间与切线空间的转换</h6>
+<ul>
+<li>
+<p>在计算光照时，需要把相关的向量放在统一的坐标系下进行运算。此时就需要不同空间坐标的转换矩阵（世界空间转切线空间/切线空间转世界空间）</p>
+</li>
+<li>
+<p>将世界坐标系下顶点的法线（Normal）、切线（Tangent）、副切线（Bitangent）作为切线空间坐标系的正交基。用这三个向量的标准正交基构建转换矩阵。对应关系为：法线方向作为z轴，切线方向作为x轴，副切线方向作为y轴</p>
+</li>
+<li>
+<p>转换矩阵（可回顾下之前的线代部分）：</p>
+<ul>
+<li>切线空间到世界空间的转换矩阵为一个3×3的旋转矩阵，一般称为TBN矩阵</li>
+<li>世界空间到切线空间的转换矩阵为上述TBN矩阵的逆矩阵，因为是正交矩阵，所以逆矩阵就是它的转置矩阵</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_392b395af6a7b805544339944b14ab5d.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_392b395af6a7b805544339944b14ab5d.png"></p>
+</li>
+</ul>
+<h6 id="切线空间的优点">切线空间的优点</h6>
+<ul>
+<li>自由度高。
+<ul>
+<li>模型空间下是绝对法线信息（仅可以用在创建它时的那个模型）</li>
+<li>而切线空间下的是相对法线信息，是对当前物体法线的扰动。（可以复用）</li>
+</ul>
+</li>
+<li>可进行uv动画。
+<ul>
+<li>比如：移动uv坐标来实现凹凸移动效果</li>
+</ul>
+</li>
+<li>可以重用法线纹理。
+<ul>
+<li>比如：一个立方体，6个面可以用一张法线贴图</li>
+</ul>
+</li>
+<li>可压缩。
+<ul>
+<li>由于切线空间下贴图中法线的Z方向总是正方向（模型空间下可以是负的），那么我们只存XY（切线和副切线）就能推出Z（法线）了，可以少存一个。</li>
+</ul>
+</li>
+</ul>
+<h6 id="法线贴图在Unity中的压缩格式">法线贴图在Unity中的压缩格式</h6>
+<ul>
+<li>在非移动平台上，会把法线贴图转化为DXRT5nm格式</li>
+<li>这个格式只有两个有效GA通道，分别对应法线的y、x分量</li>
+<li>在移动平台上，使用传统RGB通道</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7dce0b184d4f9bf754ef18f9265b7cec.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_7dce0b184d4f9bf754ef18f9265b7cec.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ef83376305ac3a7d5c8cd6f530494699.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ef83376305ac3a7d5c8cd6f530494699.png"></p>
+<ul>
+<li>法线纹理中存的就是表面法线，由于法线分量范围为[-1,1]，像素的分量范围为[0,1] ，因此我们通常需要做一个映射：pixel =（normal + 1）/ 2，解码时就要做一个反向的操作</li>
+</ul>
+<h2 id="Parallax-Mapping-视差映射">Parallax Mapping 视差映射</h2>
+<h5 id="原理-2">原理</h5>
+<p>法线贴图只能改变法线从而改变光照，无法使模型表面产生遮挡效果</p>
+<p>视差贴图Parallax Mapping是一种类似法线贴图的技术。它用于提高模型表面细节并赋予其遮挡关系，可以和法线贴图一起使用。</p>
+<p>视差贴图需要引进一张新的贴图——高度图。高度图一般是用于顶点位移使用的（位移/置换贴图 Displacement mapping），但性能消耗高，需要大量三角形。视差贴图的核心是改变纹理坐标来改变遮挡关系，视差贴图就利用储存模型信息的高度图，<strong>利用模型表面高度信息来对纹理进行偏移</strong>。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_97057d074c84d9b70bfdd155044708de.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_97057d074c84d9b70bfdd155044708de.png"></p>
+<h5 id="实现">实现</h5>
+<ul>
+<li>
+<p>原理上和法线贴图类似，是欺骗眼睛的做法，在着色阶段做手脚而不增加几何细节</p>
+</li>
+<li>
+<p>我们的模型在切线空间下，所有的点都位于切线和副切线组成的平面内（图中0.0点），但我们期待物体要有更丰富的细节（又不想增加几何负担）</p>
+<ul>
+<li>如果不使用视差贴图，正常着色会采样片元A点（黄色）的信息，就是图中的Ha</li>
+<li>实际使用视差贴图时，真实的情况应该是视线和A点延长线和物体的交点，也就是B点，相应的就是Hb<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_3e50600213faf72ad799c32dc6a8ab69.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_3e50600213faf72ad799c32dc6a8ab69.png"></li>
+</ul>
+</li>
+<li>
+<p>视差映射的具体算法：如何在知道A的uv值的情况下，算出B的uv值</p>
+<ul>
+<li>
+<p>求图中d偏移量的长度</p>
+</li>
+<li>
+<p>偏移量的获得：用近似的方法去求解</p>
+<ul>
+<li>首先拿A的高度信息进行采样，得到物体表面距离水平面（0.0）的深度值Ha</li>
+<li>用深度值Ha和视线的三角关系算出物体上等比的偏移方向，算出<strong>近似</strong>的B点（可以看到图中近似点B和实际点B还是有挺大差距的，所以模拟度比较低）</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_0e1c9489b164fa3e49cd2efd83a855cb.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_0e1c9489b164fa3e49cd2efd83a855cb.png"></p>
+</li>
+<li>
+<p>得到偏移之后B点的uv，再去对法线贴图进行采样、计算时，就不会采样A点了，而是B点</p>
+</li>
+</ul>
+</li>
+</ul>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=d%20%3D%20v.xy%20*%20ha%20*%20scale%20%2F%20v.z%0A" /></p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">float height = 1 - tex2D(_HeightMap, i.uv2.xy).r;</span><br><span class="line">real3 viewDirTS = TransformWorldToTangent(viewDirWS.xyz, T2W);</span><br><span class="line">float2 offuv = viewDirTS.xy / viewDirTS.z * height * _HeightScale;</span><br><span class="line">i.uv.xy += offuv;</span><br><span class="line">i.uv.zw += offuv;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>理解：视差贴图是如何产生遮挡效果的
+<ul>
+<li>当视线看到的是A点这样深度比较大的，那么视差贴图计算出的偏移值也是非常大的，这样A点最终被渲染出来的机会就比较小（偏移后就被采样到其他点上了）</li>
+<li>当视线看到B点这样深度比较小的点，计算出来的偏移就比较下，甚至原来点的附近，所以被采样的机会就比较大</li>
+<li>深度大的点很容易被深度小的点覆盖掉，这样就会表现出遮挡的效果</li>
+</ul>
+</li>
+</ul>
+<h5 id="改进：陡视差映射-Steep-Parallax-Mapping">改进：陡视差映射 Steep Parallax Mapping</h5>
+<ul>
+<li>
+<p>原理：</p>
+<ul>
+<li>将物体表面分为若干层，从最顶端开始采样，每次沿着视角方向偏移一定的值</li>
+<li>如果当前采样的层数，大于实际采样的层数，就停止采样。
+<ul>
+<li>例如图中D点，采样到0.75层，实际是0.5层，就停止采样，返回偏移坐标</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f88578d97048d9c3e5e29d0dbbe4f59a.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f88578d97048d9c3e5e29d0dbbe4f59a.png"></p>
+</li>
+<li>
+<p>实现（<a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/05%20Advanced%20Lighting/05%20Parallax%20Mapping/">learn-opengl视差贴图</a>）</p>
+<ul>
+<li>首先对A点采样，得到深度大约为0.8的位置，而其对应视线深度为0.0，不符合我们的基本思想，继续采样</li>
+<li>采样B点，深度为1，视线深度为0.25，不符合，继续采样</li>
+<li>采样C点，深度大约为0.8，视线深度为0.5，不符合，继续采样</li>
+<li>采样D点，采样深度为0.5，视线深度约为0.75，符合上述的条件，认为是比较合理的一个偏移点，就返回结果（return）。</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">float2 SteepParallaxMapping(float2 uv, real3 viewDirTS)</span><br><span class="line">            &#123;</span><br><span class="line">                float numLayers = 20.0;</span><br><span class="line"></span><br><span class="line">                float layerHeight = 1.0 / numLayers;</span><br><span class="line"></span><br><span class="line">                float currentLayerHeight = 0.0;</span><br><span class="line"></span><br><span class="line">                float2 offlayerUV = viewDirTS.xy / viewDirTS.z * _HeightScale;</span><br><span class="line"></span><br><span class="line">                float2 Stepping = offlayerUV / numLayers;</span><br><span class="line"></span><br><span class="line">                float2 currentUV = uv;</span><br><span class="line"></span><br><span class="line">                float2 AddUV = float2(0, 0);</span><br><span class="line"></span><br><span class="line">                float currentHeightMapValue = tex2D(_HeightMap, currentUV + AddUV).r;</span><br><span class="line"></span><br><span class="line">                for (int i = 0; i &lt; numLayers; i++)</span><br><span class="line">                &#123;</span><br><span class="line">                    if (currentLayerHeight &gt; currentHeightMapValue)</span><br><span class="line">                    &#123;</span><br><span class="line">                        return AddUV;</span><br><span class="line">                    &#125;</span><br><span class="line">                    AddUV += Stepping;</span><br><span class="line">                    currentHeightMapValue = tex2D(_HeightMap, currentUV + AddUV).r;</span><br><span class="line">                    currentLayerHeight += layerHeight;</span><br><span class="line">                &#125;</span><br><span class="line">                return AddUV;</span><br><span class="line">            &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>
+<p>问题：</p>
+<ul>
+<li>在于分层机制，如果
+<ul>
+<li>分层多，性能开销就会大</li>
+<li>分层小，渲染锯齿就比较明显</li>
+</ul>
+</li>
+<li>一种做法：可以根据视角v和法线n的角度限定采样层数</li>
+<li>锯齿问题会在浮雕贴图上做改善</li>
+</ul>
+</li>
+</ul>
+<h2 id="Relief-Mapping-浮雕映射">Relief Mapping 浮雕映射</h2>
+<h5 id="原理-3">原理</h5>
+<ul>
+<li>视差贴图在使用较大的uv偏移时存在失真。</li>
+<li>浮雕贴图更容易提供更多的深度，还可以做自阴影、AO效果</li>
+<li>可以看到浮雕的凹凸深度明显更大，且凹凸有自阴影效果</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_dbfaf21ab075a25c019a9c9adbfedc50.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_dbfaf21ab075a25c019a9c9adbfedc50.png"></p>
+<h5 id="实现-2">实现</h5>
+<ul>
+<li>
+<p>浮雕映射一般用射线步进和二分查找来决定uv偏移量</p>
+<ul>
+<li>第一步：射线步进部分，和视差贴图一样</li>
+<li>二分查找部分：通过射线步进找到合适的步进后，在此步进内使用二分查找来找到精确的偏移值</li>
+</ul>
+</li>
+<li>
+<p>为什么不直接使用二分查找？</p>
+<ul>
+<li>会产生比较大的误差</li>
+<li>如果直接使用二分查找，在深度0和1的中间的1点，进一步为2点 -&gt; 3点 -&gt;Q点。但我们要的结果是P点，可以看到结果很明显是错误的</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_2acc9261e0f6053c6631a5eb54ad2df1.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_2acc9261e0f6053c6631a5eb54ad2df1.png"></p>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">float2 ReliefMapping(float2 uv, real3 viewDirTS)</span><br><span class="line">            &#123;</span><br><span class="line">                float2 offlayerUV = viewDirTS.xy / viewDirTS.z * _HeightScale;</span><br><span class="line">                float RayNumber = 20;</span><br><span class="line">                float layerHeight = 1.0 / RayNumber;</span><br><span class="line">                float2 SteppingUV = offlayerUV / RayNumber;</span><br><span class="line">                float offlayerUVL = length(offlayerUV);</span><br><span class="line">                float currentLayerHeight = 0;</span><br><span class="line">              </span><br><span class="line">                float2 offuv= float2(0,0);</span><br><span class="line">                for (int i = 0; i &lt; RayNumber; i++)</span><br><span class="line">                &#123;</span><br><span class="line">                    offuv += SteppingUV;</span><br><span class="line"></span><br><span class="line">                    float currentHeight = tex2D(_HeightMap, uv + offuv).r;</span><br><span class="line">                    currentLayerHeight += layerHeight;</span><br><span class="line">                    if (currentHeight &lt; currentLayerHeight)</span><br><span class="line">                    &#123;</span><br><span class="line">                        break;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                float2 T0 = uv-SteppingUV, T1 = uv + offuv;</span><br><span class="line"></span><br><span class="line">                for (int j = 0;j&lt;20;j++)</span><br><span class="line">                &#123;</span><br><span class="line">                    float2 P0 = (T0 + T1) / 2;</span><br><span class="line"></span><br><span class="line">                    float P0Height = tex2D(_HeightMap, P0).r;</span><br><span class="line"></span><br><span class="line">                    float P0LayerHeight = length(P0) / offlayerUVL;</span><br><span class="line"></span><br><span class="line">                    if (P0Height &lt; P0LayerHeight)</span><br><span class="line">                    &#123;</span><br><span class="line">                        T0 = P0;</span><br><span class="line"></span><br><span class="line">                    &#125;</span><br><span class="line">                    else</span><br><span class="line">                    &#123;</span><br><span class="line">                        T1= P0;</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                return (T0 + T1) / 2 - uv;</span><br><span class="line">            &#125;</span><br></pre></td></tr></table></figure>
+<h5 id="改进：视差闭塞贴图（POM-Parallax-Occlusion-Mapping）">改进：视差闭塞贴图（POM = Parallax  Occlusion Mapping）</h5>
+<ul>
+<li>
+<p>相对于浮雕贴图，不同之处在于最后一步</p>
+<ul>
+<li>浮雕贴图是在确认最后步进之后进行二分查找（在迭代次数比较多的情况下，还是挺耗的）</li>
+<li>视差闭塞贴图是在最后步进的两端uv值进行采样（下图红色箭头），采样之后再对这两个结果进行插值，插值的结果作为P点最终的偏移值</li>
+</ul>
+</li>
+<li>
+<p>优点：</p>
+<ul>
+<li>相对于浮雕映射，性能更好（最后只做插值，而浮雕要做二分查找）</li>
+<li>相对于陡视差贴图，精确性更好</li>
+</ul>
+</li>
+<li>
+<p>要求：</p>
+<ul>
+<li>因为最后要做插值，所以要求表面是相对比较平滑/连续的，如果有莫名的凸起结果可能会出错</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_8e22f9c0a75daa6c63658324df7c1624.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_8e22f9c0a75daa6c63658324df7c1624.png"></p>
+</li>
+</ul>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/05%20Advanced%20Lighting/04%20Normal%20Mapping/">learnopengl法线贴图</a></li>
+<li><a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/05%20Advanced%20Lighting/05%20Parallax%20Mapping/">learnopengl视差贴图</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/27551369">Real-Time Rendering 3rd》 提炼总结 (五) 第六章 · 纹理贴图及相关技术</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/150949320">UE4 材质视差算法</a></li>
+<li>Unity Shader入门精要</li>
+<li>大佬笔记
+<ul>
+<li><a target="_blank" rel="noopener" href="https://xzyw7.github.io/post/PK4_rxBjB/">https://xzyw7.github.io/post/PK4_rxBjB/</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/zohar-jpfbj/tiacmz/hkpf1y?#HyzbB">https://www.yuque.com/zohar-jpfbj/tiacmz/hkpf1y?#HyzbB</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/nspda5#VbWlV">https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/nspda5#VbWlV</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="作业">作业</h2>
+<p>结合之前先行版基础渲染光照介绍，尝试实现法线、视差、浮雕映射</p>
+<p>课程中给出的实例代码，一些内置URP函数的使用值得学习！</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Bump Mapping&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _MainTex (&quot;Texture&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line"></span><br><span class="line">        [Toggle(_NORMALMAP)] _EnableBumpMap(&quot;Enable Normal/Bump Map&quot;, Float) = 0.0</span><br><span class="line">        _NormalMap(&quot;NormalMap&quot;,2D) = &quot;bump&quot; &#123;&#125;</span><br><span class="line">        _NormalScale(&quot;NormalScale&quot; ,Float) = 1</span><br><span class="line"></span><br><span class="line">        [Toggle(_HEIGHTMAP)] _EnableHeightMap(&quot;Enable Height Map&quot;,Float) = 0.0</span><br><span class="line">        [Toggle(_RELIEFMAP)] _EnableReliefMap(&quot;Enable Relief Map&quot;,Float) = 0.0</span><br><span class="line">        _HeightMap(&quot;HeigheMap&quot;,2D) = &quot;white&quot;&#123;&#125;</span><br><span class="line">        _HeightScale(&quot;HeightScale&quot;,range(0,0.5)) = 0.005</span><br><span class="line"></span><br><span class="line">        _Smoothness(&quot;Smoothness&quot;,range(0,2)) = 0.5</span><br><span class="line">        _Metallic(&quot;Metallic&quot;,range(0,1)) = 0.2</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;RenderType&quot;=&quot;Opaque&quot;</span><br><span class="line">        &#125;</span><br><span class="line">        LOD 100</span><br><span class="line"></span><br><span class="line">        HLSLINCLUDE</span><br><span class="line">        // Material Keywords</span><br><span class="line">        #pragma shader_feature _NORMALMAP</span><br><span class="line">        #pragma shader_feature _HEIGHTMAP</span><br><span class="line">        #pragma shader_feature _RELIEFMAP</span><br><span class="line">        //#pragma shader_feature _SPECULAR_COLOR</span><br><span class="line"></span><br><span class="line">        #include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl&quot;</span><br><span class="line">        #include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl&quot;</span><br><span class="line">        ENDHLSL</span><br><span class="line"></span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            Name &quot;URPLighting&quot;</span><br><span class="line">            Tags</span><br><span class="line">            &#123;</span><br><span class="line">                &quot;LightMode&quot; = &quot;UniversalForward&quot;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            HLSLPROGRAM</span><br><span class="line">            #pragma vertex vert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line"></span><br><span class="line">            struct appdata</span><br><span class="line">            &#123;</span><br><span class="line">                float4 positionOS : POSITION;</span><br><span class="line">                float3 normalOS : NORMAL;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line"></span><br><span class="line">                float4 tangentOS : TANGENT;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 positionCS : SV_POSITION;</span><br><span class="line">                float3 normalWS:TEXCOORD0;</span><br><span class="line">                float3 viewDirWS:TEXCOORD1;</span><br><span class="line"></span><br><span class="line">                // Note this macro is using TEXCOORD2</span><br><span class="line">                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 2);</span><br><span class="line">                float4 uv : TEXCOORD3;</span><br><span class="line">                #if defined(_HEIGHTMAP) || defined (_NORMALMAP)</span><br><span class="line">				float4 tangentWS:TEXCOORD4;</span><br><span class="line">                #endif</span><br><span class="line">                #ifdef _HEIGHTMAP</span><br><span class="line">                   float4 uv2 : TEXCOORD5;      </span><br><span class="line">                #endif</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            sampler2D _MainTex;</span><br><span class="line">            float4 _MainTex_ST;</span><br><span class="line">            float _Smoothness;</span><br><span class="line">            sampler2D _NormalMap;</span><br><span class="line">            float4 _NormalMap_ST;</span><br><span class="line">            float _Metallic;</span><br><span class="line">            float _NormalScale;</span><br><span class="line">            sampler2D _HeightMap;</span><br><span class="line">            float4 _HeightMap_ST;</span><br><span class="line">            float _HeightScale;</span><br><span class="line"></span><br><span class="line">            v2f vert(appdata v)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line">                VertexPositionInputs positionInputs = GetVertexPositionInputs(v.positionOS.xyz);</span><br><span class="line"></span><br><span class="line">                o.positionCS = positionInputs.positionCS;</span><br><span class="line">                o.viewDirWS = GetWorldSpaceViewDir(positionInputs.positionWS);</span><br><span class="line"></span><br><span class="line">                o.uv.xy = TRANSFORM_TEX(v.uv, _MainTex);</span><br><span class="line">                VertexNormalInputs normalInputs = GetVertexNormalInputs(v.normalOS, v.tangentOS);</span><br><span class="line">                o.normalWS = normalInputs.normalWS;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">                #if defined (_HEIGHTMAP) ||  defined (_NORMALMAP)</span><br><span class="line">                     real sign = v.tangentOS.w * GetOddNegativeScale();</span><br><span class="line">				     half4 tangentWS = half4(normalInputs.tangentWS.xyz, sign);</span><br><span class="line">                     o.tangentWS = tangentWS;</span><br><span class="line">                #endif</span><br><span class="line"></span><br><span class="line">                #ifdef _NORMALMAP</span><br><span class="line">                    o.uv.zw = TRANSFORM_TEX(v.uv, _NormalMap);</span><br><span class="line"></span><br><span class="line">                #endif</span><br><span class="line">                #ifdef _HEIGHTMAP</span><br><span class="line">                     o.uv2.xy = TRANSFORM_TEX(v.uv, _HeightMap);</span><br><span class="line">                #endif</span><br><span class="line"></span><br><span class="line">                OUTPUT_SH(normalInputs.normalWS.xyz, o.vertexSH);</span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            //视差映射</span><br><span class="line">            float2 ParallaxMapping(float2 Huv, real3 viewDirTS)</span><br><span class="line">            &#123;</span><br><span class="line">                float height = tex2D(_HeightMap, Huv).r;</span><br><span class="line">                float2 offuv = viewDirTS.xy / viewDirTS.z * height * _HeightScale;</span><br><span class="line"></span><br><span class="line">                return offuv;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            //陡峭视差映射</span><br><span class="line">            float2 SteepParallaxMapping(float2 uv, real3 viewDirTS)</span><br><span class="line">            &#123;</span><br><span class="line">                float numLayers = 20.0;</span><br><span class="line"></span><br><span class="line">                float layerHeight = 1.0 / numLayers;</span><br><span class="line"></span><br><span class="line">                float currentLayerHeight = 0.0;</span><br><span class="line"></span><br><span class="line">                float2 offlayerUV = viewDirTS.xy / viewDirTS.z * _HeightScale;</span><br><span class="line"></span><br><span class="line">                float2 Stepping = offlayerUV / numLayers;</span><br><span class="line"></span><br><span class="line">                float2 currentUV = uv;</span><br><span class="line"></span><br><span class="line">                float2 AddUV = float2(0, 0);</span><br><span class="line"></span><br><span class="line">                float currentHeightMapValue = tex2D(_HeightMap, currentUV + AddUV).r;</span><br><span class="line"></span><br><span class="line">                for (int i = 0; i &lt; numLayers; i++)</span><br><span class="line">                &#123;</span><br><span class="line">                    if (currentLayerHeight &gt; currentHeightMapValue)</span><br><span class="line">                    &#123;</span><br><span class="line">                        return AddUV;</span><br><span class="line">                    &#125;</span><br><span class="line">                    AddUV += Stepping;</span><br><span class="line">                    currentHeightMapValue = tex2D(_HeightMap, currentUV + AddUV).r;</span><br><span class="line">                    currentLayerHeight += layerHeight;</span><br><span class="line">                &#125;</span><br><span class="line">                return AddUV;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            //浮雕贴图</span><br><span class="line">            float2 ReliefMapping(float2 uv, real3 viewDirTS)</span><br><span class="line">            &#123;</span><br><span class="line">                float2 offlayerUV = viewDirTS.xy / viewDirTS.z * _HeightScale;</span><br><span class="line">                float RayNumber = 20;</span><br><span class="line">                float layerHeight = 1.0 / RayNumber;</span><br><span class="line">                float2 SteppingUV = offlayerUV / RayNumber;</span><br><span class="line">                float offlayerUVL = length(offlayerUV);</span><br><span class="line">                float currentLayerHeight = 0;</span><br><span class="line">              </span><br><span class="line">                float2 offuv= float2(0,0);</span><br><span class="line">                for (int i = 0; i &lt; RayNumber; i++)</span><br><span class="line">                &#123;</span><br><span class="line">                    offuv += SteppingUV;</span><br><span class="line"></span><br><span class="line">                    float currentHeight = tex2D(_HeightMap, uv + offuv).r;</span><br><span class="line">                    currentLayerHeight += layerHeight;</span><br><span class="line">                    if (currentHeight &lt; currentLayerHeight)</span><br><span class="line">                    &#123;</span><br><span class="line">                        break;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                float2 T0 = uv-SteppingUV, T1 = uv + offuv;</span><br><span class="line"></span><br><span class="line">                for (int j = 0;j&lt;20;j++)</span><br><span class="line">                &#123;</span><br><span class="line">                    float2 P0 = (T0 + T1) / 2;</span><br><span class="line"></span><br><span class="line">                    float P0Height = tex2D(_HeightMap, P0).r;</span><br><span class="line"></span><br><span class="line">                    float P0LayerHeight = length(P0) / offlayerUVL;</span><br><span class="line"></span><br><span class="line">                    if (P0Height &lt; P0LayerHeight)</span><br><span class="line">                    &#123;</span><br><span class="line">                        T0 = P0;</span><br><span class="line"></span><br><span class="line">                    &#125;</span><br><span class="line">                    else</span><br><span class="line">                    &#123;</span><br><span class="line">                        T1= P0;</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                return (T0 + T1) / 2 - uv;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            half4 frag(v2f i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                #if defined(_HEIGHTMAP) || defined (_NORMALMAP)</span><br><span class="line"></span><br><span class="line">                float sgn = i.tangentWS.w;</span><br><span class="line"></span><br><span class="line">				float3 bitangent = sgn * cross(i.normalWS.xyz, i.tangentWS.xyz);</span><br><span class="line">                half3x3 T2W = half3x3(i.tangentWS.xyz, bitangent.xyz, i.normalWS.xyz);</span><br><span class="line">              </span><br><span class="line">                #endif</span><br><span class="line"></span><br><span class="line">                float3 viewDirWS = normalize(i.viewDirWS);</span><br><span class="line">                //视差映射</span><br><span class="line">                #ifdef _HEIGHTMAP</span><br><span class="line">                    real3 viewDirTS = normalize(TransformWorldToTangent(-viewDirWS.xyz,T2W));</span><br><span class="line">                    float2 offuv = float2(0,0);</span><br><span class="line">                    #ifdef _RELIEFMAP</span><br><span class="line">                        offuv = ReliefMapping( i.uv2.xy, viewDirTS);  //陡峭视差映射</span><br><span class="line">                    #else</span><br><span class="line">                        offuv = ParallaxMapping( i.uv2.xy, viewDirTS); //普通视差映射</span><br><span class="line">                    #endif</span><br><span class="line"></span><br><span class="line">                    i.uv.xy += offuv;</span><br><span class="line">                    i.uv.zw += offuv;</span><br><span class="line">              </span><br><span class="line">                #endif</span><br><span class="line">                // sample the texture</span><br><span class="line">                half4 col = tex2D(_MainTex, i.uv.xy);</span><br><span class="line"></span><br><span class="line">                // URP 光照</span><br><span class="line">                SurfaceData surfaceData = (SurfaceData)0;</span><br><span class="line"></span><br><span class="line">                surfaceData.albedo = col;</span><br><span class="line">                surfaceData.alpha = col.a;</span><br><span class="line">                surfaceData.smoothness = _Smoothness;</span><br><span class="line">                surfaceData.metallic = _Metallic;</span><br><span class="line">                surfaceData.occlusion = 1;</span><br><span class="line">                InputData inputData = (InputData)0;</span><br><span class="line">                inputData.viewDirectionWS = viewDirWS;</span><br><span class="line">                //法线映射</span><br><span class="line">                #ifdef _NORMALMAP</span><br><span class="line">                 float3 normalTS = UnpackNormalScale(tex2D(_NormalMap,i.uv.zw), _NormalScale);</span><br><span class="line">				 i.normalWS = TransformTangentToWorld(normalTS, T2W);</span><br><span class="line">                #endif</span><br><span class="line"></span><br><span class="line">                inputData.bakedGI = SAMPLE_GI(i.lightmapUV, i.vertexSH, i.normalWS);</span><br><span class="line">                inputData.normalWS = i.normalWS;</span><br><span class="line"></span><br><span class="line">                half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic,</span><br><span class="line">                                                   surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion,</span><br><span class="line">                                                   surfaceData.emission, surfaceData.alpha);</span><br><span class="line"></span><br><span class="line">                return color;</span><br><span class="line">            &#125;</span><br><span class="line">            ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>还可以实现：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1yK4y1U7ow">May佬的基于视差的体积云</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/leelizc/article/details/78609282">视差实现冰层效果</a></li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/921f8043/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-美术-2.1 DCC工具链与引擎工具链</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/92f331b3/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-2.7 LDR与HDR</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

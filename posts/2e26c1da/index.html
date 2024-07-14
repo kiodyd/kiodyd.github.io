@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形-2.1 色彩空间 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形-2.1 色彩空间</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-01-13T14:00:00.000Z" itemprop="datePublished">2023-01-13</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-07-14T09:03:59.229Z" itemprop="dateUpdated">2024-07-14</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <p>求知若饥，虚心若愚</p>
+<span id="more"></span>
+<h2 id="色彩发送器">色彩发送器</h2>
+<h5 id="色彩认知">色彩认知</h5>
+<ul>
+<li>光源是出生点，光源发射出光线，光线通过直射反射折射等路径最终进入人眼。</li>
+<li>但人眼接收到光线后，人眼的细胞产生了一系列化学反应。</li>
+<li>由此把产生的信号传入大脑，最终大脑对颜色产生了认知感知。</li>
+</ul>
+<h5 id="光的要素">光的要素</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301132000523.png" alt=""></p>
+<p>==<em>图中缺少折射光</em>==</p>
+<h5 id="光源">光源</h5>
+<ul>
+<li>光源就是产生光的物体。</li>
+<li>如果没有光，我们就无法在黑暗中看到色彩，光的本质就是一种物理现象</li>
+<li>光在没有进入我们的眼睛前，我们对它的认知是一种波长与能量分布。</li>
+</ul>
+<h5 id="波长">波长</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/6ffab09e-c314-4470-a924-e938792092dd.png" alt=""></p>
+<ul>
+<li>光理论上讲是无限大的，只是我们人眼可见光是由局限的。</li>
+<li>太阳光在最亮时时白色，然后逐渐黄色再编成红色，蓝色光最高也是白色，再逐渐变淡蓝再到蓝色再到暗黑色</li>
+</ul>
+<h5 id="能量分布">能量分布</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/0f9b384e-7acd-44fa-bcf2-141f0ca43ef8.png" alt=""></p>
+<ul>
+<li>我们说光是一种处于特定频段的光子流，光是具有波粒二象性的，而所有的波都携带能量（能量单位是焦耳）</li>
+<li>一个光可以是由多个波长组合成起来的波形。在图像处理中可以通过这种方式组成不同滤波，用来去除噪点等。（傅里叶变换）</li>
+<li>按物理意义来说可以用波长阐述色彩，但为了能简单描述色彩，人们发明了一个叫做==分光光度计==的东西。</li>
+</ul>
+<h5 id="分光光度计">分光光度计</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/d86f5b3b-dca3-4497-b5db-47849115d56a.png" alt=""></p>
+<p>定义：</p>
+<ul>
+<li>分光光度计，又称光谱仪，是将成分复杂的光，分解为光谱线的科学仪器。测量范围一般包括波长范围为 380 - 780 nm 的可见光区和波长范围为 200 - 380 nm 的紫外光区。</li>
+<li>通过分光之后对区间波长进行了感应与测量，最后得知了光谱的分布最终得知光线额能量集中在了550nm附近（上图中绿色地方）</li>
+</ul>
+<p>通过测量得到：</p>
+<ul>
+<li>混合波长组成光线，拆分光线，变成光线形成单一波长光</li>
+<li>测量单一波长光的实际所含能量</li>
+</ul>
+<h5 id="光的传播">光的传播</h5>
+<p>光线的传播路径（经过不同路径从而进入我们的眼睛中）：</p>
+<ul>
+<li>直射光：光源直射眼睛</li>
+<li>折射光： 光源穿过物体进入眼睛</li>
+<li>反射光：光源经过物体表面反射进入眼睛</li>
+<li>光线追踪：光线弹来弹去，然后我们根据权重确定光线最后进入眼睛中的颜色</li>
+</ul>
+<p>传播过程中光谱变化：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/0e662063-810e-489b-a227-fab138374272.png" alt=""></p>
+<ul>
+<li>光通过反射之后，在能量上发生的变化，可以明显看到，少了一部分的能量</li>
+<li>这是因为一部分的能量被物体吸收了，也就是说每次光经过反射或投射都会或多或少对光的能量分布产生一些影响。</li>
+</ul>
+<p>简单通过能量分布图分析下图得出结论：</p>
+<ul>
+<li>物体吸收光功率的大部分在600nm左右也就是说物体吸收的光是黄色和绿色的光<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/230e495f-c1bc-46a0-8ca1-32466cee23e8.png" alt=""></li>
+</ul>
+<p>光由光源发出后，会与一些物体相交，结果要么散射，要么吸收。散射只改变光线的方向但不改变光线密度和颜色，吸收只改变光线密度和颜色不改变方向。散射到物体内部叫折射或透射，散射到外部则称为反射。</p>
+<p><img src="http://static.zybuluo.com/candycat/7gu6p5xdmzngz53iaa011joy/scattering.png" alt=""></p>
+<h2 id="光源的接收者">光源的接收者</h2>
+<h5 id="相对亮度感知">相对亮度感知</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/9baa0e51-11ef-45e9-a273-aad0ae36d67f.png" alt=""></p>
+<ul>
+<li>在某些阴暗的环境下，点亮一盏灯，这时人眼就会觉得非常亮。</li>
+<li>如果同时点亮1000盏灯，反而觉得只是10倍的亮度，对亮度的认知相当于从0~1再从1~10。</li>
+</ul>
+<h5 id="人眼HDR">人眼HDR</h5>
+<ul>
+<li>人眼既可以分辨出刚度的云彩的不同层次区别，还可分辨出阴影中物体的不同异同。但是人眼的能力并不能保证这两个功能同时生效。</li>
+<li>它可能会随着不同的环境，感知到不同的色彩，体验到不同的明暗效果，甚至可能会随着盯着某一个点时间流逝而变化颜色。（课上以相机光圈大小调整曝光举例，类似窗口，最小最大值动态变化）</li>
+</ul>
+<h5 id="人眼感光细胞分布">人眼感光细胞分布</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301132035053.png" alt=""></p>
+<p>人眼简单可以把感知色彩的细胞分为两大类：</p>
+<ul>
+<li>杆状细胞：感知亮度，对亮度特别的敏感，生成灰度图，只要有5~14个光子打到杆状细胞就会产生神经信号，这也可以解释为什么闪光弹能让人致盲，一部分原因就是因为光实在太亮，直接干涉了人眼最敏感的感光细胞。</li>
+<li>椎状细胞：感知色彩，区分为了L细胞，M细胞，S细胞，根据研究不同人这三种细胞的数量分布并不一致</li>
+</ul>
+<h5 id="椎状细胞">椎状细胞</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/5360cad6-b4f4-4330-842a-38af6eabbe72.png" alt=""></p>
+<ul>
+<li>L细胞，M细胞，S细胞负责感知的波长不一</li>
+<li>L感知红色区间，M感知绿色区间，S感知蓝色区间</li>
+</ul>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=S%20%3D%20%5Cint%20rS%28%5Clambda%29%20s(%5Clambda)%20%7B%5Crm%20d%5Clambda%7D%0A%0AM%20%3D%20%5Cint%20rM(%5Clambda)%20s(%5Clambda)%20%7B%5Crm%20d%5Clambda%7D%0A%0AL%20%3D%20%5Cint%20rL(%5Clambda)%20s(%5Clambda)%20%7B%5Crm%20d%5Clambda%7D%0A" /></p><h5 id="人眼的本质">人眼的本质</h5>
+<p>光源的接收者： 接收外部光线输入，输出神经电信号进入大脑。</p>
+<h5 id="完整微积分公式">完整微积分公式</h5>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=C%20%3D%20%5Cint%5E%7Bmax%7D_%7Bmin%7D%20S%28%5Clambda%29%20%5Ccdot%20I(%5Clambda)%20%5Ccdot%20R(%5Clambda)%20%7B%5Crm%20d%5Clambda%7D%0A" /></p><p>这个公式简单分成了四个部分：</p>
+<ul>
+<li>C值得是人眼这个函数输出的神经电信号</li>
+<li>S(λ) 表示LMS这三个感官细胞的感知分布</li>
+<li>I(λ)表示光源的功率谱分布</li>
+<li>R(λ)表示反射物体的吸收功率分布</li>
+</ul>
+<h2 id="色彩空间的历史">色彩空间的历史</h2>
+<h5 id="1800-色彩的猜想">1800 色彩的猜想</h5>
+<p>人们在18xx年有多种猜测，我们来讨论其中的3种</p>
+<ol>
+<li>人们有100多种感受颜色的细胞</li>
+<li>人们有三种，分别是RGB三种感色细胞</li>
+<li>人们有三种，分别是黑白，红绿，黄蓝感色细胞</li>
+</ol>
+<p>其中2和3猜想成为了我们当下的色彩视觉模型，也称之色彩模型。</p>
+<h5 id="1905-Munsell-色彩系统">1905 Munsell 色彩系统</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/fa299e3c-420c-4547-bdc5-518295120cff.png" alt=""></p>
+<ul>
+<li>美国艺术家 Albert Henry Munsell利用自己的艺术特长，最早提出了一个色彩系统，后来在1930年被优化改良。</li>
+<li>Munsell通过很多色卡来描述色彩，下面旋转角度的是色相，Munsell垂直的是亮度，从圆心到外部是Munsell饱和度。</li>
+<li>人们凭借自我主观意识认知与区分色彩就是HSL(色相饱和亮度)，也有HSV的叫法，这套系统没有过多的物理科学在其中，更多的是一种艺术家的理解与归纳总结规范…</li>
+<li>使用这个色彩系统，一个颜色可以通过: H = 1.6YR, V = 6.3, C = 3.9 来准确描述</li>
+</ul>
+<h5 id="1931-CIE-1931-RGB-Color-Specification-System">1931 CIE 1931 RGB Color Specification System</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/e9bc9729-f29a-420e-8ff6-61c6683c4366.png" alt=""></p>
+<ul>
+<li>科学家们觉得上述的色彩系统还可以，但是不够科学。</li>
+<li>为了以一种科学的方式阐述色彩，于是一个叫CIE的机构在1931年建立了一套色彩系统</li>
+<li>希望完全客观完全物理的量化色彩。（真就根据测试光，不断调整RGB直到观察者认为两者一样后再记录）</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/dc980727-79d1-4b0c-9b72-907a1ebe221b.png" alt=""></p>
+<p>色彩匹配方案：</p>
+<ul>
+<li>CIE把所有可视波长的光线作为测试光挨个测试了一个遍，最终的到了三条曲线。标准RGB方案sRGB</li>
+<li>我们发现435.8~546.1 nm这段波长中的红色基色强度是负数。这虽然物理正确，但是一点也没有科学的美感，于是我们进行了归一化，保证色彩在-1~1之间。</li>
+<li>最终通过计算出rgb的基色的强度在当前混色强度的所占比例这样计算后， r’g’b’都是在-1~1之间， 那么我们发现r’+g’+b’=1,那么就可以通过其中两个已知数计算出另一个的强度</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/5bc160b3-933b-4a68-9cf4-30fe18da9294.png" alt=""></p>
+<p>图像可视化：</p>
+<ul>
+<li>在对数值归一化之后，两个变量就可以代表色彩了，</li>
+<li>于是我们就通过r’ g’这两个参数画图于是画出了一个二维空间，x轴是r’，y轴是g’ 那么我们就可以成功的在色彩科学上真正科学的描述一个颜色</li>
+<li>我们可以把任何可见光通过图标的一个点的坐标来表示说明。</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/0191825c-505a-4b7a-ad7c-96dfbbbd7611.png" alt=""></p>
+<ul>
+<li>上文的CIE1931RGB色彩系统已经不错了，但是存在负数，这在计算上非常的麻烦，比如写个乘法，得先计算是正数还是负数。</li>
+<li>于是人们就用数学的方式做了一个新的色彩空间。所以XYZ色彩空间就是一个中转站（其曲线不是测量得来，而是人们拟合），主要目的就是简化计算。</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20210405155521435.gif" alt=""></p>
+<p>色彩空间的转换：</p>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=%5Cbegin%7Bbmatrix%7D%0AX%5C%5C%0AY%5C%5C%0AZ%5C%5C%0A%5Cend%7Bbmatrix%7D%0A%3D%0A%5Cbegin%7Bbmatrix%7D%0A2.7689%261.7517%261.1302%5C%5C%0A1.0000%264.5907%260.0601%5C%5C%0A0.0000%260.0565%265.5943%5C%5C%0A%5Cend%7Bbmatrix%7D%0A%5Ccdot%0A%5Cbegin%7Bbmatrix%7D%0AR%5C%5C%0AG%5C%5C%0AB%5C%5C%0A%5Cend%7Bbmatrix%7D%0A" /></p><p>==注： 这里的RGB是CIE 1931RGB 不是sRGB中的RGB数值。==</p>
+<p>这个xyz矩阵也不太美，于是人们为了计算方便有把xyz矩阵进行了归一化，这里由于Y曲线比较均匀所以Y分量可表示亮度</p>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=x%20%3D%20%5Cfrac%7BX%7D%7BX%2BY%2BZ%7D%0A%0Ay%20%3D%20%5Cfrac%7BY%7D%7BX%2BY%2BZ%7D%0A%0Az%20%3D%20%5Cfrac%7BZ%7D%7BX%2BY%2BZ%7D%20%3D%201-x-y%0A" /></p><p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/9d0d62f2-f7a3-4291-8642-9a8015047f94.png" alt=""></p>
+<p>色域马蹄图（可视化XYZ空间）</p>
+<ul>
+<li>也就是人眼可见范围表示， 但是我们发现图像上面好像没有亮度于是我们就在归一化的基础上</li>
+<li>把XYZ中的Y单独拿出来与xy一起组成了Yxy色彩空间 其中的Y表示亮度 xy表示色度。</li>
+</ul>
+<p>==注：这里提一下 这里是Yxy色彩空间 Yxy是由XYZ色彩空间衍生==</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20210405155940889.gif" alt=""></p>
+<p>不足与补充：</p>
+<ul>
+<li>上述的XYZ色彩空间也不错，但是也有问题，就是色彩的分布不均匀，他们的分布色彩一些地方紧一些地方又很松</li>
+<li>举个例子这个图的偏向绿色部分就非常平滑，然后左下角部分坐标变化小，但是色彩变化就很快。</li>
+</ul>
+<h5 id="色彩空间的定义">色彩空间的定义</h5>
+<p>色彩空间至少需要满足三项重要指标</p>
+<ol>
+<li>
+<p>色域 （三个基色的坐标，由此形成三角形）</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/754ce743-7210-4a32-906b-0932fbd345d4.png" alt=""></p>
+</li>
+<li>
+<p>Gamma （如何对三角形内进行切分）</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/e300d5f0-0d5a-41f5-a92e-8f1dcd1e89aa.png" alt=""></p>
+</li>
+<li>
+<p>白点 （色域三角形中心）</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/737d7b35-62ef-4fce-9154-f9af9ac09dc6.png" alt=""></p>
+</li>
+</ol>
+<h5 id="Gamma">Gamma</h5>
+<ul>
+<li>首先理解一下gamma并不是色彩空间，它其实只是如何对色彩进行采样的一种方式</li>
+<li>每次对比顶点切割，就会发现切割的方式不同会导致每次对应的色彩不一样</li>
+<li>大家通常理解的gamma=1的情况就是指代这样均匀的切分，这样的好处就是方便计算</li>
+<li>而非均匀切割的方式就是gamma != 1</li>
+</ul>
+<p>sRGB的构成：</p>
+<ol>
+<li>色域： sRGB首先设定了RGB三个基色的坐标</li>
+<li>白点： sRGB也规定了白点位置</li>
+<li>gamma： sRGB的gamma设定为≈2.2也就是说从外而向内切，先切的很细，然后逐渐变粗</li>
+</ol>
+<p>Gamma 详解：</p>
+<ul>
+<li>大家知道线性的好处也就是gamma=1的时候，方便计算，计算机效率高，方便理解</li>
+<li>计算机储存与显示器硬件因为早期的性能问题，采用的基本大部分都是gamma≈2.2的情况，但是我们目前大部分的机器都已经不是远古版本了，所以PC上的大部分游戏都会推荐使用线性空间，包括很多VFX人员都喜欢用Linear线性空间。</li>
+<li>于是我们可以根据色彩空间的定义确定，它们是由三个指标制作而成，但是他又不是定死的，我们可以自定义色彩空间呀换一个色域 换一个白点位置</li>
+<li>换一个gamma值其实就是一个新的色彩空间了，所以也可以存在 sRGB D65 linear 这类空间， 所以 任何色彩空间都可以是linear线性的，但linear本身并不是一个色彩空间</li>
+</ul>
+<h2 id="常用色彩模型与色彩空间">常用色彩模型与色彩空间</h2>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/5ea30fbb-d09a-428e-b851-8bd6648adb43.png" alt=""></p>
+<p>色彩模型：</p>
+<ul>
+<li>使用一定规则描述（排列）颜色的方法</li>
+<li>举例：RGB、CMYK、LAB</li>
+</ul>
+<p>色彩空间：</p>
+<ul>
+<li>需要至少满足三个指标：色域、白点、gamma</li>
+<li>举例：CIE XYZ、 Adobe RGB、 sRGB、Japan Color 2001 Uncoated、US web Coated（后两个是基于CMYK模型建立的）</li>
+</ul>
+<h2 id="色彩空间转换">色彩空间转换</h2>
+<p>RGB2HSV:</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/36bb549b-e422-40c7-b5d7-a37ef04b77bf.png" alt=""></p>
+<p>HSV2RGB:</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/63b7512f-496a-43d3-a895-7e3909bde653.png" alt=""></p>
+<h2 id="引用">引用</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Color_space">https://en.wikipedia.org/wiki/Color_space</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/24214731">https://zhuanlan.zhihu.com/p/24214731</a></li>
+<li><a target="_blank" rel="noopener" href="https://cran.r-project.org/web/packages/colorspace/vignettes/colorspace.html">https://cran.r-project.org/web/packages/colorspace/vignettes/colorspace.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.khanacademy.org/computing/pixar/color/color-space/v/color6-final">https://www.khanacademy.org/computing/pixar/color/color-space/v/color6-final</a></li>
+<li>课程PPT：<a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DUWZZYXZHZmdmRk1B">https://docs.qq.com/slide/DUWZZYXZHZmdmRk1B</a></li>
+<li>爱渲染的镜子：<a target="_blank" rel="noopener" href="https://www.yuque.com/u12120868/md8ze7/dyv458">https://www.yuque.com/u12120868/md8ze7/dyv458</a></li>
+<li>GAMES101色彩部分：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1X7411F744/?p=20">https://www.bilibili.com/video/BV1X7411F744/?p=20</a></li>
+<li>GAMMA校正：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV15t411Y7cf">https://www.bilibili.com/video/BV15t411Y7cf</a></li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/a664ac2/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-2.2 模型与材质基础</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/8e861f64/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-1.4 PC手机图形API介绍</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

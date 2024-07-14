@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形 4.2 SSAO算法 屏幕空间环境光遮蔽 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形 4.2 SSAO算法 屏幕空间环境光遮蔽</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-02-22T03:42:27.000Z" itemprop="datePublished">2023-02-22</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2023-02-25T03:24:56.000Z" itemprop="dateUpdated">2023-02-25</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="SSAO介绍">SSAO介绍</h2>
+<p>日常生活中一些角落里、光线很难到达的地方会很暗（缝隙），AO就是用来模拟这些效果的。</p>
+<p>在图形学中间接光照比较耗性能，有一种简单的方案是直接假设物体四面八方接收到的环境光是一致的（粗暴的实现是直接加上一个光使画面变亮），显然是不符合我们对现实的观察，而使用AO可以模拟计算那些环境光由于被遮蔽而有所损耗的部分，使画面更加接近真实。</p>
+<h4 id="AO">AO</h4>
+<p>环境光遮蔽，全称Ambient Occlusion，是计算机图形学中的一种着色和渲染技术，模拟光线达到物体的能力的粗略的全局方法，描述光线到达物体表面的能力。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f51da46b805b3917c6dd89421a12fe5e.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f51da46b805b3917c6dd89421a12fe5e.png"></p>
+<h4 id="SSAO">SSAO</h4>
+<p>屏幕空间环境光遮蔽，全称Screen Space Ambient Occlusion，一种用于计算机图形中实时实现近似环境光遮蔽效果的渲染技术。通过获取像素的<strong>深度缓冲</strong>、<strong>法线缓冲</strong>来计算实现，来近似的表现物体在间接光下产生的阴影。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_04b3cfb6d1bc818f55ac2dd4ba605c50.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_04b3cfb6d1bc818f55ac2dd4ba605c50.png"></p>
+<h4 id="SSAO历史">SSAO历史</h4>
+<p>AO这项技术最早是在Siggraph 2002年会上由ILM（工业光魔）的技术主管Hayden Landis所展示，当时就被叫做Ambient Occlusion。</p>
+<p>2007年，Crytek公司发布了一款叫做屏幕空间环境光遮蔽(Screen-Space Ambient Occlusion, SSAO)的技术，并用在了他们的看家作孤岛危机上。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_b3f9c41c986ca7d90000e910723acfd2.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_b3f9c41c986ca7d90000e910723acfd2.png"></p>
+<h2 id="SSAO原理">SSAO原理</h2>
+<ul>
+<li>计算深度、法线缓冲</li>
+<li>深度-&gt;像素坐标</li>
+<li>法线-&gt;法向半球随机向量</li>
+<li>计算像素随机后的坐标（多次采样）</li>
+<li>获取随机后深度并比较</li>
+<li>判断加权AO</li>
+<li>后期（模糊等）</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_d1379dcbf72510270e7c0c9cf9018532.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_d1379dcbf72510270e7c0c9cf9018532.png"></p>
+<p>AO核心：for循环</p>
+<ul>
+<li>每一次for循环都会在法线半球中随机取一个向量，根据这个向量求出对应点的深度值，和当前深度做比较，如果大于说明未遮挡则舍去，小于认为有遮蔽，算进加权中，根据结果合成AO，然后加上一些后期处理优化效果。<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_8ac883beb907e5f1bef8a312ce82db01.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_8ac883beb907e5f1bef8a312ce82db01.png"></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_50119a8248b1c66a0f2d12554d1959eb.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_50119a8248b1c66a0f2d12554d1959eb.png"></p>
+<h4 id="深度缓冲">深度缓冲</h4>
+<p>深度缓冲中的depth值用于当前视点下的场景的每一个像素距离相机的一个粗略表达，用于重构像素相机空间中的坐标（Z），来近似重构该视点下的三维场景。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_fdb7e544c60b27b733acce456c99c7a9.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_fdb7e544c60b27b733acce456c99c7a9.png"></p>
+<p>深度缓冲的目的：得到场景中物体与相机的远近关系</p>
+<h4 id="法线缓冲">法线缓冲</h4>
+<p>相机空间中的法线信息，用于重构每个像素的“法线-切线-副法线”构成的坐标轴，用于计算法线半球中的采样随机向量（随机向量用于判断和描述该像素的AO强度）。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_26aa1df670efa42e927409add68a8d71.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_26aa1df670efa42e927409add68a8d71.png"></p>
+<h4 id="法线半球">法线半球</h4>
+<ul>
+<li>黑色表示我们需要计算的样本</li>
+<li>蓝色向量表示样本的法向量</li>
+<li>白色、灰色为采样点（很明显，采样点的多少影响最后的渲染的效果），其中灰色表示被挡采样点（深度大于周围），据此判断最终Ao的强度</li>
+<li>图2表示法向球形采样（后背抛弃），原因是该方式采样导致平整的墙面也会显得灰蒙蒙的，因为核心中一半的样本都会在墙这个几何体上</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_8d697ff39e34ba411dd39dd5940a3eaa.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_8d697ff39e34ba411dd39dd5940a3eaa.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_045af19e9a54227ba1e54ef6b2df7507.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_045af19e9a54227ba1e54ef6b2df7507.png"></p>
+<h4 id="补充：从渲染方程看">补充：从渲染方程看</h4>
+<blockquote>
+<p>参考GAMES202 L8</p>
+</blockquote>
+<p>将Visible项从积分中拆出来，后面那部分积分都可看做常数</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/Snipaste_2023-02-22_18-01-44_3fdef0fd5ebe179747393e7a32b101f3.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/Snipaste_2023-02-22_18-01-44_3fdef0fd5ebe179747393e7a32b101f3.png"></p>
+<p>为什么选择cosθdw积分（使得空积分部分更好算）</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/Snipaste_2023-02-22_18-07-32_b9d41a4a481d7117cb1cc03923bcafff.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/Snipaste_2023-02-22_18-07-32_b9d41a4a481d7117cb1cc03923bcafff.png"></p>
+<p>这里对Visible项的积分其实就是求平均遮挡程度</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/Snipaste_2023-02-22_18-02-56_01e3d27ca8e4a95f6b19b7654e5c3ae5.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/Snipaste_2023-02-22_18-02-56_01e3d27ca8e4a95f6b19b7654e5c3ae5.png"></p>
+<h2 id="SSAO算法实现">SSAO算法实现</h2>
+<p>下面以Unity Builtin管线为例</p>
+<h4 id="获取深度-法线缓冲数据">获取深度&amp;法线缓冲数据</h4>
+<p>Builtin 中需要对相机设置深度纹理模式来获取深度和法线缓冲数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">//获取深度&amp;法线缓存数据</span><br><span class="line">private void Start()</span><br><span class="line">&#123;</span><br><span class="line">cam = this.GetComponent&lt;Camera&gt;();</span><br><span class="line">//相机渲染模式为带深度和法线</span><br><span class="line">cam.depthTextureMode = cam.depthTextureMode | DepthTextureMode.DepthNormals;</span><br><span class="line">&#125;</span><br><span class="line">//这将构建屏幕大小的 32 位（8 位/通道）纹理，</span><br><span class="line">//其中视图空间法线编码到 R&amp;G 通道中，</span><br><span class="line">//而深度编码到 B&amp;A 通道中。</span><br><span class="line">//法线使用立体投影进行编码，</span><br><span class="line">//深度是打包到两个 8 位通道中的 16 位值</span><br></pre></td></tr></table></figure>
+<p>使用Unity自带Api获取深度和法线</p>
+<p>采样使用的uv是屏幕空间的uv，</p>
+<p>具体可以参考入门精要13.1</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">//获取深度法线图</span><br><span class="line">sampler2D _CameraDepthNormalsTexture;</span><br><span class="line"></span><br><span class="line">//...other code</span><br><span class="line"></span><br><span class="line">//采样获得深度值和法线值</span><br><span class="line">float3 viewNormal;</span><br><span class="line">float linear01Depth;</span><br><span class="line">float4 depthnormal = tex2D(_CameraDepthNormalsTexture, i.uv); //uv属于屏幕空间（当前渲染图像）</span><br><span class="line">DecodeDepthNormal(depthnormal, linear01Depth, viewNormal);    //解码数据，获取采样后深度值和法线值</span><br><span class="line"></span><br><span class="line">//...other code</span><br><span class="line"></span><br><span class="line">inline void DecodeDepthNormal( float4 enc, out float depth, out float3 normal )//in UnityCG.cginc </span><br><span class="line">&#123;</span><br><span class="line">    depth = DecodeFloatRG (enc.zw);</span><br><span class="line">    normal = DecodeViewNormalStereo (enc);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>注：算法实现过程环境</strong>：</p>
+<ul>
+<li>Unity版本：Unity 2019.3.5f1；</li>
+<li>场景中的项目为透视模式；</li>
+<li>相机渲染路径为：Forward，如果设置为Deferred渲染路径，则由对应的g-buffer生成，在shader中作为全局变量访问；</li>
+<li>使用OnRenderImage（）来处理后期，进而实现SSAO；</li>
+</ul>
+<h4 id="重建相机空间坐标">重建相机空间坐标</h4>
+<blockquote>
+<p>参考文章：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/92315967">https://zhuanlan.zhihu.com/p/92315967</a></p>
+</blockquote>
+<p>下面使用从NDC空间中重建的方法（计算量和复杂度偏高），入门精要13.1有详细过程</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">//第一步：获得相机空间下的像素方向</span><br><span class="line">v2f vert_Ao(appdata v)&#123;</span><br><span class="line">    v2f o;</span><br><span class="line">    UNITY_INITIALIZE_OUTPUT(v2f,o);</span><br><span class="line"></span><br><span class="line">    o.vertex = UnityObjectToClipPos(v.vertex);//顶点位置：转换到裁剪空间</span><br><span class="line">    o.uv = v.uv;</span><br><span class="line"></span><br><span class="line">    float4 screenPos = ComputeScreenPos(o.vertex);//顶点位置：转换到屏幕空间</span><br><span class="line">    float4 ndcPos = (screenPos / screenPos.w) * 2 - 1;//归一化</span><br><span class="line"></span><br><span class="line">    float3 clipVec = float3(ndcPos.x, ndcPos.y, 1.0)* _ProjectionParams.z;//像素方向：倒推回裁剪空间</span><br><span class="line">    //内置变量_ProjectionParams.z 存放相机远平面值far</span><br><span class="line">    o.viewVec = mul(unity_CameraInvProjection, clipVec.xyzz).xyz;//像素方向：倒推回相机空间</span><br><span class="line"></span><br><span class="line">    return o;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//第二步：获得深度信息，相乘得到向量</span><br><span class="line">fixed4 frag_Ao(v2f i) : SV_Target&#123;</span><br><span class="line">    fixed4 col tex2D(_MainTex, i.uv);//屏幕纹理</span><br><span class="line"></span><br><span class="line">    float3 viewNormal;//相机空间下法线方向</span><br><span class="line">    float linear01Depth;//深度值0-1</span><br><span class="line"></span><br><span class="line">    float4 depthnormal = tex2D(_CameraDepthNormalsTexture, i.uv);//获得纹理信息并解码</span><br><span class="line">    DecodeDepthNormal(depthnormal, linear01Depthm viewNormal);</span><br><span class="line"></span><br><span class="line">    float3 viewPos = linear01Depth * i.viewVec;//相机空间下像素向量</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="构建法向量正交基（TBN）">构建法向量正交基（TBN）</h4>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">fixed4 frag_Ao(v2f i) : SV_Target&#123;</span><br><span class="line">    //重建向量正交基</span><br><span class="line">    //获取像素相机屏幕法线，法线z方向相对于相机为负（需要乘以-1置反），并处理成单位向量</span><br><span class="line">    viewNormal = normalize(viewNormal) * float3(1, 1, -1);//N</span><br><span class="line">  </span><br><span class="line">    // 生成随机向量（用于构建的正交基随机，而非所有样本计算得到的正交基一致）</span><br><span class="line">    float2 noiseScale = _ScreenParams.xy / 4.0;//噪声纹理的缩放</span><br><span class="line">    float2 noiseUV = i.uv * noiseScale;</span><br><span class="line"></span><br><span class="line">    float3 randvec = tex2D(_NoiseTex, noiseUV).xyz;//采样得到随机向量</span><br><span class="line"></span><br><span class="line">    // 求出切向量，再利用函数cross叉积求副切线向量</span><br><span class="line">    float3 tangent = normalize(randvec - viewNormal * dot(randvec, viewNormal));//T</span><br><span class="line">    float3 bitangent = cross(viewNormal, tangent);//B</span><br><span class="line"></span><br><span class="line">    float3x3 TBN = float3x3(tangent, bitangent, viewNormal);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_77aa566a411e142fc186ad3c8eaee3ce.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_77aa566a411e142fc186ad3c8eaee3ce.png"></p>
+<p>怎么求切线和副切线：</p>
+<ul>
+<li>归一化的法线和随机向量进行点乘，得到投影在法线方向的标量长度a</li>
+<li>使用归一化的法线乘以长度a，得到法线方向上的向量<img src="https://math.now.sh?inline=%5Cvec%7Ba%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></li>
+<li>使用随机向量randvec减去向量a，得到切线</li>
+<li>对切线和法线进行叉乘操作，得到副切线，完成正交基的构建</li>
+</ul>
+<h4 id="AO采样核心">AO采样核心</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4bd047a6f451658392f96e1b569fce4e.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4bd047a6f451658392f96e1b569fce4e.png"></p>
+<p>第一步：在C#部分生成采样核心</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">private void GenerateAOSampleKernel()</span><br><span class="line">&#123;</span><br><span class="line">    if(sampleKernelCount == sampleKernelList.Count)</span><br><span class="line">    &#123;</span><br><span class="line">        return;//list为满则返回</span><br><span class="line">    &#125;</span><br><span class="line">    sampleKernelList.Clear();</span><br><span class="line">    for(int i = 0; i &lt; sampleKernelCount; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        var vec = new Vector4(Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f), Random.Range(0, 1.0f), 1.0f);</span><br><span class="line">        vec.Normalize();//初始化随机向量</span><br><span class="line">        var scale = (float)i / sampleKernelCount;</span><br><span class="line">        scale = Mathf.Lerp(0.01f, 1.0f, scale * scale);//i从0-63对应0-1的二次方程曲线</span><br><span class="line">        vec *= scale;</span><br><span class="line">        sampleKernelList.Add(vec);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第二步：从每一个采样位置的深度变化程度累计ao</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">fixed4 frag_Ao(v2f i) : SV_Target&#123;</span><br><span class="line">    //采样并累加</span><br><span class="line">    float ao = 0;//ao值</span><br><span class="line">    int sampleCount = _SampleKernelCount;</span><br><span class="line">    for(int i = 0; i &lt; sampleCount; i++)&#123;</span><br><span class="line">        // _SampleKernelArray是C#中计算的随机向量，影响切线向量的方向</span><br><span class="line">        float3 randomVec = mul(_SampleKernelArray[i].xyz, TBN);//采样方向</span><br><span class="line">        float weight = smoothstep(0, 0.2, length(randomVec.xy));//针对不同的采样方向分配权重</span><br><span class="line"></span><br><span class="line">        //采样位置</span><br><span class="line">        float3 randomPos = viewPos + randomVec * _SampleKernelRadius;//相机空间下的采样位置</span><br><span class="line">        float3 rclipPos = mul((float3x3)unity_CameraProjection, randomPos);//相机空间到裁剪空间（投影空间）下</span><br><span class="line">        float2 rscreenPos = (rclipPos.xy / rclipPos.z) * 0.5 + 0.5;//裁剪空间到屏幕空间</span><br><span class="line"></span><br><span class="line">        float randomDepth;//采样位置的深度</span><br><span class="line">        float3 randomNormal;//采样位置的法线方向</span><br><span class="line">        //从纹理中读取上述信息</span><br><span class="line">        float4 rcdn = tex2D(_CameraDepthNormalsTexture, rscreenPos);</span><br><span class="line">        DecodeDepthNormal(rcdn, randomDepth, randomNormal);</span><br><span class="line"></span><br><span class="line">        //对比计算ao</span><br><span class="line">        float range = abs(randomDepth - linear01Depth) &gt; _RangeStrength ? 0.0 : 1.0;//深度变化</span><br><span class="line">        float selfCheck = randomDepth + _DepthBiasValue &lt; linear01Depth ? 1.0 : 0.0;//深度变化过大的归零</span><br><span class="line"></span><br><span class="line">        ao += range * selfCheck * weight;</span><br><span class="line">    &#125;</span><br><span class="line">    ao = ao / sampleCount;</span><br><span class="line">    ao = max(0.0, 1 - ao * _AOStrength);</span><br><span class="line">    return float4(ao, ao, ao, 1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="补充内容">补充内容</h4>
+<p>关于_ScreenParams分量意义</p>
+<table>
+<thead>
+<tr>
+<th>分量</th>
+<th>意义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x</td>
+<td>1.0（或-1.0，如果当前使用翻转投影矩阵进行渲染）</td>
+</tr>
+<tr>
+<td>y</td>
+<td>相机的近平面</td>
+</tr>
+<tr>
+<td>z</td>
+<td>相机的远平面</td>
+</tr>
+<tr>
+<td>w</td>
+<td>1/FarPlane，在上面代码中用于归一化</td>
+</tr>
+</tbody>
+</table>
+<p>UNITY_MATRIX_P和unity_CameraProjection有什么不一样看这篇：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/114729671">https://zhuanlan.zhihu.com/p/114729671</a></p>
+<h2 id="SSAO效果改进">SSAO效果改进</h2>
+<h4 id="随机正交基（增加随机性）">随机正交基（增加随机性）</h4>
+<p>通过引入随机变量或者采样噪音贴图来使得法向半球的正交基不一致（原先使用float3(1,1,1)代替随机向量）</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_33f871573a5aa814bce92fa17c654447.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_33f871573a5aa814bce92fa17c654447.png"></p>
+<p>利用uv至采样一张Noise贴图（如右图4x4像素（可选择其他尺寸）的Noise贴图），或者随机向量</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">float2 noiseScale = _ScreenParams.xy / 4.0;//噪声纹理的缩放</span><br><span class="line">float2 noiseUV = i.uv * noiseScale;</span><br><span class="line">float3 randvec = tex2D(_NoiseTex, noiseUV).xyz;//采样得到随机向量</span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/478a4d69-1d49-43ff-9767-7e3b1216b36e_add27a8b3502b2204966e753e0e876a6.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/478a4d69-1d49-43ff-9767-7e3b1216b36e_add27a8b3502b2204966e753e0e876a6.png"></p>
+<p>并在C#中传入噪声贴图</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssaoMaterial.SetTexture(&quot;_NoiseTex&quot;, Noise);</span><br></pre></td></tr></table></figure>
+<h4 id="AO累加平滑优化">AO累加平滑优化</h4>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_949333b0eb08439c1f028dd8a6266c3c.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_949333b0eb08439c1f028dd8a6266c3c.png"></p>
+<ul>
+<li>
+<p>差距巨大的深度值，如果差值大于某个阈值，可以认为是天空（无穷远），则不需要遮蔽</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">float range = abs(randomDepth - linear01Depth) &gt; _RangeStrength ? 0.0 : 1.0;//深度变化</span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_eb220e714ccc4762dea90583e92cb5f9.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_eb220e714ccc4762dea90583e92cb5f9.png"></p>
+</li>
+<li>
+<p>同一平面深度值由于精度问题造成的深度变化，自我遮挡问题</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">float selfCheck = randomDepth + _DepthBiasValue &lt; linear01Depth ? 1.0 : 0.0;//深度变化过大的归零</span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_c977ffac5ae9a8e0889819e98b1b2c45.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_c977ffac5ae9a8e0889819e98b1b2c45.png"></p>
+</li>
+<li>
+<p>根据距离Smooth权重，一般是原理当前像素的分配权重会小一点</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">float weight = smoothstep(0, 0.2, length(randomVec.xy));//针对不同的采样方向分配权重</span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_c97a93c5cef2d9bd04ba7b9aa0719780.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_c97a93c5cef2d9bd04ba7b9aa0719780.png"></p>
+</li>
+<li>
+<p>双边滤波<strong>模糊</strong>（C#部分）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">RenderTexture blurRT = RenderTexture.GetTemporary(rtW, rtH, 0);//获取模糊渲染纹理</span><br><span class="line">ssaoMaterial.SetFloat(&quot;_BilaterFilterFactor&quot;, 1.0f - bilaterFilterStrength);</span><br><span class="line">ssaoMaterial.SetVector(&quot;_BlurRadius&quot;, new Vector4(BlurRadius, 0, 0, 0));//x方向</span><br><span class="line">Graphics.Blit(aoRT, blurRT, ssaoMaterial, (int)SSAOPassName.BilateralFilter);</span><br><span class="line">ssaoMaterial.SetVector(&quot;_BlurRadius&quot;, new Vector4(0, BlurRadius, 0, 0));//y方向</span><br><span class="line">Graphics.Blit(blurRT, aoRT, ssaoMaterial, (int)SSAOPassName.BilateralFilter);</span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bac485e26402d2514d28136888260da2.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bac485e26402d2514d28136888260da2.png"></p>
+</li>
+</ul>
+<h2 id="对比模型烘焙AO">对比模型烘焙AO</h2>
+<h4 id="三维建模软件烘焙AO方式">三维建模软件烘焙AO方式</h4>
+<p>通过三维建模软件（如3DMax），设定好渲染参数，对模型（单一选择模型实体），烘焙AO到纹理。</p>
+<p><strong>优点</strong>：</p>
+<ol>
+<li>单一物体可控性强（通过单一物体的材质球上的AO纹理贴图），可以控制单一物体的AO的强弱；</li>
+<li>弥补场景烘焙的细节，整体场景的烘焙（包含AO信息），并不能完全包含单一物体细节上的AO，而通	过三维建模软件烘焙到纹理的方式，增加物体的AO细节；</li>
+<li>不影响其（Unity场景中）静态或者动态；</li>
+</ol>
+<p><strong>缺点：</strong></p>
+<ol>
+<li>操作较其他方式繁琐，需要对模型进行UW处理，再进行烘焙到纹理；</li>
+<li>不利于整体场景的整合（如3DMax烘焙到纹理，只能选择单一物体，针对整体场景的处理工作量巨大）；</li>
+<li>增加AO纹理贴图，不利于资源优化（后期可通过其他纹理通道利用整合资源）；</li>
+<li>只有物体本身具有AO信息，获取物体之间的AO信息工作量巨大（不是不可能）。</li>
+</ol>
+<h4 id="游戏引擎烘焙AO方式（Unity3D-Lighting）">游戏引擎烘焙AO方式（Unity3D Lighting）</h4>
+<p>通过Unity的Lighting功能（主菜单/Window/Rendering/Lighting Settings）进行整体场景的烘焙，AO信息包含于此。</p>
+<p><strong>优点：</strong></p>
+<ol>
+<li>操作简易，整体场景的烘焙，包含AO的选择；</li>
+<li>不受物体本身的UW影响，Unity通过Generate Lightmap UVs生成模型第二个纹理坐标数据；</li>
+<li>可生成场景中物体与物体之间的AO信息；</li>
+</ol>
+<p><strong>缺点：</strong></p>
+<ol>
+<li>缺少单一物体的细节（可调整参数提高烘焙细节，但换之将增加烘焙纹理数量和尺寸，以及烘焙时间）；</li>
+<li>受物体是否静态影响，动态物体无法进行烘焙，获得AO信息。</li>
+</ol>
+<h4 id="SSAO方式">SSAO方式</h4>
+<p>优点：</p>
+<ol>
+<li>不依赖场景的复杂度，其效果质量依赖于最终图片像素大小；</li>
+<li>实时计算，可用于动态场景；</li>
+<li>可控性强，灵活性强，操作简单；</li>
+</ol>
+<p>缺点：</p>
+<ol>
+<li>性能消耗较之上述2种方式更多，计算非常昂贵；</li>
+<li>AO质量上要比较离线式烘焙（上述2种）不佳（理论上）。</li>
+</ol>
+<h2 id="SSAO性能消耗">SSAO性能消耗</h2>
+<h4 id="主要方面">主要方面</h4>
+<ul>
+<li>AO法向半球的随机采样<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_210c085467f4c3354dcd4586365624c9.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_210c085467f4c3354dcd4586365624c9.png"></li>
+<li>双边滤波的多重采样<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6ce01c5a1a2456b9a3849acf8efbae46.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6ce01c5a1a2456b9a3849acf8efbae46.png"></li>
+</ul>
+<h4 id="AO核心采样消耗说明">AO核心采样消耗说明</h4>
+<p>主要核心为计算AO随机法向半球的采用点，并加以半段计算AO权值</p>
+<ul>
+<li>
+<p>使用For结构代码进行半球随机向量的采用，If、For等对于GPU计算性能上并不友好；<br>
+<img src="https://docimg1.docs.qq.com/image/TmH7PitBQTgoPK7vYxc3Aw.png?w=652&amp;h=260" alt=""></p>
+</li>
+<li>
+<p>采用数的数量（上图中的_SampleKernelCount,针对For循环的次数），过低的采用数得不到好的结果；</p>
+<ul>
+<li>以64为例，1334 x 750 的分辨率，每个像素计算循环64次，合计1334 * 750 * 64次AO核心计算；</li>
+</ul>
+</li>
+<li>
+<p>循环体重的采样，同意以64为例，每个像素计算需要采样64次来求得屏幕深度值法线值。<br>
+<img src="https://docimg9.docs.qq.com/image/9YhApVhjGq2WSCIIsSCjag.png?w=633&amp;h=121" alt=""></p>
+</li>
+</ul>
+<h4 id="滤波采样消耗说明">滤波采样消耗说明</h4>
+<p>双边滤波（Bilateral Filter），为保证边缘不被模糊，采样基于法线的双边滤波</p>
+<ul>
+<li>
+<p>C#后期脚本中，Blit两次（横向和纵向），合计调用两次滤波渲染Pass；<br>
+<img src="https://docimg8.docs.qq.com/image/6D06JRf3nD7SzfEHnzy7Pg.png?w=907&amp;h=421" alt=""></p>
+</li>
+<li>
+<p>单一滤波渲染Pass中，多重采样；</p>
+<ul>
+<li>包括7次主纹理的采用和7次屏幕像素的法线信息的采用，屏幕中每个像素合计14次纹理采用。<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_e6bc74464e51e3282391f7c34115e19c.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_e6bc74464e51e3282391f7c34115e19c.png"></li>
+</ul>
+</li>
+</ul>
+<h2 id="扩展链接">扩展链接</h2>
+<ul>
+<li>【环境遮罩之SSAO原理】	<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/46633896">https://zhuanlan.zhihu.com/p/46633896</a></li>
+<li>【游戏后期特效第四发 – 屏幕空间环境光遮蔽(SSAO)】	<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/25038820">https://zhuanlan.zhihu.com/p/25038820</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.iquilezles.org/www/articles/ssao/ssao.htm">https://www.iquilezles.org/www/articles/ssao/ssao.htm</a></li>
+<li>【learnopengl-cn】	<a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/05%20Advanced%20Lighting/09%20SSAO/">https://learnopengl-cn.github.io/05 Advanced Lighting/09 SSAO/</a></li>
+<li>【屏幕空间环境光遮蔽（SSAO）算法的实现】	<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_39300235/article/details/102460405">https://blog.csdn.net/qq_39300235/article/details/102460405</a></li>
+<li>【Unity Shader-Ambient Occlusion环境光遮蔽】	<a target="_blank" rel="noopener" href="https://blog.csdn.net/puppet_master/article/details/82929708">https://blog.csdn.net/puppet_master/article/details/82929708</a></li>
+<li>【SSAO 与深度重构】	<a target="_blank" rel="noopener" href="https://wiki.jikexueyuan.com/project/modern-opengl-tutorial/tutorial46.html">https://wiki.jikexueyuan.com/project/modern-opengl-tutorial/tutorial46.html</a></li>
+<li>【Ambient Occlusion(AO)使用指南】<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/150431414">https://zhuanlan.zhihu.com/p/150431414</a></li>
+<li>【图形和滤波】	<a target="_blank" rel="noopener" href="http://www.ruanyifeng.com/blog/2017/12/image-and-wave-filters.html">http://www.ruanyifeng.com/blog/2017/12/image-and-wave-filters.html</a></li>
+<li>【双边滤波】	<a target="_blank" rel="noopener" href="https://blog.csdn.net/puppet_master/article/details/83066572">https://blog.csdn.net/puppet_master/article/details/83066572</a></li>
+<li>【GAMES202 L8】<br>
+<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1YK4y1T7yY?p=8">https://www.bilibili.com/video/BV1YK4y1T7yY?p=8</a></li>
+<li>【Unity Shader-Ambient Occlusion环境光遮蔽（AO贴图，GPU AO贴图烘焙，SSAO，HBAO）】<br>
+<a target="_blank" rel="noopener" href="https://blog.csdn.net/puppet_master/article/details/82929708">https://blog.csdn.net/puppet_master/article/details/82929708</a></li>
+<li>【SSAO与HBAO与HDAO-真正的区别是什么？】<br>
+<a target="_blank" rel="noopener" href="https://cn.bikiniclinic.net/901505-ssao-vs-hbao-vs-hdao-JBPNNX">https://cn.bikiniclinic.net/901505-ssao-vs-hbao-vs-hdao-JBPNNX</a></li>
+<li>【Ambient Occlusion环境遮罩1】<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/43105945">https://zhuanlan.zhihu.com/p/43105945</a></li>
+<li>【UE4 Mobile GTAO 实现(HBAO续)】<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/145339736">https://zhuanlan.zhihu.com/p/145339736</a></li>
+<li>大佬笔记
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/yikejinyouzi/aau4tk/gs7n7d#sJF8T">https://www.yuque.com/yikejinyouzi/aau4tk/gs7n7d#sJF8T</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/6527chen/ldyt32/sh3p6g#5ad7f5a8">https://www.yuque.com/6527chen/ldyt32/sh3p6g#5ad7f5a8</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/xiaohen-ecwjj/vegbg9/md8bre#XrCHZ">https://www.yuque.com/xiaohen-ecwjj/vegbg9/md8bre#XrCHZ</a></li>
+<li><a target="_blank" rel="noopener" href="https://note.youdao.com/ynoteshare/index.html?id=c1ee84493cf1a80a399da3fff7f87dc8&amp;type=note&amp;_time=1677045667612">https://note.youdao.com/ynoteshare/index.html?id=c1ee84493cf1a80a399da3fff7f87dc8&amp;type=note&amp;_time=1677045667612</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/hejincan/shader/crp2fa#DPCNf">https://www.yuque.com/hejincan/shader/crp2fa#DPCNf</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/zhuying-7uqy4/kipb65/gdyzgi#IyJ0M">https://www.yuque.com/zhuying-7uqy4/kipb65/gdyzgi#IyJ0M</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="作业">作业</h2>
+<h4 id="实现SSAO效果">实现SSAO效果</h4>
+<p>跟着工程在urp实现了一遍（抄× ( Ĭ ^ Ĭ )</p>
+<p>没有加SSAO之前</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6b4fae8a91c5221c860301c9a12d4048.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6b4fae8a91c5221c860301c9a12d4048.png"></p>
+<p>加上了SSAO</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_cd5ec620451f23deb0ec0702b6d156eb.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_cd5ec620451f23deb0ec0702b6d156eb.png"></p>
+<p>可以看到直角旮旯的地方多了阴影，使画面更有立体感，下面是生成的AO图</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_1d09214aa9a120c16298c931f9199baa.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_1d09214aa9a120c16298c931f9199baa.png"></p>
+<p>和Unity的方案对比下，显然Unity的算法好一点，对于地上那些小物件的AO效果非常显著（尝试调参好久也没调到这种效果）</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_0f20090d64e6b2b6ce9d39a2c274492d.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_0f20090d64e6b2b6ce9d39a2c274492d.png"></p>
+<p>在URP实现遇到的问题：</p>
+<ul>
+<li>
+<p>深度图的获取，在URP Assets文件勾选Depth Texture即可用<br>
+_CameraDepthTexture采样，同时Unity也提供相关代码帮助我们采样，具体位置在</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;Packages/com.unity.render-   pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl&quot;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>法线图的获取，需要在自定义的Pass中开启法线图的输入，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ConfigureInput(ScriptableRenderPassInput.Normal);</span><br></pre></td></tr></table></figure>
+<p>开启后可以用<br>
+_CameraNormalsTexture采样，同样Unity也提供了采样接口</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl&quot;</span><br></pre></td></tr></table></figure>
+<p>需要注意的是，这里存储的是世界空间的法线，而原builtin方法获取的是观察空间，所以如果要用课上的算法的话，要转换一下法线</p>
+</li>
+<li>
+<p>关于课上算法的疑问，采样获得随机屏幕位置后，再去获取深度，此时是非线性的深度，而ao比较是和当前像素的线性深度去对比，感觉不太对劲，改成统一线性后效果好一点。</p>
+</li>
+</ul>
+<p>参考的文章</p>
+<ul>
+<li>官方关于世界坐标的重建：<a target="_blank" rel="noopener" href="https://docs.unity3d.com/cn/Packages/com.unity.render-pipelines.universal@12.1/manual/writing-shaders-urp-reconstruct-world-position.html">https://docs.unity3d.com/cn/Packages/com.unity.render-pipelines.universal@12.1/manual/writing-shaders-urp-reconstruct-world-position.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_30100043/article/details/126991243">unity urp 获取屏幕深度法向颜色纹理以及从深度纹理重构世界空间坐标</a></li>
+<li>大佬分析UnityUrp实现方案：<a target="_blank" rel="noopener" href="https://github.com/HHHHHHHHHHHHHHHHHHHHHCS/MyStudyNote/blob/main/MyNote/URP%E7%9A%84SSAO.md">https://github.com/HHHHHHHHHHHHHHHHHHHHHCS/MyStudyNote/blob/main/MyNote/URP的SSAO.md</a></li>
+</ul>
+<h4 id="其他AO方案">其他AO方案</h4>
+<p>todo：HBAO、GTAO<br>
+参考文章：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/HHHHHHHHHHHHHHHHHHHHHCS/MyStudyNote/blob/main/MyNote/%E5%86%99%E5%86%99%E7%AE%80%E5%8D%95%E7%9A%84HBAO.md">URP HBAO实现</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/103683536">HBAO原理</a></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_5ef211cebcad7644dd0ea673a6aa5942.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_5ef211cebcad7644dd0ea673a6aa5942.png"></p>
+<p>各个AO技术性能分析<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_130dcae562f505454a2b390eef7e68f1.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_130dcae562f505454a2b390eef7e68f1.png"></p>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/b846b8e2/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 4.3 实时阴影介绍</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/43c67814/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 4.1 Bloom算法</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>一道蛮有趣的逻辑题 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">一道蛮有趣的逻辑题</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kiodyd</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2019-08-02T09:53:55.000Z" itemprop="datePublished">2019-08-02</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-07-14T09:03:59.241Z" itemprop="dateUpdated">2024-07-14</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E8%A7%A3%E9%A2%98/">🏷️ 解题</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <p>这道题好像去年就见过了啊喂~</p>
+<span id="more"></span>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/0401.jpg" alt="题目"><br>
+今天突然看到这份号称“2018年刑侦推理试题”的题，体内的<s>推理之魂</s>（太中二了吧）蠢蠢欲动。<br>
+大致看了下题，第一反应便是程序暴力解题哈哈。不过还是要考一考自己的逻辑思维的，这种题一般有个入口，找到这个入口就好办啦。<br>
+所以以下文章分享下我的解题思路以及程序解法。（还是很佩服出题人，听说是个社团出的题，好厉害！）</p>
+<h2 id="解题思路">解题思路</h2>
+<p>入口是解题的第一步，这里我选择了第五题作为入口。</p>
+<h3 id="1、假设第5题选A">1、假设第5题选A</h3>
+<p>根据选项内容可知<font color=#FF0000 >第8题也选A</font>,且我们看下第2题，是和第5题有联系的，所以<font color=#FF0000 >第2题选C</font><br>
+然后接下来看第8题的描述，我们选择了A说明BCD是错的，从而说明我们已知的第2和第5题的答案是和第1题是相邻的<br>
+所以<font color=#FF0000 >第1题只能选B</font>，而由第8题也知道了第7题的答案是与第1题不相邻，所以<font color=#FF0000 >第7题选D</font>。<br>
+看回第4题，由上面可知AB排除，而第七题指出十个答案里最少的是D，要想十个里有唯一一个最少个数，只能是一个或零个，所以其他选项不能是D了。<font color=#FF0000 >第4题选C</font><br>
+1、9题答案相同，故<font color=#FF0000 >第9题选B</font>。根据第4题的解题思路，<font color=#FF0000 >第6题选C</font>，故<font color=#FF0000 >第3题和第10题都选A</font>。所以答案是BCACACDABA<br>
+一次假设就得到答案，看来第5题作为切入点比较好。看看还有没其他可能。</p>
+<h3 id="2、假设第5题选B">2、假设第5题选B</h3>
+<p>由第5可知<font color=#FF0000 >第2选D</font>，<font color=#FF0000 >第4选B</font>。再由第4得<font color=#FF0000 >第7选D</font>，这时候D就有两个了，所以是肯定不符合10个答案唯一一个最小的这个条件。</p>
+<h3 id="3、假设第5题选C">3、假设第5题选C</h3>
+<p>同理可得<font color=#FF0000 >第2选A</font>，<font color=#FF0000 >第9选C</font>，看第9的描述，由于第2和第5是不同的答案，所以只能第1和第6的答案相同才满足了。<br>
+看回第4题，假设选A，则1、5相同，由于5、9相同，所以1、9也相同，但选项C就是1、9相同，所以AC之间能互推，所以排除AC。<br>
+假如选B，2、7相同，明显违背了最少那个答案只有1个的定理，所以<font color=#FF0000 >第4选D</font>。这样可以得出1、6、10答案相同。所以<font color=#FF0000 >第6选B</font>,可得<font color=#FF0000 >1、10、8都选B</font>。<br>
+这个时候得到的结果已经和第8题的描述冲突了，所以这个假设不对。</p>
+<h3 id="4、假设第5题选D">4、假设第5题选D</h3>
+<p>第2选B，第7选D此时都有两个D了，所以D不可能是最小。</p>
+<p>按这个思路好像只有一种答案BCACACDABA。让我们写个程序验证一下。</p>
+<h2 id="程序解题">程序解题</h2>
+<p>目前只想到生成所有的答案去跑一遍所有的测试条件，看看剩余的答案是哪个。<br>
+第一步是生成所有答案，这个方法感觉挺多的，一开始想10个for，但是那样就太不美观了。<br>
+最后采取了从1道题所有答案可能慢慢组合到10道题。感觉效率不是很高，以后想到更快的算法再来完善。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">std::string * makeAnswer(int num)</span><br><span class="line">&#123;</span><br><span class="line">    using std::string;</span><br><span class="line">    string *temp1 = new string[4]&#123;&quot;ya&quot;,&quot;yb&quot;,&quot;yc&quot;,&quot;yd&quot;&#125;;</span><br><span class="line">    string *temp2;</span><br><span class="line">    for (int i = 2; i &lt;= num; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        temp2 = new string[int(powl(4,i))];</span><br><span class="line">        int count = 0;</span><br><span class="line">        for (int l = 0; l &lt; powl(4,i-1); l++)</span><br><span class="line">        &#123;</span><br><span class="line">            temp2[count++] = temp1[l] +&quot;a&quot;;</span><br><span class="line">            temp2[count++] = temp1[l] +&quot;b&quot;;</span><br><span class="line">            temp2[count++] = temp1[l] +&quot;c&quot;;</span><br><span class="line">            temp2[count++] = temp1[l] +&quot;d&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">        delete [] temp1;</span><br><span class="line">        temp1 = temp2;      </span><br><span class="line">    &#125;</span><br><span class="line">    return temp1;    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首位y的话代表符合条件n则不符合<br>
+生成所有选项可能后，就是去验证是否符合所有条件了，这个比较简单(写的繁琐了点)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br></pre></td><td class="code"><pre><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    std::string * answ = makeAnswer(10);</span><br><span class="line">    for (int i = 0; i &lt; pow(4,10); i++)</span><br><span class="line">    &#123;</span><br><span class="line">        if (answ[i][0] == &#x27;y&#x27;)</span><br><span class="line">        &#123;</span><br><span class="line">            //第二题  第5题的答案 A(C)  B(D)  C(A)   D(B)</span><br><span class="line">            if (!(answ[i][2] == &#x27;a&#x27;&amp;&amp;answ[i][5]==&#x27;c&#x27; || answ[i][2] == &#x27;b&#x27;&amp;&amp;answ[i][5]==&#x27;d&#x27; || answ[i][2] == &#x27;c&#x27;&amp;&amp;answ[i][5]==&#x27;a&#x27; || answ[i][2] == &#x27;d&#x27;&amp;&amp;answ[i][5]==&#x27;b&#x27;))</span><br><span class="line">            &#123;</span><br><span class="line">                answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                continue;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            //第三题  哪一题的答案与其他三项不同   A(3)  B(6)  C(2)   D(4)</span><br><span class="line">            switch (answ[i][3])</span><br><span class="line">            &#123;</span><br><span class="line">            case &#x27;a&#x27;:</span><br><span class="line">                if (answ[i][2] == answ[i][3] || answ[i][4] == answ[i][3] || answ[i][6] == answ[i][3])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;b&#x27;:</span><br><span class="line">                if (answ[i][2] == answ[i][6] || answ[i][4] == answ[i][6] || answ[i][3] == answ[i][6])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;c&#x27;:</span><br><span class="line">                if (answ[i][6] == answ[i][2] || answ[i][4] == answ[i][2] || answ[i][3] == answ[i][2])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;d&#x27;:</span><br><span class="line">                if (answ[i][2] == answ[i][4] || answ[i][6] == answ[i][4] || answ[i][3] == answ[i][4])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            &#125;</span><br><span class="line">            if (answ[i][0] == &#x27;n&#x27;)</span><br><span class="line">                continue;</span><br><span class="line">            </span><br><span class="line">            //第四题    哪两道题答案相同    A(1、5)  B(2、7)  C(1、9)   D(6、10)</span><br><span class="line">            switch (answ[i][4])</span><br><span class="line">            &#123;</span><br><span class="line">            case &#x27;a&#x27;:</span><br><span class="line">                if (answ[i][1] != answ[i][5])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;b&#x27;:</span><br><span class="line">                if (answ[i][2] != answ[i][7])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;c&#x27;:</span><br><span class="line">                if (answ[i][1] != answ[i][9])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;d&#x27;:</span><br><span class="line">                if (answ[i][6] != answ[i][10])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            &#125;</span><br><span class="line">            if (answ[i][0] == &#x27;n&#x27;)</span><br><span class="line">                continue;</span><br><span class="line"></span><br><span class="line">            //第五题      哪道题答案与本题相同    A(8)  B(4)  C(9)   D(7)</span><br><span class="line">            switch (answ[i][5])</span><br><span class="line">            &#123;</span><br><span class="line">            case &#x27;a&#x27;:</span><br><span class="line">                if (answ[i][8] != answ[i][5])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;b&#x27;:</span><br><span class="line">                if (answ[i][4] != answ[i][5])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;c&#x27;:</span><br><span class="line">                if (answ[i][9] != answ[i][5])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;d&#x27;:</span><br><span class="line">                if (answ[i][7] != answ[i][5])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            &#125;</span><br><span class="line">            if (answ[i][0] == &#x27;n&#x27;)</span><br><span class="line">                continue;</span><br><span class="line"></span><br><span class="line">            //第六题      哪两题答案与第8题相同     A(2、4)  B(1、6)  C(3、10)   D(5、9)</span><br><span class="line">            switch (answ[i][6])</span><br><span class="line">            &#123;</span><br><span class="line">            case &#x27;a&#x27;:</span><br><span class="line">                if (answ[i][8] != answ[i][2] || answ[i][8] != answ[i][4])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;b&#x27;:</span><br><span class="line">                if (answ[i][8] != answ[i][1] || answ[i][8] != answ[i][6])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;c&#x27;:</span><br><span class="line">                if (answ[i][8] != answ[i][3] || answ[i][8] != answ[i][10])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;d&#x27;:</span><br><span class="line">                if (answ[i][8] != answ[i][5] || answ[i][8] != answ[i][9])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            &#125;</span><br><span class="line">            if (answ[i][0] == &#x27;n&#x27;)</span><br><span class="line">                continue;</span><br><span class="line"></span><br><span class="line">            //第七题    被选中最少的选项字母    A\B\C\D</span><br><span class="line">            int answer_num[4]&#123;0&#125;;</span><br><span class="line">            enum abcd &#123;a,b,c,d&#125;;</span><br><span class="line">            for (int j = 1; j &lt;= 10; j++)</span><br><span class="line">            &#123;</span><br><span class="line">                switch (answ[i][j])</span><br><span class="line">                &#123;</span><br><span class="line">                case &#x27;a&#x27;:</span><br><span class="line">                    answer_num[0]++;</span><br><span class="line">                    break;</span><br><span class="line">                case &#x27;b&#x27;:</span><br><span class="line">                    answer_num[1]++;</span><br><span class="line">                    break;</span><br><span class="line">                case &#x27;c&#x27;:</span><br><span class="line">                    answer_num[2]++;</span><br><span class="line">                    break;</span><br><span class="line">                case &#x27;d&#x27;:</span><br><span class="line">                    answer_num[3]++;</span><br><span class="line">                    break;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            int min = answer_num[0],max = answer_num[0];</span><br><span class="line">            abcd minC = a,maxC = a;</span><br><span class="line">            for (int n = 1; n &lt; 4; n++)</span><br><span class="line">            &#123;</span><br><span class="line">                if(min &gt; answer_num[n])</span><br><span class="line">                &#123;</span><br><span class="line">                    min = answer_num[n];</span><br><span class="line">                    minC = abcd(n);</span><br><span class="line">                &#125;</span><br><span class="line">                if (max &lt; answer_num[n])</span><br><span class="line">                &#123;</span><br><span class="line">                    max = answer_num[n];</span><br><span class="line">                    maxC = abcd(n);</span><br><span class="line">                &#125;   </span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            switch (answ[i][7])</span><br><span class="line">            &#123;</span><br><span class="line">            case &#x27;a&#x27;:</span><br><span class="line">                if (minC != c)</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;b&#x27;:</span><br><span class="line">                if (minC != b)</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;c&#x27;:</span><br><span class="line">                if (minC != a)</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;d&#x27;:</span><br><span class="line">                if (minC != d)</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            &#125;</span><br><span class="line">            if (answ[i][0] == &#x27;n&#x27;)</span><br><span class="line">                continue;</span><br><span class="line"></span><br><span class="line">            //第八题     下面哪题答案与第1题答案不相邻    A(7)  B(5)  C(2)   D(10)</span><br><span class="line">            switch (answ[i][8])</span><br><span class="line">            &#123;</span><br><span class="line">            case &#x27;a&#x27;:</span><br><span class="line">                if (int(answ[i][7]) - int(answ[i][1]) &lt;= 1 &amp;&amp; int(answ[i][7]) - int(answ[i][1]) &gt;= -1)</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;b&#x27;:</span><br><span class="line">                if (int(answ[i][5]) - int(answ[i][1]) &lt;= 1 &amp;&amp; int(answ[i][5]) - int(answ[i][1]) &gt;= -1)</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;c&#x27;:</span><br><span class="line">                if (int(answ[i][2]) - int(answ[i][1]) &lt;= 1 &amp;&amp; int(answ[i][2]) - int(answ[i][1]) &gt;= -1)</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;d&#x27;:</span><br><span class="line">                if (int(answ[i][10]) - int(answ[i][1]) &lt;= 1 &amp;&amp; int(answ[i][10]) - int(answ[i][1]) &gt;= -1)</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            &#125;</span><br><span class="line">            if (answ[i][0] == &#x27;n&#x27;)</span><br><span class="line">                continue;</span><br><span class="line"></span><br><span class="line">            //第九题     “第1第6答案相同”  “第x第5答案相同”  两个真假性相反    A(6)  B(10)  C(2)   D(9)</span><br><span class="line">            switch (answ[i][9])</span><br><span class="line">            &#123;</span><br><span class="line">            case &#x27;a&#x27;:</span><br><span class="line">                if (answ[i][1] == answ[i][6] &amp;&amp; answ[i][5] == answ[i][6] || answ[i][1] != answ[i][6] &amp;&amp; answ[i][5] != answ[i][6])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;b&#x27;:</span><br><span class="line">                if (answ[i][1] == answ[i][6] &amp;&amp; answ[i][5] == answ[i][10] || answ[i][1] != answ[i][6] &amp;&amp; answ[i][5] != answ[i][10])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;c&#x27;:</span><br><span class="line">                if (answ[i][1] == answ[i][6] &amp;&amp; answ[i][5] == answ[i][2] || answ[i][1] != answ[i][6] &amp;&amp; answ[i][5] != answ[i][2])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;d&#x27;:</span><br><span class="line">                if (answ[i][1] == answ[i][6] &amp;&amp; answ[i][5] == answ[i][9] || answ[i][1] != answ[i][6] &amp;&amp; answ[i][5] != answ[i][9])</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            &#125;</span><br><span class="line">            if (answ[i][0] == &#x27;n&#x27;)</span><br><span class="line">                continue;</span><br><span class="line"></span><br><span class="line">            //第十题    abcd出现最多与出现最少之差   A(3)  B(2)  C(4)   D(1)</span><br><span class="line">            switch (answ[i][10])</span><br><span class="line">            &#123;</span><br><span class="line">            case &#x27;a&#x27;:</span><br><span class="line">                if (max - min  != 3 )</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;b&#x27;:</span><br><span class="line">                if (max - min  != 2 )</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;c&#x27;:</span><br><span class="line">                if (max - min  != 4 )</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            case &#x27;d&#x27;:</span><br><span class="line">                if (max - min  != 1 )</span><br><span class="line">                    answ[i][0] = &#x27;n&#x27;;</span><br><span class="line">                break;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    for (int i = 0; i &lt; pow(4,10); i++)</span><br><span class="line">    &#123;</span><br><span class="line">        if (answ[i][0] == &#x27;y&#x27;)</span><br><span class="line">        &#123;</span><br><span class="line">            std::cout &lt;&lt; answ[i] &lt;&lt; std::endl;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后输出结果为ybcacacdaba</p>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/e785716e/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">利用vanilla给AMD装上MAC OS X</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/eaa57d8b/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">函数模板的实例化和具体化</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>Unity Shader入门精要-章节16 Unity中的渲染优化技术 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">Unity Shader入门精要-章节16 Unity中的渲染优化技术</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2022-10-26T14:33:00.000Z" itemprop="datePublished">2022-10-26</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-07-14T09:03:59.226Z" itemprop="dateUpdated">2024-07-14</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/">🏷️ Unity Shader入门精要</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <p>求知若饥，虚心若愚</p>
+<span id="more"></span>
+<blockquote>
+<p>如果游戏开发过程中从来都没有考虑优化，那么结果往往是惨不忍睹的，一个正确的做法是，从一开始就把优化当成是游戏设计中的一部分。</p>
+</blockquote>
+<h3 id="移动平台的特点">移动平台的特点</h3>
+<p>移动平台的GPU架构有很大的不同，更专注于尽可能使用更小的带宽和功能（不过近几年性能提升了不少，虽然和pc还是差很远，毕竟功耗限制，不然个个都是大火炉）。</p>
+<p>为了尽可能移除隐藏的表面，减少<strong>overdraw（一个像素被绘制多次）</strong> ，不同芯片的做法：</p>
+<ul>
+<li>PowerVR芯片（通常用于iOS设备和某些Android设备）：<strong>基于瓦片的延迟渲染（Tiled-based Deferred Rendering, TBDR）</strong> 架构，把所有的渲染图像装入一个个瓦片中，再由硬件找到可见的片元，而只有这些片元可见才会执行片元着色器</li>
+<li>Adreno（高通的芯片）和Mali（ARM的芯片）：使用Early-Z或相似的技术进行低精度的深度检测，来剔除那些不需要渲染的片元</li>
+<li>Tegra（英伟达的芯片）等：使用了传统的架构设计，overdraw更可能造成性能的瓶颈</li>
+</ul>
+<p>iOS平台的硬件条件相对统一，可以参考（<a target="_blank" rel="noopener" href="https://docs.unity3d.com/550/Documentation/Manual/iphone-Hardware.html">https://docs.unity3d.com/550/Documentation/Manual/iphone-Hardware.html</a> ），而Andorid不同设备的硬件区别很大，单SOC就有高通、联发科、三星、华为海思（近几年还有游戏厂商专门优化某款机型）。</p>
+<h3 id="影响性能的因素">影响性能的因素</h3>
+<p>对于一个游戏来说，主要需要使用两种计算资源：CPU和GPU，他两相互合作来影响帧率和分辨率。其中CPU主要负责保证帧率，GPU主要负责分辨率相关的处理。因此，造成游戏性能瓶颈的主要原因有：</p>
+<ol>
+<li>CPU
+<ul>
+<li>过多的drawcall</li>
+<li>复杂的脚本或物理模拟</li>
+</ul>
+</li>
+<li>GPU
+<ul>
+<li>顶点处理
+<ul>
+<li>过多的顶点</li>
+<li>过多的逐顶点计算</li>
+</ul>
+</li>
+<li>片元处理
+<ul>
+<li>过多的片元（即可能是分辨率造成，也可能是overdraw造成）</li>
+<li>过多的逐片元计算</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>带宽
+<ul>
+<li>使用了尺寸很大且未压缩的纹理</li>
+<li>分辨率过高的帧缓存</li>
+</ul>
+</li>
+</ol>
+<p>对于CPU，限制它的主要是每一帧中 draw call 的数目。调用绘制命令的时候，就会产生一个 draw call。每次调用时CPU都需要改变很多渲染状态的设置，非常费时。但主要是过多会导致CPU 把大部分时间都花费在提交drawcall上了，GPU在那干等跑不满资源。<br><br>
+其他造成CPU瓶颈的原因，如物理、布料模拟、蒙皮、粒子模拟等也是计算量很大的操作，但不在本书讨论范围。</p>
+<p>对于GPU，它负责整个渲染流水线，因此GPU的性能瓶颈和需要处理的顶点数目、屏幕分辨率、显存等因素有关。相关优化策略可以从减少处理的数据规模、减少运算复杂度等方面入手。</p>
+<ol>
+<li>CPU优化
+<ul>
+<li>使用批处理技术减少drawcall数目</li>
+</ul>
+</li>
+<li>GPU优化
+<ul>
+<li>减少需要处理的顶点数目
+<ul>
+<li>优化几何体</li>
+<li>使用模型的LOD（Level of Detail）技术</li>
+<li>使用遮挡剔除（Occlusion Culling）技术</li>
+</ul>
+</li>
+<li>减少需要处理的片元数目
+<ul>
+<li>控制绘制顺序（以降低overdraw）</li>
+<li>警惕透明物体</li>
+<li>减少实时光照（减少pass和drawcall）</li>
+</ul>
+</li>
+<li>减少计算复杂度
+<ul>
+<li>使用Shader的LOD（Level of Detail）技术</li>
+<li>代码方面的优化</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>节省内存带宽
+<ul>
+<li>减少纹理大小</li>
+<li>利用分辨率缩放</li>
+</ul>
+</li>
+</ol>
+<h3 id="Unity中的渲染分析工具">Unity中的渲染分析工具</h3>
+<p>Unity内置分析工具有：</p>
+<ul>
+<li>渲染统计窗口（Rendering Statistics Window）</li>
+<li>性能分析器（Profiler）</li>
+<li>帧调试器（Frame Debugger）</li>
+</ul>
+<h6 id="认识Unity5的渲染统计窗口">认识Unity5的渲染统计窗口</h6>
+<p>渲染统计窗口（Rendering Statistics Window）显示当前游戏各个渲染统计变量，可以通过Game视图右上方的菜单中单机Stats按钮来打开它，如下图所示：</p>
+<center><img src="http://static.zybuluo.com/candycat/mw2e3pfqk097fps9wbcwv8ff/render_static_window.png"/></center>
+<table>
+<thead>
+<tr>
+<th>信息名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>音频</td>
+<td>这里不讨论</td>
+</tr>
+<tr>
+<td>每帧的时间和FPS</td>
+<td>处理和渲染一帧所需的时间，以及FPS</td>
+</tr>
+<tr>
+<td>Batches</td>
+<td>一帧中需要进行的批处理数目</td>
+</tr>
+<tr>
+<td>Saved by batching</td>
+<td>合并的批处理数目，这个数字表明了批处理为我们节省了多少 draw call</td>
+</tr>
+<tr>
+<td>Tris和Verts</td>
+<td>需要绘制的三角面片和顶点数目</td>
+</tr>
+<tr>
+<td>Screen</td>
+<td>屏幕的大小，以及它占用的内存大小</td>
+</tr>
+<tr>
+<td>SetPass</td>
+<td>渲染使用的Pass数目，每个Pass都需要Unity的runtime来绑定一个新的Shader，这可能造成CPU的瓶颈</td>
+</tr>
+<tr>
+<td>Visible skinned meshes</td>
+<td>渲染的蒙皮网格的数目</td>
+</tr>
+<tr>
+<td>Animations</td>
+<td>播放的动画数目</td>
+</tr>
+</tbody>
+</table>
+<p>Unity5渲染统计窗口去掉了 draw call 的显示，可以用性能分析器查看。</p>
+<h6 id="性能分析器的渲染区域">性能分析器的渲染区域</h6>
+<center><img src="http://static.zybuluo.com/candycat/f1fpglqqgcg7q17tum55e8bh/profiler.png"/></center>
+性能分析器显示了绝大部分在渲染统计窗口中提供的信息。（批处理数目、Pass数目、drawcall、各自合批的数目、渲染纹理数目和内存占用等，还可以看脚本占用的时间）
+<p>这里的数据会包含unity背后进行的工作数目，所以drawcall、pass数目等会多一点，可以用帧调试器详细查看</p>
+<h6 id="再谈帧调试器">再谈帧调试器</h6>
+<center><img src="http://static.zybuluo.com/candycat/3qa6mzh0mc1q7jiqhaf3j7mv/frame_debugger.png"/></center>
+查看常用的数据和渲染过程，占用的drawcall、pass等，还能看合批为什么失败
+<h6 id="其他性能分析工具">其他性能分析工具</h6>
+<p>对于移动平台上的游戏，我们更希望得到真机上运行游戏时的性能数据。</p>
+<ul>
+<li>Android
+<ul>
+<li>高通Adreno</li>
+<li>英伟达NVPerfHUD</li>
+</ul>
+</li>
+<li>iOS
+<ul>
+<li>内置分析器</li>
+<li>PowerVRAM的 PVRUniSCo shader 分析器</li>
+<li>XCode中的 OpenGL ES Driver Instruments</li>
+</ul>
+</li>
+<li>一些其他的性能分析工具可以在Unity的官方手册中找到：<a target="_blank" rel="noopener" href="https://docs.unity3d.com/Manual/profiler-profiling-applications.html">https://docs.unity3d.com/Manual/profiler-profiling-applications.html</a></li>
+<li>除此之外，现在还有UPR可用来进行全平台的性能分析：<a target="_blank" rel="noopener" href="https://upr.unity.cn/">https://upr.unity.cn/</a></li>
+</ul>
+<h3 id="减少drawcall数目">减少drawcall数目</h3>
+<p><strong>批处理（batching）</strong> ，实现原理是为了减少每一帧需要的 draw call 数目，每次调用 draw call 时尽可能的处理多个物体。</p>
+<p>什么样的物体可以一起处理：使用同一个材质的物体，它们之间的不同仅仅在于顶点数据的差别。</p>
+<p>Unity支持两种批处理方式：</p>
+<ul>
+<li>动态批处理：优点是Unity自动完成，并且物体可移动。缺点是限制很多，一不小心就失效了。（需要考虑合批过程的消耗）</li>
+<li>静态批处理：优点是自由度很高，限制很少。缺点是可能会占用更多的内存，而且经过静态批处理后的物体都不可以再移动了（包括脚本设置位置）。</li>
+</ul>
+<h6 id="动态批处理">动态批处理</h6>
+<p>如果场景中有一些模型共享了同一材质并满足一些条件，Unity自动把它们进行批处理，从而只需要花费一个drawcall就可以渲染这些模型。动态批处理的基本原理是，<strong>每一帧</strong>把可以进行批处理的模型网格进行<strong>合并</strong>，再把合并后的模型数据传递给GPU，然后使用同一个材质对其进行渲染。</p>
+<p>需要满足条件：</p>
+<ul>
+<li>顶点属性规模小于900，如果用了三个顶点属性（顶点位置、法线和纹理坐标），那么顶点数目就不能超过300了，这个数字未来可能会变化。</li>
+<li>所有对象的需要使用同一个缩放尺度。但Unity5已经不限制这个了。</li>
+<li>使用光照纹理（lightmap）的物体需要小心处理。为了让这些物体可以被动态批处理，需要保证它们指向光照纹理中的同一个位置（光照纹理中的索引、偏移量和缩放信息等）</li>
+<li>多Pass的Shader会中断批处理。所以前向渲染中额外的逐像素光源会打断</li>
+</ul>
+<center>
+<img src="http://static.zybuluo.com/candycat/ytyrujgdcz4dxpvm8nw3tibd/dynamic_batching0.png" />
+<p>动态批处理</p>
+<img src="http://static.zybuluo.com/candycat/0l9c6cjb4czi02hxr8e2ij0o/dynamic_batching1.png" />
+<p>多光源对动态批处理的影响结果</p>
+</center>
+<p><em>可以用帧调试器查看为什么没有合批，Unity默认不会开启动态批处理，可在玩家设置那里修改。</em></p>
+<h6 id="静态批处理">静态批处理</h6>
+<p>相比动态批处理，静态批处理适用于任何大小的几何模型。实现原理是，只在运行开始阶段，把需要进行静态批处理的模型合并到一个新的网格结构中，这意味着这些模型不可以在运行时刻被移动。</p>
+<p>它的缺点是往往需要更多的内存来存储合并后的几何结构。原因是如果在静态批处理前一些物体共享了相同的网格，那么在内存中每一个物体都会对应一个该网格的复制品，即一个网格会变成多个网格再发送给GPU。解决方法是要么忍受这种牺牲内存换取性能的方法，要么不用静态批处理改用动态批处理，或者自己编写批处理方法。</p>
+<p>将物体面板上的Static复选框勾选上（实际上只需要Batching Static），就可以实现静态批处理。</p>
+<center>
+<img src="http://static.zybuluo.com/candycat/p7h3m5syxv9g7i928zohzhas/static_batching1.png" />
+<p>开启静态批处理</p>
+</center>
+<center>
+<img src="http://static.zybuluo.com/candycat/kfz63didqcnctti7ft8lvtpw/combined_mesh.png" />
+<p>静态批处理中Unity会合并所有被标识为“Static”的物体</p>
+<img src="http://static.zybuluo.com/candycat/u9o9tk9oispyksk3ag41an3x/vbo.png" />
+<p>静态批处理会占用更多的内存。左图：静态批处理前的渲染统计数据。右图：静态批处理后的渲染统计数据</p>
+</center>
+<p>Unity首先把这些静态物体变换到世界空间下，然后为他们构建一个更大的顶点和索引缓存。对于使用了同一材质的物体，unity只需要调用一个draw call就可以绘制全部物体。而对于使用了不同材质的物体，静态批处理同样可以提升渲染性能。尽管这些物体仍然需要调用多个draw call，但静态批处理可以减少这些draw call之间的状态切换，而这些切换往往是费时的操作。从合并后的网格结构中发现，尽管3个水壶模型使用了同一个网格，但合并后却变成了3个独立网格。而且我们可以从unity的profiler观察到在应用静态批处理前后VBO total(Vertex Buffer Object，顶点缓冲对象)的变化,数目会变大，这正是因为静态批处理会占用更多内存的缘故。</p>
+<p><em>我这个版本2021没有VBO相关数据，而且合并后的网格不包括正方体，不知道是metal 平台原因还是版本不同</em>。<br>
+<br></p>
+<center>
+<img src="http://static.zybuluo.com/candycat/zul250cb0n5x5w5821tu4xwd/static_batching2.png" />
+<p>处理其他逐像素光的Pass不会被静态批处理</p>
+</center>
+场景中有除了平行光以外的光源，且shader使用了额外的pass来处理这些逐像素光源，那么这些额外的pass是不会被批处理的。但是平行光的base pass仍然会被静态批处理。
+<h6 id="共享材质">共享材质</h6>
+<p>以上知道了无论是动态批处理还是静态批处理，都要求模型之间材质相同。但不同模型之间总会有不同的渲染属性，例如纹理、颜色等。所以需要一些策略来尽可能合并材质：</p>
+<ul>
+<li>如果只是纹理不同，可以把这些纹理合并到一张更大的纹理中，这个称为图集（atlas）。再使用不同的采样坐标对纹理采样。</li>
+<li>除了纹理不同，还有其他微小的参数变换，例如颜色、某些浮点属性。一种常用的方法是使用网格的顶点数据来存储参数（顶点颜色）（MaterialPropertyBlock？）</li>
+</ul>
+<p>如果要在脚本中访问共享材质，应使用 Renderer.sharedMaterial 来保证修改的是和其他物体共享的材质，而不是 Renderer.material（会生成一个副本，从而破坏批处理）。</p>
+<h6 id="批处理的注意事项">批处理的注意事项</h6>
+<p>在选择使用动态批处理还是静态批处理时，建议：</p>
+<ul>
+<li>尽可能选择静态批处理，但要时刻小心对内存的消耗，并且记住经过静态批处理的物体不可以再被移动。</li>
+<li>如果无法进行静态批处理，而使用动态批处理，要小心它的条件限制。</li>
+<li>对于游戏中的小道具，如可以拾取的金币等，可以使用动态批处理。</li>
+<li>对于包含动画的物体，无法全部使用静态批处理，但其中如果有不动的部分，可以标识成 Static。</li>
+</ul>
+<p>由于批处理需要把多个模型变换到世界空间下再合并它们，如果 Shader 中存在基于模型空间下的坐标运算，会得到错误的结果。一个解决方法是在 Shader 中使用 DisableBatching 标签来强制使该 Shader 的材质不会被批处理。</p>
+<p>半透明材质通常需要使用严格的从后往前的绘制顺序来保证透明混合的正确，这些物体 Unity 会首先保证它们的绘制顺序，再尝试进行批处理。所以当绘制顺序无法满足时，批处理无法在这些物体上被成功应用。</p>
+<h3 id="减少需要处理的顶点数目">减少需要处理的顶点数目</h3>
+<h6 id="优化几何体">优化几何体</h6>
+<p>在建模时要记住：尽可能减少模型种三角面片的数目，一些对于模型没有影响、或是肉眼非常难察觉到区别的顶点都要尽可能去掉。很多三维建模软件都有自动优化网格结构的选项。</p>
+<p>在Unity的渲染统计窗口，可以看到渲染当前帧需要的三角面片数目和顶点数目，往往是多于建模软件里显示的。这是因为三维软件中组成几何体的每个点就是单独的一个点，但在Unity中GPU看来，有时需要把一个顶点拆分成两个或更多的顶点。原因是 分离纹理坐标（uv splits） 和 产生平滑的边界（smoothing splits）。</p>
+<p>另外，建议移除不必要的硬边以及纹理衔接，避免边界平滑和纹理分离。</p>
+<h6 id="模型的LOD技术">模型的LOD技术</h6>
+<p>在 Unity 中使用 LOD Group 组件为物体构建 LOD。为同一个对象准备多个不同细节程度的模型，然后把它赋给 LOD Group 组件中的不同等级。Unity会自动判断当前位置上需要使用哪个等级的模型，来减少渲染面片数量。（太远的物体使用精细模型也看不出来，不如使用低模）</p>
+<h6 id="遮挡剔除技术">遮挡剔除技术</h6>
+<p>遮挡剔除（Occlusion culling）：消除那些在其他物件后面看不到的物件，不会计算那些看不到的顶点，以提升性能。和相机的视锥体剔除（Frustum Culling）不同。</p>
+<h3 id="减少需要处理的片元数目">减少需要处理的片元数目</h3>
+<p>重点在于减少 overdraw，即同一个像素被绘制了多次。</p>
+<p>在 Scene 视图左上方的下拉菜单中选中 Overdraw，切换成可以查看 overdraw 的视图，可以看物体相互遮挡的层数。</p>
+<h6 id="控制绘制顺序">控制绘制顺序</h6>
+<p>控制绘制顺序可以最大限度地避免overdraw，由于深度测试的存在，我们可以保证物体都是从前往后绘制。</p>
+<p>尽可能的把物体的队列设置为不透明物体（opaque）（如 Background Geometry AlphaTest）。避免使用半透明队列（Transparent Overlay），因为它们是从后往前绘制的。</p>
+<p>我们还可以充分利用Unity 的渲染队列来控制绘制顺序。例如，在第一人称射击游戏中，对于游戏中的主要人物角色来说，他们使用的shader 往往比较复杂，但是，由于他们通常会挡住屏幕的很大一部分区域，因此我们可以先绘制它们（使用更小的渲染队列〉。而对于一些敌方角色，它们通常会出现在各种掩体后面，因此，我们可以在所有常规的不透明物体后面渲染它们（使用更大的渲染队列〉。而对于天空盒子来说， 它几乎覆盖了所有的像素，而且我们知道它本远会出现在所有物体的后面，因此， 它的队列可以设置为“ Geometry＋ 1 ”。这样，就可以保证不会因为它而造成overdraw 。</p>
+<h6 id="时刻警惕透明物体">时刻警惕透明物体</h6>
+<p>因为半透明对象没有开启深度写入，如果要正确渲染，必须从后往前。这意味着半透明物体几乎一定会造成 overdraw。GUI对象大多被设置成了半透明，如果屏幕中GUI占据的比例太多，而主相机有没有进行调整而是渲染整个屏幕，那么GUI就会造成大量overdraw。</p>
+<p>对于占据屏幕多的半透明 GUI，可以尽量减少 GUI 所占面积。可以将把 GUI 的绘制和三维场景的绘制交给不同的相机，而其中负责三维场景的摄像机的视角范围尽量不要和GUI的相互重叠（感觉不是很美观）。</p>
+<p>在移动平台上，透明度测试会影响性能，因为使用的 discard 或 clip 等操作，会导致一些硬件的优化策略失效，如 PowerVR 使用的基于瓦片的延迟渲染技术（会使得Early-Z失效？）。这时透明度混合的性能往往比透明度测试好。</p>
+<h6 id="减少实时光照和阴影">减少实时光照和阴影</h6>
+<p>实时光照对于移动平台是一种非常昂贵的操作。因为对于逐像素的光源来说，被这些光源照亮的物体需要再被渲染一次，容易增加overdraw和drawcall，而且这些额外的pass不能进行批处理。</p>
+<p>有这些方法，可以减少实时光照和阴影：</p>
+<ul>
+<li>通过烘焙技术，将光照提前烘焙到一张光照纹理（lightmap）中，然后在运行时刻只需要根据纹理采样得到光照结果</li>
+<li>使用 God Ray 模拟光源，不是真的光源，通过透明纹理模拟</li>
+<li>一定要用更多的实时光的话，可以用逐顶点光照代替</li>
+<li>把复杂光照计算存储到一张查找纹理（lookup texture，也被称为查找表，lookup table，LUT）。在运行时，使用光源方向、视角方向、法线方向等参数对 LUT 采样</li>
+<li>使用烘焙把静态物体的阴影信息存储到光照纹理中，只对场景中的动态物体使用适当的实时阴影</li>
+</ul>
+<h3 id="节省带宽">节省带宽</h3>
+<p>大量使用未经压缩的纹理以及使用过大的分辨率，都会造成由于带宽而引发的性能瓶颈</p>
+<h6 id="减少纹理大小">减少纹理大小</h6>
+<ul>
+<li>所有纹理的长宽比最好是正方形，且长宽值最好是2的整数幂</li>
+<li>使用多级渐远纹理技术（mipmapping），在距离物体很远时，会使用更小、更模糊的纹理来代替</li>
+<li>纹理压缩，不同平台格式不同，Unity会自己选用</li>
+</ul>
+<center>
+<img src="http://static.zybuluo.com/candycat/58dcw7v9r39i2p2izrtxq5bs/advance_texture.png" />
+<p>Unity的高级纹理设置面板</p>
+</center>
+<h6 id="利用分辨率缩放">利用分辨率缩放</h6>
+<p>尤其对于很多低端手机，除了分辨率高其他硬件条件并不好。因此可能需要对于特定机器进行分辨率的缩放。</p>
+<p>Unity 中设置屏幕分辨率可以直接调用 Screen.SetResolution</p>
+<h3 id="减少计算复杂度">减少计算复杂度</h3>
+<h6 id="Shader的LOD技术">Shader的LOD技术</h6>
+<p>和模型的 LOD 技术类似，Shader 的 LOD 技术可以控制使用的 Shader 等级，当 Shader 的 LOD 值小于某个设定的值，才会被使用：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SubShader&#123;</span><br><span class="line">    Tags&#123; &quot;RenderType&quot; = &quot;Opaque&quot; &#125;</span><br><span class="line">    LOD 200</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Shader 的默认 LOD 等级无限大，这意味着，任何被当前显卡支持的Shader 都可以被使用。但是，在某些情况下我们可能需要去掉一些使用了复杂计算的Shader 渲染。这时，我们可以使用 Shader.maximumLOD 或 Shader.globalMaximumLOD 来设置允许的最大LOD 值。</p>
+<p>Unity 内置的Shader 使用了不同的LOD 值，例如，Diffuse 的LOD 为200 ，而Bumped Specular 的 LOD 为400 。</p>
+<h6 id="代码方面的优化">代码方面的优化</h6>
+<p>通常来说，游戏需要计算的数目排序是：对象数&lt;顶点数&lt;像素数。所以尽可能把计算提前</p>
+<p>普遍成立的优化策略：</p>
+<ul>
+<li>尽可能使用低精度的浮点值进行运算</li>
+<li>float/highp 适用于存储顶点坐标等</li>
+<li>half/mediump 适用于标量、纹理坐标</li>
+<li>fixed/lowp 适用于颜色变量和归一化的方向矢量。避免对低精度变量使用频繁的 swizzle 操作（如 color.xwxw）</li>
+<li>避免不同精度之间的转换</li>
+<li>使用插值寄存器把数据从顶点着色器传递到下一个阶段时，尽可能使用少的插值变量</li>
+<li>少使用全屏的屏幕后处理效果。</li>
+</ul>
+<p>代码优化规则</p>
+<ul>
+<li>少用分支语句和循环语句</li>
+<li>少用类似 sin/tan/pow/log 等较为复杂的数学运算，用查找表来替代</li>
+<li>少用discard操作，会影响硬件的某些优化</li>
+</ul>
+<h6 id="根据硬件条件进行缩放">根据硬件条件进行缩放</h6>
+<p>移动设备性能千差万别。</p>
+<p>一个非常简单且使用的方式是放缩（scaling）思想。先保证游戏最基本的配置在所有平台上运行良好，对于更好的设备，可以使用更高的分辨率、开启屏幕后处理、粒子效果等。</p>
+<h3 id="扩展阅读">扩展阅读</h3>
+<ul>
+<li>Unity官方手册的移动平台优化实践指南，针对移动平台的优化技术，包括渲染和图形方面的优化，脚本优化等：<a target="_blank" rel="noopener" href="https://docs.unity3d.com/Manual/MobileOptimizationPracticalGuide.html">https://docs.unity3d.com/Manual/MobileOptimizationPracticalGuide.html</a></li>
+<li>优化图像性能：<a target="_blank" rel="noopener" href="https://docs.unity3d.com/Manual/OptimizingGraphicsPerformance.html">https://docs.unity3d.com/Manual/OptimizingGraphicsPerformance.html</a></li>
+<li>SIGGRAPH 2011 上 Unity 进行了一个关于移动平台上Shader优化的演讲：<a target="_blank" rel="noopener" href="https://blogs.unity3d.com/2011/08/18/fast-mobile-shaders-talk-at-siggraph/">https://blogs.unity3d.com/2011/08/18/fast-mobile-shaders-talk-at-siggraph/</a></li>
+<li>Unite 2013，Unity 一个名为针对移动平台优化的演讲</li>
+<li>GDC 2014，Unity 展示了如何使用内置的分析器分析移动平台的游戏性能</li>
+<li>SIGGRAPH 2015，Unity 进行了一系列的演讲</li>
+<li>Unity 和来自高通、ARM等公司的开发人员共同呈现了名为 Moving Mobile Graphics 的课程中，讲解了移动平台上 PBR 的优化技术</li>
+<li>2011年发布在移动平台的第三人称射击游戏《ShadowGun》</li>
+<li>Unity 自带的项目《Angry Bots》</li>
+<li>Unity3D研究院之使用Android的硬件缩放技术优化执行效率 <a target="_blank" rel="noopener" href="http://www.xuanyusong.com/archives/3205">http://www.xuanyusong.com/archives/3205</a></li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/6ae6401b/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity Shader入门精要-章节17 Unity的表面着色器探秘</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/ee23abba/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity Shader入门精要-章节15 使用噪声</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

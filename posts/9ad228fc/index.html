@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形-3.3 曲面细分与几何着色器---大规模草渲染 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形-3.3 曲面细分与几何着色器---大规模草渲染</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-02-13T09:52:49.000Z" itemprop="datePublished">2023-02-13</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2023-02-14T09:52:50.000Z" itemprop="dateUpdated">2023-02-14</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h2 id="渲染管线位置">渲染管线位置</h2>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bc90abec22089638bc08e6493cff86b3.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_bc90abec22089638bc08e6493cff86b3.png"></p>
+<ul>
+<li>区分曲面还分为三阶段
+<ul>
+<li>Hull shader：定义一些细分的参数（如：每条边上如何细分，内部三角形如何细分）</li>
+<li>Tessellation Primitive Generator，不可编程的，它负责真正的进行曲面细分，它利用上一步进来的patch，以及innersize ，outsize，以及space策略细分曲面</li>
+<li>​Domain shader：经过曲面细分着色器细分后的点是位于重心空间的，这部分的作用就是把它转化到我们要用的空间</li>
+</ul>
+</li>
+<li>在D3D11 和 OpenGL中，名字/叫法有差异</li>
+</ul>
+<h2 id="曲面细分着色器-Tessellation-shader（TESS）">曲面细分着色器-Tessellation shader（TESS）</h2>
+<h4 id="应用">应用</h4>
+<ul>
+<li>
+<p>海浪、雪地等</p>
+<ul>
+<li>将一条直线进行细分，向一条曲线慢慢逼近</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6c2167930bc80c90196a722be446039b.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6c2167930bc80c90196a722be446039b.png"></p>
+</li>
+<li>
+<p>常见的应用：和置换贴图（DIsplacement mapping，也叫位移贴图）结合使用</p>
+</li>
+</ul>
+<ul>
+<li>
+<p>使用普通法线的模型，在边缘部分的凹凸感会不理想</p>
+</li>
+<li>
+<p>如果使用置换贴图，因为它是真正改变物体的形状，所以边缘部分的凹凸感就会很真实</p>
+</li>
+<li>
+<p>但使用置换贴图，对模型的面数有要求</p>
+<ul>
+<li>正是这个原因，让它和曲面细分着色器有着很好的契合度</li>
+<li>比起直接增加模型面数，使用细分曲面可以根据距离或者一些规则来动态调整模型的复杂度，带来更好的性能</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6727906107bbd880bcb72fb68eb17cc3.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6727906107bbd880bcb72fb68eb17cc3.png"></p>
+</li>
+</ul>
+<h4 id="TESS的输入和输出">TESS的输入和输出</h4>
+<ul>
+<li>
+<p>输入</p>
+<ul>
+<li>Patch，可以看成是多个顶点的集合，包含每个顶点的属性</li>
+<li>属性是所有顶点共享的，不是每个顶点有独自的属性</li>
+</ul>
+</li>
+<li>
+<p>功能</p>
+<ul>
+<li>将图元进行细分，图元可以是三角形、矩形等</li>
+<li>不同的图元，输入参数也不一样</li>
+</ul>
+</li>
+<li>
+<p>输出</p>
+<ul>
+<li>细分后的顶点</li>
+</ul>
+</li>
+</ul>
+<h4 id="TESS的流程">TESS的流程</h4>
+<p><strong>Hull shader → Tessellation Primitive Generator →  Domain shader</strong></p>
+<h5 id="Hull-shader">Hull shader</h5>
+<ul>
+<li>
+<p>定义细分的参数</p>
+<ul>
+<li>设定Tessellation factor以及Inside Tessellation factor</li>
+</ul>
+</li>
+<li>
+<p>（如果需要的话）可以对输入的Patch参数进行改变</p>
+</li>
+</ul>
+<h5 id="Tessellation-Primitive-Generator">Tessellation Primitive Generator</h5>
+<ul>
+<li>这部分是不可编程、无法控制的</li>
+<li>进行细分操作，它利用上一步进来的patch，以及innersize ，outsize，以及space策略细分曲面</li>
+</ul>
+<h5 id="Domain-shader">Domain shader</h5>
+<ul>
+<li>对细分后的点进行处理，从重心空间（Barycentric coordinate system）转换到屏幕空间</li>
+</ul>
+<h4 id="Hull-shader参数详解">Hull shader参数详解</h4>
+<h5 id="Tessellation-Factor">Tessellation Factor</h5>
+<ul>
+<li>
+<p>用途：定义把一条边分为几个部分</p>
+</li>
+<li>
+<p>目的：让细分更加平滑</p>
+</li>
+<li>
+<p>切分的方法：</p>
+<ul>
+<li>
+<p>equal_Spacing</p>
+<ul>
+<li>把一条边等分成设定的段数</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/--xJ4PwufQqlzSthwBjlpg_fbec49e0fc2e7d0aa5cd2b61c018e5a6.gif" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/--xJ4PwufQqlzSthwBjlpg_fbec49e0fc2e7d0aa5cd2b61c018e5a6.gif"></p>
+</li>
+</ul>
+</li>
+<li>
+<p>fractional_even_spacing</p>
+<ul>
+<li>
+<p>向上取最近的偶数</p>
+</li>
+<li>
+<p>最小值是2</p>
+</li>
+<li>
+<p>会把周长分为n-2的等长部分、以及两端不等长的部分，两端部分和小数有关</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/ZaRGgAhYwKMRrj5IcViwjw_65a446800858c0a311ae3e487158b08f.gif" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/ZaRGgAhYwKMRrj5IcViwjw_65a446800858c0a311ae3e487158b08f.gif"></p>
+</li>
+</ul>
+</li>
+<li>
+<p>fractional_odd_spacing</p>
+<ul>
+<li>
+<p>向上取最近的奇数</p>
+</li>
+<li>
+<p>最小值是1</p>
+</li>
+<li>
+<p>会把周长分为n-2的等长部分、以及两端不等长的部分</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/pCE4KxkjCNCPtT5Bc8D5wA_a421382b192308d08fb53e4173c0f9c0.gif" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/pCE4KxkjCNCPtT5Bc8D5wA_a421382b192308d08fb53e4173c0f9c0.gif"></p>
+</li>
+</ul>
+</li>
+</ul>
+<h5 id="Inner-Tessellation-Factor">Inner Tessellation Factor</h5>
+<ul>
+<li>
+<p>定义内部的三角形/矩形怎么画</p>
+</li>
+<li>
+<p>三角形</p>
+<ul>
+<li>左图将三条边三等分，然后从一个端点开始，<strong>取邻近的两个切分点</strong>做延长线（垂线），两者的交点就是新三角形的一个端点</li>
+<li>超过三等分是在三等分步骤之后，内部三角形的每个边的等分点做延长线，继续迭代</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4dbc2eb2eaae270260563276c256f30a.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_4dbc2eb2eaae270260563276c256f30a.png"></p>
+</li>
+<li>
+<p>矩形</p>
+<ul>
+<li>与三角形类似，做延长线，交点，直到没有交点或者交于重心一个点</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_16da88a9c315e3875cd8f2acca85231f.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_16da88a9c315e3875cd8f2acca85231f.png"></p>
+</li>
+</ul>
+<h4 id="shader参考">shader参考</h4>
+<h5 id="曲面细分基础">曲面细分基础</h5>
+<p>注意：URP中UNITY_domain、UNITY_partitioning等宏要去掉UNITY前缀</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br></pre></td><td class="code"><pre><span class="line">//曲面细分Demo1</span><br><span class="line">Shader &quot;Unlit/TessShader&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _TessellationUniform(&quot;TessellationUniform&quot;,Range(1,64)) = 1</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags &#123; &quot;RenderType&quot;=&quot;Opaque&quot; &#125;</span><br><span class="line">        LOD 100</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            CGPROGRAM</span><br><span class="line">            //定义2个函数 hull domain</span><br><span class="line">            #pragma hull hullProgram</span><br><span class="line">            #pragma domain ds</span><br><span class="line">           </span><br><span class="line">            #pragma vertex tessvert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line"></span><br><span class="line">            #include &quot;UnityCG.cginc&quot;</span><br><span class="line">            //引入曲面细分的头文件</span><br><span class="line">            #include &quot;Tessellation.cginc&quot; </span><br><span class="line"></span><br><span class="line">            #pragma target 5.0</span><br><span class="line">            </span><br><span class="line">            struct VertexInput</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">                float4 tangent : TANGENT;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct VertexOutput</span><br><span class="line">            &#123;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line">                float4 vertex : SV_POSITION;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">                float4 tangent : TANGENT;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            VertexOutput vert (VertexInput v)</span><br><span class="line">            //这个函数应用在domain函数中，用来空间转换的函数</span><br><span class="line">            &#123;</span><br><span class="line">                VertexOutput o;</span><br><span class="line">                o.vertex = UnityObjectToClipPos(v.vertex);</span><br><span class="line">                o.uv = v.uv;</span><br><span class="line">                o.tangent = v.tangent;</span><br><span class="line">                o.normal = v.normal;</span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            //有些硬件不支持曲面细分着色器，定义了该宏就能够在不支持的硬件上不会变粉，也不会报错</span><br><span class="line">            #ifdef UNITY_CAN_COMPILE_TESSELLATION</span><br><span class="line">                //顶点着色器结构的定义</span><br><span class="line">                struct TessVertex&#123;</span><br><span class="line">                    float4 vertex : INTERNALTESSPOS;</span><br><span class="line">                    float3 normal : NORMAL;</span><br><span class="line">                    float4 tangent : TANGENT;</span><br><span class="line">                    float2 uv : TEXCOORD0;</span><br><span class="line">                &#125;;</span><br><span class="line"></span><br><span class="line">                struct OutputPatchConstant &#123; </span><br><span class="line">                    //不同的图元，该结构会有所不同</span><br><span class="line">                    //该部分用于Hull Shader里面</span><br><span class="line">                    //定义了patch的属性</span><br><span class="line">                    //Tessellation Factor和Inner Tessellation Factor</span><br><span class="line">                    float edge[3] : SV_TESSFACTOR;</span><br><span class="line">                    float inside  : SV_INSIDETESSFACTOR;</span><br><span class="line">                &#125;;</span><br><span class="line"></span><br><span class="line">                TessVertex tessvert (VertexInput v)&#123;</span><br><span class="line">                    //顶点着色器函数</span><br><span class="line">                    TessVertex o;</span><br><span class="line">                    o.vertex  = v.vertex;</span><br><span class="line">                    o.normal  = v.normal;</span><br><span class="line">                    o.tangent = v.tangent;</span><br><span class="line">                    o.uv      = v.uv;</span><br><span class="line">                    return o;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                float _TessellationUniform;</span><br><span class="line">                OutputPatchConstant hsconst (InputPatch&lt;TessVertex,3&gt; patch)&#123;</span><br><span class="line">                    //定义曲面细分的参数</span><br><span class="line">                    OutputPatchConstant o;</span><br><span class="line">                    o.edge[0] = _TessellationUniform;</span><br><span class="line">                    o.edge[1] = _TessellationUniform;</span><br><span class="line">                    o.edge[2] = _TessellationUniform;</span><br><span class="line">                    o.inside  = _TessellationUniform;</span><br><span class="line">                    return o;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                [UNITY_domain(&quot;tri&quot;)]//确定图元，quad,triangle等</span><br><span class="line">                [UNITY_partitioning(&quot;fractional_odd&quot;)]//拆分edge的规则，equal_spacing,fractional_odd,fractional_even</span><br><span class="line">                [UNITY_outputtopology(&quot;triangle_cw&quot;)]</span><br><span class="line">                [UNITY_patchconstantfunc(&quot;hsconst&quot;)]//一个patch一共有三个点，但是这三个点都共用这个函数</span><br><span class="line">                [UNITY_outputcontrolpoints(3)]      //不同的图元会对应不同的控制点</span><br><span class="line">              </span><br><span class="line">                TessVertex hullProgram (InputPatch&lt;TessVertex,3&gt; patch,uint id : SV_OutputControlPointID)&#123;</span><br><span class="line">                    //定义hullshaderV函数</span><br><span class="line">                    return patch[id];</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                [UNITY_domain(&quot;tri&quot;)]//同样需要定义图元</span><br><span class="line">                VertexOutput ds (OutputPatchConstant tessFactors, const OutputPatch&lt;TessVertex,3&gt;patch,float3 bary :SV_DOMAINLOCATION)</span><br><span class="line">                //bary:重心坐标</span><br><span class="line">                &#123;</span><br><span class="line">                    VertexInput v;</span><br><span class="line">                    v.vertex = patch[0].vertex*bary.x + patch[1].vertex*bary.y + patch[2].vertex*bary.z;</span><br><span class="line">			        v.tangent = patch[0].tangent*bary.x + patch[1].tangent*bary.y + patch[2].tangent*bary.z;</span><br><span class="line">			        v.normal = patch[0].normal*bary.x + patch[1].normal*bary.y + patch[2].normal*bary.z;</span><br><span class="line">			        v.uv = patch[0].uv*bary.x + patch[1].uv*bary.y + patch[2].uv*bary.z;</span><br><span class="line"></span><br><span class="line">                    VertexOutput o = vert (v);</span><br><span class="line">                    return o;</span><br><span class="line">                &#125;</span><br><span class="line">            #endif</span><br><span class="line"></span><br><span class="line">            float4 frag (VertexOutput i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line"></span><br><span class="line">                return float4(1.0,1.0,1.0,1.0);</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    Fallback &quot;Diffuse&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="结合置换贴图">结合置换贴图</h5>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br></pre></td><td class="code"><pre><span class="line">//曲面细分Demo2：与置换贴图结合使用</span><br><span class="line">Shader &quot;Unlit/Tess_Diss_Shader&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _MainTex(&quot;MainTex&quot;,2D) = &quot;white&quot;&#123;&#125;</span><br><span class="line">        _DisplacementMap(&quot;_DisplacementMap&quot;,2D)=&quot;gray&quot;&#123;&#125;</span><br><span class="line">        _DisplacementStrength(&quot;DisplacementStrength&quot;,Range(0,1)) = 0</span><br><span class="line">        _Smoothness(&quot;Smoothness&quot;,Range(0,5))=0.5</span><br><span class="line">        _TessellationUniform(&quot;TessellationUniform&quot;,Range(1,64)) = 1</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags &#123; &quot;RenderType&quot;=&quot;Opaque&quot; </span><br><span class="line">               &quot;LightMode&quot;=&quot;ForwardBase&quot;&#125;</span><br><span class="line">        LOD 100</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            CGPROGRAM</span><br><span class="line">            //定义2个函数 hull domain</span><br><span class="line">            #pragma hull hullProgram</span><br><span class="line">            #pragma domain ds</span><br><span class="line">           </span><br><span class="line">            #pragma vertex tessvert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line"></span><br><span class="line">            #include &quot;UnityCG.cginc&quot;</span><br><span class="line">            #include &quot;Lighting.cginc&quot;</span><br><span class="line">            //引入曲面细分的头文件</span><br><span class="line">            #include &quot;Tessellation.cginc&quot; </span><br><span class="line"></span><br><span class="line">            #pragma target 5.0</span><br><span class="line">            float _TessellationUniform;</span><br><span class="line">            sampler2D _MainTex;</span><br><span class="line">            float4 _MainTex_ST;</span><br><span class="line"></span><br><span class="line">            sampler2D _DisplacementMap;</span><br><span class="line">            float4 _DisplacementMap_ST;</span><br><span class="line">            float _DisplacementStrength;</span><br><span class="line">            float _Smoothness;</span><br><span class="line"></span><br><span class="line">            struct VertexInput</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">                float4 tangent : TANGENT;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct VertexOutput</span><br><span class="line">            &#123;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float4 worldPos:TEXCOORD1;</span><br><span class="line">                half3 tspace0 :TEXCOORD2;</span><br><span class="line">                half3 tspace1 :TEXCOORD3;</span><br><span class="line">                half3 tspace2 :TEXCOORD4;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            VertexOutput vert (VertexInput v)</span><br><span class="line">            //这个函数应用在domain函数中，用来空间转换的函数</span><br><span class="line">            //通过置换贴图的深度，来把顶点沿着它的法线方向进行移动，以此来对mesh进行形变</span><br><span class="line">            &#123;</span><br><span class="line">                VertexOutput o;</span><br><span class="line">                o.uv = TRANSFORM_TEX(v.uv,_MainTex);</span><br><span class="line">                //Displacement</span><br><span class="line">                //由于并不是在Fragnent shader中读取图片，GPU无法获取mipmap信息，因此需要使用tex2Dlod来读取图片，使用第四坐标作为mipmap的level，这里取了0</span><br><span class="line">                float Displacement = tex2Dlod(_DisplacementMap,float4(o.uv.xy,0.0,0.0)).g;</span><br><span class="line">                Displacement = (Displacement-0.5)*_DisplacementStrength;</span><br><span class="line">                v.normal = normalize(v.normal);</span><br><span class="line">                v.vertex.xyz += v.normal * Displacement;</span><br><span class="line"></span><br><span class="line">                o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">                o.worldPos = mul(unity_ObjectToWorld, v.vertex);</span><br><span class="line"></span><br><span class="line">                //计算切线空间转换矩阵</span><br><span class="line">                half3 vNormal = UnityObjectToWorldNormal(v.normal);</span><br><span class="line">                half3 vTangent = UnityObjectToWorldDir(v.tangent.xyz);</span><br><span class="line">                //compute bitangent from cross product of normal and tangent</span><br><span class="line">                half tangentSign = v.tangent.w * unity_WorldTransformParams.w;</span><br><span class="line">                half3 vBitangent = cross(vNormal,vTangent)*tangentSign;</span><br><span class="line">                //output the tangent space matrix</span><br><span class="line">                o.tspace0 = half3(vTangent.x,vBitangent.x,vNormal.x);</span><br><span class="line">                o.tspace1 = half3(vTangent.y,vBitangent.y,vNormal.y);</span><br><span class="line">                o.tspace2 = half3(vTangent.z,vBitangent.z,vNormal.z);</span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            //有些硬件不支持曲面细分着色器，定义了该宏就能够在不支持的硬件上不会变粉，也不会报错</span><br><span class="line">            #ifdef UNITY_CAN_COMPILE_TESSELLATION</span><br><span class="line">                //顶点着色器结构的定义</span><br><span class="line">                struct TessVertex&#123;</span><br><span class="line">                    float4 vertex : INTERNALTESSPOS;</span><br><span class="line">                    float3 normal : NORMAL;</span><br><span class="line">                    float4 tangent : TANGENT;</span><br><span class="line">                    float2 uv : TEXCOORD0;</span><br><span class="line">                &#125;;</span><br><span class="line"></span><br><span class="line">                struct OutputPatchConstant &#123; </span><br><span class="line">                    //不同的图元，该结构会有所不同</span><br><span class="line">                    //该部分用于Hull Shader里面</span><br><span class="line">                    //定义了patch的属性</span><br><span class="line">                    //Tessellation Factor和Inner Tessellation Factor</span><br><span class="line">                    float edge[3] : SV_TESSFACTOR;</span><br><span class="line">                    float inside  : SV_INSIDETESSFACTOR;</span><br><span class="line">                &#125;;</span><br><span class="line"></span><br><span class="line">                TessVertex tessvert (VertexInput v)&#123;</span><br><span class="line">                    //顶点着色器函数</span><br><span class="line">                    TessVertex o;</span><br><span class="line">                    o.vertex  = v.vertex;</span><br><span class="line">                    o.normal  = v.normal;</span><br><span class="line">                    o.tangent = v.tangent;</span><br><span class="line">                    o.uv      = v.uv;</span><br><span class="line">                    return o;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                //float _TessellationUniform;</span><br><span class="line">                OutputPatchConstant hsconst (InputPatch&lt;TessVertex,3&gt; patch)&#123;</span><br><span class="line">                    //定义曲面细分的参数</span><br><span class="line">                    OutputPatchConstant o;</span><br><span class="line">                    o.edge[0] = _TessellationUniform;</span><br><span class="line">                    o.edge[1] = _TessellationUniform;</span><br><span class="line">                    o.edge[2] = _TessellationUniform;</span><br><span class="line">                    o.inside  = _TessellationUniform;</span><br><span class="line">                    return o;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                [UNITY_domain(&quot;tri&quot;)]//确定图元，quad,triangle等</span><br><span class="line">                [UNITY_partitioning(&quot;fractional_odd&quot;)]//拆分edge的规则，equal_spacing,fractional_odd,fractional_even</span><br><span class="line">                [UNITY_outputtopology(&quot;triangle_cw&quot;)]</span><br><span class="line">                [UNITY_patchconstantfunc(&quot;hsconst&quot;)]//一个patch一共有三个点，但是这三个点都共用这个函数</span><br><span class="line">                [UNITY_outputcontrolpoints(3)]      //不同的图元会对应不同的控制点</span><br><span class="line">              </span><br><span class="line">                TessVertex hullProgram (InputPatch&lt;TessVertex,3&gt; patch,uint id : SV_OutputControlPointID)&#123;</span><br><span class="line">                    //定义hullshaderV函数</span><br><span class="line">                    return patch[id];</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                [UNITY_domain(&quot;tri&quot;)]//同样需要定义图元</span><br><span class="line">                VertexOutput ds (OutputPatchConstant tessFactors, const OutputPatch&lt;TessVertex,3&gt;patch,float3 bary :SV_DOMAINLOCATION)</span><br><span class="line">                //bary:重心坐标</span><br><span class="line">                &#123;</span><br><span class="line">                    VertexInput v;</span><br><span class="line">                    v.vertex = patch[0].vertex*bary.x + patch[1].vertex*bary.y + patch[2].vertex*bary.z;</span><br><span class="line">			        v.tangent = patch[0].tangent*bary.x + patch[1].tangent*bary.y + patch[2].tangent*bary.z;</span><br><span class="line">			        v.normal = patch[0].normal*bary.x + patch[1].normal*bary.y + patch[2].normal*bary.z;</span><br><span class="line">			        v.uv = patch[0].uv*bary.x + patch[1].uv*bary.y + patch[2].uv*bary.z;</span><br><span class="line"></span><br><span class="line">                    VertexOutput o = vert (v);</span><br><span class="line">                    return o;</span><br><span class="line">                &#125;</span><br><span class="line">            #endif</span><br><span class="line"></span><br><span class="line">            float4 frag (VertexOutput i) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                float3 lightDir =_WorldSpaceLightPos0.xyz;</span><br><span class="line">                float3 tnormal = UnpackNormal (tex2D (_DisplacementMap, i.uv));</span><br><span class="line">                half3 worldNormal;</span><br><span class="line">                worldNormal.x=dot(i.tspace0,tnormal);</span><br><span class="line">                worldNormal.y= dot (i.tspace1, tnormal);</span><br><span class="line">                worldNormal.z=dot (i.tspace2, tnormal);</span><br><span class="line">                float3 albedo=tex2D (_MainTex, i.uv). rgb;</span><br><span class="line">                float3 lightColor = _LightColor0.rgb;</span><br><span class="line">                float3 diffuse = albedo * lightColor * DotClamped(lightDir,worldNormal);</span><br><span class="line">                float3 viewDir = normalize (_WorldSpaceCameraPos. xyz-i. worldPos. xyz);</span><br><span class="line">                float3 halfVector = normalize(lightDir + viewDir);</span><br><span class="line">                float3 specular = albedo * pow (DotClamped (halfVector, worldNormal), _Smoothness * 100);</span><br><span class="line">                float3 result = specular + diffuse;</span><br><span class="line">                return float4(result, 1.0);</span><br><span class="line">            &#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    Fallback &quot;Diffuse&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="几何着色器-Geometry-shader-（GS）">几何着色器-Geometry shader （GS）</h2>
+<h4 id="应用-2">应用</h4>
+<ul>
+<li>
+<p>几何动画</p>
+<center>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/MYk72g-5Y001bBL-3RJNmw.gif" width = 45%/>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/pVXdtu469WJhFcVlhdyJRg.gif" width = 45%/>
+</center>
+</li>
+<li>
+<p>草地等效果（与曲面细分结合）<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ed97ee3bae60955a46b2fa10ca422bc0.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ed97ee3bae60955a46b2fa10ca422bc0.png"></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/6b8df049e3704c74a88c7228a1a63850_ffc4f9565e2c608f9d1844d5f3e92684.gif" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/6b8df049e3704c74a88c7228a1a63850_ffc4f9565e2c608f9d1844d5f3e92684.gif"></p>
+</li>
+</ul>
+<h4 id="GS的输入和输出">GS的输入和输出</h4>
+<ul>
+<li>
+<p>输入</p>
+<ul>
+<li>输入为单个图元（三角形、矩形、线等等）</li>
+<li>根据不同的图元，shader中不同的顶点数量</li>
+</ul>
+</li>
+<li>
+<p>输出</p>
+</li>
+</ul>
+<ul>
+<li>输出也为图元（一个或者多个）</li>
+<li>同时还要定义输出的最大顶点数</li>
+<li>输出的图元需要自己一个点一个点的自己去构建，顺序很重要（这个着色器最主要的功能：自己构建图元）</li>
+</ul>
+<ul>
+<li>
+<p>流程</p>
+<ul>
+<li>输入输出结构</li>
+<li>定义最大输出定点数</li>
+<li>几何着色器</li>
+</ul>
+</li>
+</ul>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/sinat_25415095/article/details/111403397">Unity3D Shader系列之几何着色器基础</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_37925032/article/details/82936769">Geometry Shader学习笔记</a></li>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzIxMzgzMzQxOA==&amp;mid=2247485821&amp;idx=1&amp;sn=b319cd540eee34f8a064270b9cb933e2&amp;chksm=97b18ad8a0c603ce412bab0666aa57f57320bb009cf9af2c0ce76ac14b10fa8bbe77a564436e&amp;scene=178&amp;cur_album_id=1745807625885171715#rd">放牛的星星大佬翻译的<strong>catlike-曲面细分着色器</strong></a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cyanilux.com/tutorials/urp-shader-code/">urp-shader-code</a></li>
+<li>大佬笔记
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/xyx5h5#m3WTu">https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/xyx5h5#m3WTu</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/u21083280/nc24zq/ih6lnd?#Sp6dq">https://www.yuque.com/u21083280/nc24zq/ih6lnd?#Sp6dq</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/wuyan-popj0/xkh798/bqehsptso1aosebv#ofqRA">https://www.yuque.com/wuyan-popj0/xkh798/bqehsptso1aosebv#ofqRA</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/xinghen-q7o8z/ru547n/cfiu2o">https://www.yuque.com/xinghen-q7o8z/ru547n/cfiu2o</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yuque.com/zohar-jpfbj/tiacmz/enuk60">https://www.yuque.com/zohar-jpfbj/tiacmz/enuk60</a>?</li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/wrl780143706/article/details/119787014">https://blog.csdn.net/wrl780143706/article/details/119787014</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="作业">作业</h2>
+<h4 id="大伙喜欢的草地">大伙喜欢的草地</h4>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/433385999">https://zhuanlan.zhihu.com/p/433385999</a><br>
+<a target="_blank" rel="noopener" href="https://roystan.net/articles/grass-shader/">https://roystan.net/articles/grass-shader/</a><br>
+<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=MeyW_aYE82s">https://www.youtube.com/watch?v=MeyW_aYE82s</a><br>
+<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/521190501">https://zhuanlan.zhihu.com/p/521190501</a></p>
+</blockquote>
+<ul>
+<li>草的生成</li>
+<li>草随风摆动</li>
+<li>草根据相机距离不同细分策略</li>
+<li>草与物体交互</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/grass01.gif" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/grass02.gif" alt=""></p>
+<h5 id="遇到的问题与解决">遇到的问题与解决</h5>
+<ul>
+<li>m1芯片不支持几何着色器，苹果Metal不支持，换openGL也不行，貌似芯片就不支持。给出的原因是几何着色器比较耗性能，没打算支持。掏出windows电脑继续练习
+<ul>
+<li>补充：因为有了compute shader这个上位替代</li>
+</ul>
+</li>
+<li>URP写入shadowmap只需要定义<code>ShadowCaster</code>这个pass即可</li>
+<li>接收阴影需要用<code>TransformWorldToShadowCoord</code>读取shadowmap纹理坐标，再传入相关api获取。还需要开启阴影相关feature</li>
+</ul>
+<h5 id="shader代码">shader代码</h5>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br><span class="line">320</span><br><span class="line">321</span><br><span class="line">322</span><br><span class="line">323</span><br><span class="line">324</span><br><span class="line">325</span><br><span class="line">326</span><br><span class="line">327</span><br><span class="line">328</span><br><span class="line">329</span><br><span class="line">330</span><br><span class="line">331</span><br><span class="line">332</span><br><span class="line">333</span><br><span class="line">334</span><br><span class="line">335</span><br><span class="line">336</span><br><span class="line">337</span><br><span class="line">338</span><br><span class="line">339</span><br><span class="line">340</span><br><span class="line">341</span><br><span class="line">342</span><br><span class="line">343</span><br><span class="line">344</span><br><span class="line">345</span><br><span class="line">346</span><br><span class="line">347</span><br><span class="line">348</span><br><span class="line">349</span><br><span class="line">350</span><br><span class="line">351</span><br><span class="line">352</span><br><span class="line">353</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Roystan/Grass&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _TopColor(&quot;草尖颜色&quot;, Color) = (1,1,1,1)</span><br><span class="line">		_BottomColor(&quot;草根颜色&quot;, Color) = (1,1,1,1)</span><br><span class="line">		_TranslucentGain(&quot;Translucent Gain&quot;, Range(0,1)) = 0.5</span><br><span class="line">    	_BladeWidth(&quot;草宽度&quot;, Float) = 0.05</span><br><span class="line">    	_BladeWidthRandom(&quot;草随机叠加宽度&quot;, Float) = 0.5</span><br><span class="line">    	_BladeHeight(&quot;草高度&quot;, Float) = 0.5</span><br><span class="line">    	_BladeHeightRandom(&quot;草随机叠加高度&quot;, Float) = 0.3</span><br><span class="line">    	_BendRotationRandom(&quot;草随机旋转&quot;, Range(0, 1)) = 0.2</span><br><span class="line">    	_BladeForward(&quot;草向前弯曲幅度&quot;, Float) = 0.38</span><br><span class="line">    	_BladeCurve(&quot;草弯曲曲率&quot;, Range(1, 4)) = 2</span><br><span class="line">    	_TessellationEdgeLength(&quot;草皮离相机距离影响细分因子&quot;, Range(1, 64)) = 1</span><br><span class="line">    	_WindDistortionMap(&quot;风扰动贴图&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">    	_WindFrequency(&quot;风吹频率&quot;, Vector) = (0.05, 0.05, 0, 0)</span><br><span class="line">    	_WindStrength(&quot;风强度&quot;, Float) = 1</span><br><span class="line">    	_InteractivePos(&quot;交互物体位置&quot;, Vector) = (0,0,0,0)</span><br><span class="line">    	_InteractiveRadius(&quot;交互影响半径&quot;, Float) = 1</span><br><span class="line">    	_InteractiveStrength(&quot;交互影响强度&quot;, Float) = 1</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	HLSLINCLUDE</span><br><span class="line">	#include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl&quot;</span><br><span class="line">	#include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl&quot;</span><br><span class="line"></span><br><span class="line">	CBUFFER_START(UnityPerMaterial)</span><br><span class="line">	float4 _TopColor;</span><br><span class="line">	float4 _BottomColor;</span><br><span class="line">	float _TranslucentGain;</span><br><span class="line">	float _BendRotationRandom;</span><br><span class="line">	float _BladeWidth;</span><br><span class="line">	float _BladeWidthRandom;</span><br><span class="line">	float _BladeHeight;</span><br><span class="line">	float _BladeHeightRandom;</span><br><span class="line">	float _BladeForward;</span><br><span class="line">	float _BladeCurve;</span><br><span class="line">	float4 _WindDistortionMap_ST;</span><br><span class="line">	float4 _WindFrequency;</span><br><span class="line">	float _WindStrength;</span><br><span class="line">	float _TessellationEdgeLength;</span><br><span class="line">	float4 _InteractivePos;</span><br><span class="line">	float _InteractiveRadius;</span><br><span class="line">	float _InteractiveStrength;</span><br><span class="line">	CBUFFER_END</span><br><span class="line"></span><br><span class="line">	TEXTURE2D(_WindDistortionMap);SAMPLER(sampler_WindDistortionMap);</span><br><span class="line"></span><br><span class="line">	// Simple noise function, sourced from http://answers.unity.com/answers/624136/view.html</span><br><span class="line">	// Extended discussion on this function can be found at the following link:</span><br><span class="line">	// https://forum.unity.com/threads/am-i-over-complicating-this-random-function.454887/#post-2949326</span><br><span class="line">	// Returns a number in the 0...1 range.</span><br><span class="line">	//从一个三维输入生成一个随机数</span><br><span class="line">	float rand(float3 co)</span><br><span class="line">	&#123;</span><br><span class="line">		return frac(sin(dot(co.xyz, float3(12.9898, 78.233, 53.539))) * 43758.5453);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	// Construct a rotation matrix that rotates around the provided axis, sourced from:</span><br><span class="line">	// https://gist.github.com/keijiro/ee439d5e7388f3aafc5296005c8c3f33</span><br><span class="line">	//接收一个角度（弧度制）并返回一个围绕提供轴旋转的矩阵</span><br><span class="line">	//应该是使用了罗德里格斯公式</span><br><span class="line">	float3x3 AngleAxis3x3(float angle, float3 axis)</span><br><span class="line">	&#123;</span><br><span class="line">		float c, s;</span><br><span class="line">		sincos(angle, s, c);</span><br><span class="line"></span><br><span class="line">		float t = 1 - c;</span><br><span class="line">		float x = axis.x;</span><br><span class="line">		float y = axis.y;</span><br><span class="line">		float z = axis.z;</span><br><span class="line"></span><br><span class="line">		return float3x3(</span><br><span class="line">			t * x * x + c, t * x * y - s * z, t * x * z + s * y,</span><br><span class="line">			t * x * y + s * z, t * y * y + c, t * y * z - s * x,</span><br><span class="line">			t * x * z - s * y, t * y * z + s * x, t * z * z + c</span><br><span class="line">			);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	struct vertexInput</span><br><span class="line">	&#123;</span><br><span class="line">		float4 vertex : POSITION;</span><br><span class="line">		float3 normal : NORMAL;</span><br><span class="line">		float4 tangent : TANGENT;</span><br><span class="line">	&#125;;</span><br><span class="line"></span><br><span class="line">	struct vertexOutput</span><br><span class="line">	&#123;</span><br><span class="line">		float4 vertex : SV_POSITION;</span><br><span class="line">		float3 normal : NORMAL;</span><br><span class="line">		float4 tangent : TANGENT;</span><br><span class="line">	&#125;;</span><br><span class="line"></span><br><span class="line">	struct TessellationFactors </span><br><span class="line">	&#123;</span><br><span class="line">		float edge[3] : SV_TessFactor;</span><br><span class="line">		float inside : SV_InsideTessFactor;</span><br><span class="line">	&#125;;</span><br><span class="line">	</span><br><span class="line">	// 用于几何着色器输出</span><br><span class="line">	struct geometryOutput</span><br><span class="line">	&#123;</span><br><span class="line">		float4 pos : SV_POSITION;</span><br><span class="line">		float2 uv : TEXCOORD0;</span><br><span class="line">		float3 normal : NORMAL;</span><br><span class="line">		float4 shadowCoord : TEXCOORD1;</span><br><span class="line">	&#125;;</span><br><span class="line"></span><br><span class="line">	//===============曲面细分相关===================</span><br><span class="line">	vertexOutput tessVert(vertexInput v)</span><br><span class="line">	&#123;</span><br><span class="line">		vertexOutput o;</span><br><span class="line">		// Note that the vertex is NOT transformed to clip</span><br><span class="line">		// space here; this is done in the grass geometry shader.</span><br><span class="line">		o.vertex = v.vertex;</span><br><span class="line">		o.normal = v.normal;</span><br><span class="line">		o.tangent = v.tangent;</span><br><span class="line">		return o;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	// 根据三角形离相机位置计算细分程度</span><br><span class="line">	// 1. 通过P0,P1的获取他们的世界空间下的中点G。</span><br><span class="line">	// 2. 然后获得G点到相机的距离，也就是类深度值了。</span><br><span class="line">	// 3. 然后通过影响深度来修改曲分因子。</span><br><span class="line">	// 4. 为了保证屏幕高度/近远的裁剪面距离比，加入_ScreenParams.y。</span><br><span class="line">	// 这样其实过远或者过近还是有点问题，最好是引入LOD分层</span><br><span class="line">	float GetTessSegments(float3 vertex0OS, float3 vertex1OS)</span><br><span class="line">	&#123;</span><br><span class="line">		float3 p0 = mul(unity_ObjectToWorld, float4(vertex0OS, 1)).xyz;</span><br><span class="line">		float3 p1 = mul(unity_ObjectToWorld, float4(vertex1OS, 1)).xyz;</span><br><span class="line">		float edgeLength = distance(p0, p1);</span><br><span class="line"></span><br><span class="line">		float3 edgeCenter = (p0 + p1) * 0.5;</span><br><span class="line">		float viewDistance = distance(edgeCenter, _WorldSpaceCameraPos);</span><br><span class="line"></span><br><span class="line">		return edgeLength * _ScreenParams.y/ (_TessellationEdgeLength * viewDistance);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	TessellationFactors patchConstantFunction (InputPatch&lt;vertexInput, 3&gt; patch)</span><br><span class="line">	&#123;</span><br><span class="line">		TessellationFactors f;</span><br><span class="line">		float tessSegments = GetTessSegments(patch[0].vertex, patch[1].vertex);</span><br><span class="line">		f.edge[0] = tessSegments;</span><br><span class="line">		f.edge[1] = tessSegments;</span><br><span class="line">		f.edge[2] = tessSegments;</span><br><span class="line">		f.inside = tessSegments;</span><br><span class="line">		return f;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	[domain(&quot;tri&quot;)]</span><br><span class="line">	[outputcontrolpoints(3)]</span><br><span class="line">	[outputtopology(&quot;triangle_cw&quot;)]</span><br><span class="line">	[partitioning(&quot;integer&quot;)]</span><br><span class="line">	[patchconstantfunc(&quot;patchConstantFunction&quot;)]</span><br><span class="line">	vertexInput hull (InputPatch&lt;vertexInput, 3&gt; patch, uint id : SV_OutputControlPointID)</span><br><span class="line">	&#123;</span><br><span class="line">		return patch[id];</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	[domain(&quot;tri&quot;)]</span><br><span class="line">	vertexOutput domain(TessellationFactors factors, OutputPatch&lt;vertexInput, 3&gt; patch, float3 barycentricCoordinates : SV_DomainLocation)</span><br><span class="line">	&#123;</span><br><span class="line">		vertexInput v;</span><br><span class="line"></span><br><span class="line">		#define MY_DOMAIN_PROGRAM_INTERPOLATE(fieldName) v.fieldName = \</span><br><span class="line">			patch[0].fieldName * barycentricCoordinates.x + \</span><br><span class="line">			patch[1].fieldName * barycentricCoordinates.y + \</span><br><span class="line">			patch[2].fieldName * barycentricCoordinates.z;</span><br><span class="line"></span><br><span class="line">		MY_DOMAIN_PROGRAM_INTERPOLATE(vertex)</span><br><span class="line">		MY_DOMAIN_PROGRAM_INTERPOLATE(normal)</span><br><span class="line">		MY_DOMAIN_PROGRAM_INTERPOLATE(tangent)</span><br><span class="line"></span><br><span class="line">		return tessVert(v);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	//===============几何相关===================</span><br><span class="line">	// 计算与角色交互相关的数据</span><br><span class="line">	float3 GetInteractiveData(float3 pos)</span><br><span class="line">	&#123;</span><br><span class="line">		float3 interactWS = TransformWorldToObject(_InteractivePos);</span><br><span class="line">		float3 dis = distance(interactWS, pos);</span><br><span class="line">		float radius = 1-saturate(dis/_InteractiveRadius);</span><br><span class="line">		float3 sphereDisp = float3(pos.x-interactWS.x, pos.z-interactWS.z, 0);</span><br><span class="line">		return float3(sphereDisp.xy, radius * _InteractiveStrength);</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	// 生产草叶数据</span><br><span class="line">	geometryOutput VertexOutput(float3 pos, float2 uv, float3 normalOS)</span><br><span class="line">	&#123;</span><br><span class="line">		geometryOutput o = (geometryOutput)0;</span><br><span class="line">		o.uv = uv;</span><br><span class="line">		o.pos = TransformObjectToHClip(pos);</span><br><span class="line">		float3 worldPos = TransformObjectToWorld(pos);</span><br><span class="line">		o.shadowCoord = TransformWorldToShadowCoord(worldPos);</span><br><span class="line">		o.normal = TransformObjectToWorldNormal(normalOS);</span><br><span class="line"></span><br><span class="line">		// 这块不太好看，后续重构下</span><br><span class="line">		#if UNITY_PASS_SHADOWCASTER</span><br><span class="line">		worldPos = ApplyShadowBias(worldPos, o.normal, _LightDirection);</span><br><span class="line">		o.pos = TransformWorldToHClip(worldPos);</span><br><span class="line">		#endif</span><br><span class="line">		</span><br><span class="line">		return o;</span><br><span class="line">	&#125;</span><br><span class="line">	geometryOutput GenerateGrassVertex(float3 vertexPosition, float width, float height, float forward, float2 uv, float3x3 transformMatrix)</span><br><span class="line">	&#123;</span><br><span class="line">		float3 tangentPoint = float3(width, forward, height);</span><br><span class="line"></span><br><span class="line">		// 法线,当草叶曲率量设置为1时，草叶在切线空间中都面向同一个方向：向后的y轴</span><br><span class="line">		// 当草叶的曲率大于1时，每个顶点的切线Z位置将被传递到GenerateGrassVertex函数中的前量所抵消</span><br><span class="line">		float3 tangentNormal = float3(0, -1, forward);</span><br><span class="line">		float3 normalOS = mul(transformMatrix, tangentNormal);</span><br><span class="line">		</span><br><span class="line">		float3 localPosition = vertexPosition + mul(transformMatrix, tangentPoint);</span><br><span class="line">		return VertexOutput(localPosition, uv, normalOS);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	// 草叶要分成几段</span><br><span class="line">	#define BLADE_SEGMENTS 5</span><br><span class="line">	// 几何着色器处理函数</span><br><span class="line">	// 限制每个图元最多生成顶点数（可小于）</span><br><span class="line">	[maxvertexcount(BLADE_SEGMENTS * 2 + 1)]</span><br><span class="line">	void geo(triangle vertexOutput IN[3], inout TriangleStream&lt;geometryOutput&gt; triStream)</span><br><span class="line">	&#123;</span><br><span class="line">		</span><br><span class="line">		float3 pos = IN[0].vertex;</span><br><span class="line">		float3 vNormal = IN[0].normal;</span><br><span class="line">		float4 vTangent = IN[0].tangent;</span><br><span class="line">		float3 vBinormal = cross(vNormal, vTangent) * vTangent.w;</span><br><span class="line"></span><br><span class="line">		//构建TBN矩阵</span><br><span class="line">		float3x3 tangentToLocal = float3x3(</span><br><span class="line">			vTangent.x, vBinormal.x, vNormal.x,</span><br><span class="line">			vTangent.y, vBinormal.y, vNormal.y,</span><br><span class="line">			vTangent.z, vBinormal.z, vNormal.z</span><br><span class="line">		);</span><br><span class="line"></span><br><span class="line">		// 整体旋转矩阵(pos作为随机种子)</span><br><span class="line">		float3x3 facingRotationMatrix = AngleAxis3x3(rand(pos) * PI, float3(0, 0, 1));</span><br><span class="line"></span><br><span class="line">		//创建一个新的矩阵来沿让它着它的x轴旋转，以达到模拟弯曲的操作，0.5PI是为了得到0~90°</span><br><span class="line">		float3x3 bendRotationMatrix = AngleAxis3x3(rand(pos.zzx) * _BendRotationRandom * PI * 0.5, float3(-1, 0, 0));</span><br><span class="line"></span><br><span class="line">		// 用pos来构建uv坐标的好处是：如果多个mesh使用这个shader，会感觉像它们受到同一种风的作用</span><br><span class="line">		float2 uv = pos.xz * _WindDistortionMap_ST.xy + _WindDistortionMap_ST.zw + _WindFrequency * _Time.y;</span><br><span class="line">		float2 windSample = (SAMPLE_TEXTURE2D_LOD(_WindDistortionMap, sampler_WindDistortionMap, uv, 0).xy * 2 - 1) * _WindStrength;</span><br><span class="line">		float3 wind = normalize(float3(windSample.x, windSample.y, 0));</span><br><span class="line">		float3x3 windRotationMatrix = AngleAxis3x3(windSample * PI, wind);</span><br><span class="line"></span><br><span class="line">		// 与交互物体产生的偏移</span><br><span class="line">		float3 interactData = GetInteractiveData(pos);</span><br><span class="line">		float3x3 interactRotationMatrix = AngleAxis3x3(interactData.z * PI, normalize(float3(interactData.x, interactData.y, 0)));</span><br><span class="line">		</span><br><span class="line"></span><br><span class="line">		// 底部点不需要弯曲和风吹拂效果</span><br><span class="line">		float3x3 transformationMatrixFacing = mul(tangentToLocal, facingRotationMatrix);</span><br><span class="line">		float3x3 transformationMatrix = mul(mul(mul(mul(tangentToLocal, facingRotationMatrix), bendRotationMatrix), windRotationMatrix), interactRotationMatrix);</span><br><span class="line">		</span><br><span class="line">		geometryOutput o;</span><br><span class="line">		</span><br><span class="line">		</span><br><span class="line">		// 控制草的高度宽度</span><br><span class="line">		float height = (rand(pos.zyx) * 2 - 1) * _BladeHeightRandom + _BladeHeight;</span><br><span class="line">		float width = (rand(pos.xzy) * 2 - 1) * _BladeWidthRandom + _BladeWidth;</span><br><span class="line"></span><br><span class="line">		// 为草叶拆分三角形，更加真实</span><br><span class="line">		//   -</span><br><span class="line">		//  - -</span><br><span class="line">		// -   -</span><br><span class="line">		//-     -</span><br><span class="line">		float forward = rand(pos.yyz) * _BladeForward;</span><br><span class="line">		</span><br><span class="line">		for (int i = 0; i &lt; BLADE_SEGMENTS; i++)</span><br><span class="line">		&#123;</span><br><span class="line">			float t = i / (float)BLADE_SEGMENTS;</span><br><span class="line">			float segmentHeight = height * t;</span><br><span class="line">			float segmentWidth = width * (1 - t);</span><br><span class="line">			float segmentForward = pow(t, _BladeCurve) * forward;</span><br><span class="line">			// 只有底部两个顶点需要固定</span><br><span class="line">			float3x3 transformMatrix = i == 0 ? transformationMatrixFacing : transformationMatrix;</span><br><span class="line">			triStream.Append(GenerateGrassVertex(pos, segmentWidth, segmentHeight, segmentForward, float2(0, t), transformMatrix));</span><br><span class="line">			triStream.Append(GenerateGrassVertex(pos, -segmentWidth, segmentHeight, segmentForward, float2(1, t), transformMatrix));</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		triStream.Append(GenerateGrassVertex(pos, 0, height, forward, float2(0.5, 1), transformationMatrix));</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	</span><br><span class="line">	ENDHLSL</span><br><span class="line"></span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">		Cull Off</span><br><span class="line"></span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">			Tags</span><br><span class="line">			&#123;</span><br><span class="line">				&quot;RenderType&quot; = &quot;Opaque&quot;</span><br><span class="line">				&quot;RenderPipeline&quot;=&quot;UniversalPipeline&quot;</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">            HLSLPROGRAM</span><br><span class="line">            #pragma vertex tessVert</span><br><span class="line">            #pragma geometry geo</span><br><span class="line">            #pragma hull hull</span><br><span class="line">            #pragma domain domain</span><br><span class="line">            #pragma fragment frag</span><br><span class="line">			#pragma target 4.6</span><br><span class="line"></span><br><span class="line">            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS</span><br><span class="line">            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE</span><br><span class="line">            </span><br><span class="line">			float4 frag (geometryOutput i, half facing : VFACE) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">				float3 normal = facing &gt; 0 ? i.normal : -i.normal;</span><br><span class="line">            	Light light = GetMainLight(i.shadowCoord);</span><br><span class="line">            	float3 lightDir = TransformObjectToWorld(light.direction);</span><br><span class="line">            	float NdotL = saturate(saturate(dot(normal, lightDir)) + _TranslucentGain);</span><br><span class="line">            	</span><br><span class="line">            	half3 ambient = SampleSH(normal);</span><br><span class="line">            	float3 lightIntensity = NdotL * light.color * ambient * light.shadowAttenuation;</span><br><span class="line"></span><br><span class="line">            	float4 finalColor = lerp(_BottomColor, _TopColor * float4(lightIntensity, 1), i.uv.y);</span><br><span class="line"></span><br><span class="line">            	return finalColor;</span><br><span class="line">            &#125;</span><br><span class="line">            ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line">    	</span><br><span class="line">    	Pass</span><br><span class="line">    	&#123;</span><br><span class="line">    		Tags&#123; &quot;LightMode&quot;=&quot;ShadowCaster&quot;&#125;</span><br><span class="line">    		ColorMask 0</span><br><span class="line">    		</span><br><span class="line">    		HLSLPROGRAM</span><br><span class="line">    		#pragma vertex tessVert</span><br><span class="line">            #pragma geometry geo</span><br><span class="line">            #pragma hull hull</span><br><span class="line">            #pragma domain domain</span><br><span class="line">            #pragma fragment frag</span><br><span class="line">			#pragma target 4.6</span><br><span class="line">    		</span><br><span class="line">    		float4 frag (geometryOutput i) : SV_Target</span><br><span class="line">            &#123;	</span><br><span class="line">				return 0;</span><br><span class="line">            &#125;</span><br><span class="line">    		ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="后续实现">后续实现</h4>
+<ul>
+<li>可交互雪地，<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1wJ411c7vj/?vd_source=7a8bda1eeba6c39c4a25ed4a71ff5ee4">may佬视频</a></li>
+<li>利用集合着色器制作溶解特效的粒子<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20201219153154884.gif" alt=""></li>
+<li><a target="_blank" rel="noopener" href="https://lab.uwa4d.com/lab/5bc54e8404617c5805d4e89b">Keijiro大神的瞬移特效</a><br>
+<img src="https://images1.uwa4d.com/solution/screenshot/5bc54e8404617c5805d4e89b/thumbnail.gif" alt=""></li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/eaae35ea/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形 3.4 延迟渲染管线介绍</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/fa33758e/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-图形-3.1 深度与模板测试</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>

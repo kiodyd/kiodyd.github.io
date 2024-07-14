@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>百人计划-图形-2.4 传统经验光照模型详解 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">百人计划-图形-2.4 传统经验光照模型详解</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2023-01-30T13:28:14.000Z" itemprop="datePublished">2023-01-30</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2023-01-31T02:32:11.000Z" itemprop="dateUpdated">2023-01-31</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+  
+    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <h2 id="光照模型">光照模型</h2>
+<h5 id="定义">定义</h5>
+<ul>
+<li>光照模型（illumination model），也称为明暗模型，用于计算物体某点处的光强（颜色值）。</li>
+<li>从算法理论基础而言，光照模型分为两类：
+<ul>
+<li>基于物理理论的光照模型：偏重于使用物理的度量和统计方法，效果非常真实，但是计算复杂，实现起来 也较为困难。例：PBR</li>
+<li>经验模型：是对光照的一种模拟，通过实践总结出简化的方法，简化了真实的光照计算，并且能达到很不错的效果。例：Lambert，Billing-Phong。</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301301540248.png" alt=""></p>
+<h5 id="为什么需要光照模型">为什么需要光照模型</h5>
+<ul>
+<li>现实世界的光照是极其复杂的，而且会受到诸多因素的影响，有限的计算能力无法完全模拟。</li>
+<li>使用简化的光照模型对现实的情况进行近似，使得计算处理起来会更容易，并且令效果更符合需求。</li>
+<li>这些光照模型就是基于我们对光的物理特性的理解。</li>
+</ul>
+<h5 id="光照模型的发展">光照模型的发展</h5>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301301547125.png" alt=""></p>
+<h2 id="局部光照模型">局部光照模型</h2>
+<h5 id="定义-2">定义</h5>
+<p>局部光照模型只关心直接光照部分，即直接从光源发出并照射到物体表面并反射至摄像头的光线。（不考虑间接光源）<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301301553914.png" alt=""></p>
+<h5 id="局部光照模型的组成">局部光照模型的组成</h5>
+<p>局部光照模型满足叠加原理，可以基本将光线分为四个部分</p>
+<ul>
+<li>漫反射</li>
+<li>高光反射</li>
+<li>环境光</li>
+<li>自发光</li>
+</ul>
+<h6 id="漫反射">漫反射</h6>
+<ul>
+<li>在光照模型的定义中，当光线从光源照射到模型表面时，光线均匀被反射到各个方向，这种现象就是漫反射</li>
+<li>在漫反射的过程中，光线发生了发生了吸收和散射，而因此改变颜色和方向</li>
+<li>漫反射光照符合Lambert定律，反射光强与法线和光源方向之间的夹角的余弦值成正比
+<ul>
+<li>
+<p>在光学中通常使用辐射度来量化光</p>
+</li>
+<li>
+<p>其中光源每秒发出的能量为辐射通量P</p>
+</li>
+<li>
+<p>单位面积接收的光量为辐射通量密度（辐照度）P/A</p>
+</li>
+<li>
+<p>当光源垂直照射的单机面积的辐照度为E1 = P/A1</p>
+</li>
+<li>
+<p>将光束以某个角度照射到更大的平面上的辐射度为E2 = P/A2</p>
+</li>
+<li>
+<p>可以认为A1与A2的关系是</p>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=cos%5Ctheta%20%3D%20%5Cfrac%7BA_%7B1%7D%7D%7BA_%7B2%7D%7D%0A" /></p><p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=E_%7B2%7D%20%3D%20%5Cfrac%7BP%7D%7BA_%7B2%7D%7D%20%3D%20%5Cfrac%7BP%7D%7BA_%7B1%7D%7Dcos%5Ctheta%20%3D%20E_%7B1%7Dcos%5Ctheta%20%3D%20E_%7B1%7Ddot%28n%2Cl%29%0A" /></p></li>
+<li>
+<p>简洁的来说：反射光线的强度与表面法线和光源方向之间的夹角的余弦成正比，值越大光源方向和法线方向越相似</p>
+</li>
+<li>
+<p>光照公式：<img src="https://math.now.sh?inline=color%20%3D%20C_%7Blight%7D%20*%20albedo%20*%20dot%28normal%2C%20l%29" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></p>
+</li>
+<li>
+<p>漫反射的效果与观察者位置无关，与光源位置有关</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301301614734.png" alt=""><br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301301615148.png" alt=""></p>
+<h6 id="高光反射（镜面反射）">高光反射（镜面反射）</h6>
+<ul>
+<li>
+<p>当光线到达物体表面并发生了反射，观察视线在反射光线的附近时，便能够观察到了高光反射</p>
+</li>
+<li>
+<p>高光反射描述了光线与物体表面发生的反射(光强不变，方向改变)</p>
+</li>
+<li>
+<p>高光反射的反射率是根据一种菲涅尔效应的物理现象决定</p>
+</li>
+<li>
+<p>通常使用对应的反射贴图描述物体表面的反射率，并且使用光泽度(粗糙度，反光度)描述高光范围的大小</p>
+</li>
+<li>
+<p>计算公式如下：</p>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=C_%7Bspecular%7D%20%3D%20C_%7Blight%7D%20*%20m_%7Bspecular%7D%20*%20dot%28v%2C%20r%29%20%5E%20%7Bm_%7Bgloss%7D%7D%0A" /></p><p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=r%20%3D%20l%20-%202%20*%20dot%28n%2C%20l%29%20*%20n%0A" /></p><ul>
+<li>gloss表示了材质的光泽度</li>
+<li>specular表示了材质的反射光</li>
+<li>r表示反射光线</li>
+<li>v表示视角向量</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301301624502.png" alt=""></p>
+</li>
+</ul>
+<p><strong>不同光泽度下的高光效果：</strong></p>
+<p><img src="https://learnopengl-cn.github.io/img/02/02/basic_lighting_specular_shininess.png" alt=""></p>
+<h6 id="环境光">环境光</h6>
+<ul>
+<li>实际的环境光计算需要考虑的因素非常多，而且计算复杂，所以在局部光照模型中不考虑间接光照的计算。</li>
+<li>间接光照是指，光线通常会在多个物体之间反射，最后进入摄像机，也就是说，在光线进入摄像机之前，经过了不止一次的物体反射。</li>
+<li>在标准光照模型中，我们使用了一种被称为环境光的部分来近似模拟间接光照。环境光的计算非常简单，它通常是一个全局变量，即场景中的所有物体都使用这个环境光。</li>
+<li>通常使用漫反射的反射率来指示环境光照的反射光量</li>
+<li>该模型假定场景中发生多次散射和反射，并在所有方向上均等地射向目标物体</li>
+<li><img src="https://math.now.sh?inline=C_%7Bambient%7D%20%3D%20Albedo%20*%20Ambient_%7Blight%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></li>
+</ul>
+<h6 id="自发光">自发光</h6>
+<ul>
+<li>光线也可以直接由光源发射进入摄像机，而不需要经过任何物体的反射。</li>
+<li>标准光照模型使用自发光来计算这个部分的贡献度。它的计算也很简单，就是直接使用了该材质的自发光颜色</li>
+<li><img src="https://math.now.sh?inline=C_%7Bemissive%7D%20%3D%20Albedo%20*%20Emissive_%7Blight%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></li>
+<li>通常在实时渲染中，自发光的表面往往并不会照亮周围的表面，也就是说，这个物体并不会被当成一个光源。</li>
+<li>Unity5引入的全局光照系统则可以模拟这类自发光物体对周围物体的影响。</li>
+</ul>
+<h6 id="局部光照模型的整体效果">局部光照模型的整体效果</h6>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301301644343.png" alt=""></p>
+<h2 id="经典光照模型">经典光照模型</h2>
+<h5 id="Lambert模型">Lambert模型</h5>
+<p>漫反射光照是用于对那些被物体表面随机散射到各个方向的辐射度进行建模的。漫反射中，视角的位置不重要，因为反射是完全随机的，因此可以认为在任何反射方向上的分布都是一样的。但是，入射光线的角度很重要。</p>
+<p>也就是兰伯特定律：反射光线的强度与表面发现和光源方向之间夹角的余弦值成正比。只有当入射光线与平面垂直的时候才能完整的接受所有的光能量，入射角度越倾斜，损失的能量越大。</p>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=color%20%3D%20C_%7Blight%7D%20*%20albedo%20*%20dot%28normal%2C%20L%29%0A" /></p><h5 id="Phong模型">Phong模型</h5>
+<p>Phong光照模型就是第一个有影响力的光照模型，考虑直接光照的反射作用，使用环境光代替间接光照。</p>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=C_%7Bfinal%7D%20%3D%20A_%7Blight%7D%20*%20m_%7Bdiffuse%7D%20%2B%20C_%7Blight%7D%20*%20%28m_%7Bdiffuse%7D%20*%20dot(l%2C%20n%29)%20%2B%20m_%7Bspecular%7D%20*%20dot(v%2C%20r)%5E%7Bgloss%7D%0A" /></p><table>
+<thead>
+<tr>
+<th>变量</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="https://math.now.sh?inline=A_%7Blight%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+<td>环境光量</td>
+</tr>
+<tr>
+<td><img src="https://math.now.sh?inline=C_%7Blight%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+<td>入射光量</td>
+</tr>
+<tr>
+<td><img src="https://math.now.sh?inline=m_%7Bdiffuse%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+<td>漫反射率</td>
+</tr>
+<tr>
+<td><img src="https://math.now.sh?inline=m_%7Bspecular%7D" style="filter: opacity(90%);transform:scale(0.85);text-align:center;display:inline-block;margin: 0;"/></td>
+<td>镜面反射率</td>
+</tr>
+<tr>
+<td>l</td>
+<td>指向光源入射光向量</td>
+</tr>
+<tr>
+<td>n</td>
+<td>物体表面法线</td>
+</tr>
+<tr>
+<td>r</td>
+<td>反射向量</td>
+</tr>
+<tr>
+<td>gloss</td>
+<td>光泽度，控制高光反射区域</td>
+</tr>
+</tbody>
+</table>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301301701956.png" alt=""></p>
+<h5 id="Blinn-Phong模型">Blinn-Phong模型</h5>
+<p>Blinn-Phong模型不再依赖于反射向量，而是采用了所谓的半程向量(Halfway Vector)，即光线与视线夹角一半方向上的一个单位向量。当半程向量与法线向量越接近时，镜面光分量就越大。</p>
+<p style="filter: opacity(90%);transform:scale(0.85);text-align:center;"><img src="https://math.now.sh?from=C_%7Bfinal%7D%20%3D%20A_%7Blight%7D%20*%20m_%7Bdiffuse%7D%20%2B%20C_%7Blight%7D%20*%20%28m_%7Bdiffuse%7D%20*%20dot(l%2C%20n%29)%20%2B%20m_%7Bspecular%7D%20*%20dot(h%2C%20n)%5E%7Bgloss%7D%0A" /></p><p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301301703957.png" alt=""></p>
+<h5 id="Phone模型和Blinn-Phone模型的区别">Phone模型和Blinn-Phone模型的区别</h5>
+<p>通过对Phone模型的公式和Blinn-Phone模型公式的对比，可以知道公式的不同之处在于使用了半角向量与法线的点积代替了反射向量与视线的点积结果。<br>
+半角向量的使用带来了什么变化？</p>
+<ul>
+<li>计算更加简洁，半角向量比反射向量的计算更加简洁</li>
+<li>当光源与视线都在物体表面之上时，半角向量与法线的角度永远不大于90度
+<ul>
+<li>设想一种情况，当材质的反光度非常低，因此物体的被光线照射的大部分区域都会发生高光反射。</li>
+<li>这些区域中一部分高光部分的反射向量与视线的夹角超过了90度。</li>
+<li>如果使用Phone模型就会导致高光区域一部分发生缺失。</li>
+<li>这是由于phone模型只考虑视线与光照分布在法线两侧的情况。</li>
+<li>当视线与光照在法线同侧时且高光反射对亮度有较大影响时，就会发生断层。</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301301705355.png" alt=""></p>
+<h2 id="着色方法">着色方法</h2>
+<p>上面我们介绍完了经典局部光照模型，其中主要利用了观察方向，入射光线与法线向量的位置关系，但并没有具体说究竟是三角形面的法线向量还是三角形顶点的法线向量，即我们要确认着色方式，如到底是逐顶点着色还是逐像素着色或是逐面着色。这三种着色方式对应着不同的表现效果。</p>
+<h5 id="Flat-Shading">Flat Shading</h5>
+<p>面着色，即逐面进行着色，顾名思义以面作为一个着色单位。模型数据，大多以很多歌三角面进行储存，因此也就记录了每个面的法线向量，利用每个面的法线向量进行一次Blinn-Phong反射光照模型的计算，将该颜色赋予整个面，效果如下：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301301709668.png" alt=""></p>
+<p>逐面进行着色虽然计算很快，只需对每一个面进行一次着色计算，但是效果是很差的，可以很明显的看到一块块面的形状（实际上，这种LowPoly的风格比较适合做风格化的，更加卡通风格的场景，只是不适合用来给追求写实的画面使用），因此一种改进方法就是对三角形面的每个顶点进行着色，再对三角形面内的颜色插值，也就是高洛德着色方式（Gouraud Shading）</p>
+<h5 id="Gouraud-Shading">Gouraud Shading</h5>
+<p>Gouraud Shading（高洛德着色，逐顶点着色）会对每个三角形的顶点进行一次着色，我们需要将所有共享这个点的面法线加起来求均值，最后再标准化就得了该顶点的法线向量了。</p>
+<p>有了每个三角形的顶点向量之后，自然就可以计算出每个顶点的颜色了，那么对于三角形内部的每一个点应该怎么办？我们可以用重心插值坐标来计算，这样就能得到每个点的颜色，效果如下：</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301301710802.png" alt=""></p>
+<h5 id="Phong-Shading">Phong Shading</h5>
+<p>我们既然能得到每个顶点的法线向量，那么对于三角形内部的每点的法线向量自然也可以像差值颜色一样得到，然后逐像素进行着色，三种着色方式的对比如下。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301301711800.png" alt=""></p>
+<p>其实可以看到Phong Shading对于高光的显示相比于，Gouraud Shading是更真实的。有一点的要注意的是，这里所有的茶壶所使用的都是低精度模型，即模型的精度越高，逐顶点的效果更好。这里给出一张根据面数的增加，各个着色方法的对比。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301301712821.png" alt=""></p>
+<h2 id="局部光照模型的URP实现">局部光照模型的URP实现</h2>
+<h5 id="正常实现">正常实现</h5>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;URPLearn/BaseShading&quot;</span><br><span class="line">&#123;</span><br><span class="line">    //lambert</span><br><span class="line">    //phong</span><br><span class="line">    //blinn-phong</span><br><span class="line">    //GGX等</span><br><span class="line">    //使用EnableKeyword开启变体</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Diffuse (&quot;Diffuse&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _Specular (&quot;Specular&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _Gloss (&quot;Gloss&quot;, Range(1.0, 255)) = 20</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags &#123; &quot;RenderType&quot;=&quot;Opaque&quot; &quot;RenderPipeline&quot;=&quot;UniversalRenderPipeline&quot;&#125;</span><br><span class="line">        LOD 200</span><br><span class="line">        Pass </span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123; &quot;LightMode&quot; = &quot;UniversalForward&quot; &#125;</span><br><span class="line">            HLSLPROGRAM</span><br><span class="line">  </span><br><span class="line">            #include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl&quot;</span><br><span class="line">            #include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl&quot;</span><br><span class="line"></span><br><span class="line">            #pragma shader_feature _PHONG</span><br><span class="line">            #pragma shader_feature _BLINNPHONG</span><br><span class="line">            #pragma shader_feature _LAMBERT</span><br><span class="line">            #pragma shader_feature _GOURAND</span><br><span class="line"></span><br><span class="line">            #pragma vertex vert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line"></span><br><span class="line">            // 常量缓冲区的定义，GPU现在里面某一块区域，这一块区域可以非常快速的和GPU传输数据</span><br><span class="line">            // 因为要占GPU显存，所以其容量不是很大。</span><br><span class="line">            // CBUFFER_START = 常量缓冲区的开始，CBUFFER_END = 常量缓冲区的结束。</span><br><span class="line">            // UnityPerMaterial = 每一个材质球都用这一个Cbuffer，凡是在Properties里面定义的数据(Texture除外)，</span><br><span class="line">            // 都需要在常量缓冲区进行声明，并且都用这一个Cbuffer，通过这些操作可以享受到SRP的合批功能</span><br><span class="line">            CBUFFER_START(UnityPerMaterial)</span><br><span class="line">            float4 _Diffuse;</span><br><span class="line">            float4 _Specular;</span><br><span class="line">            float _Gloss;</span><br><span class="line">            CBUFFER_END</span><br><span class="line"></span><br><span class="line">            struct VertexInput</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct VertexOutput</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float3 worldNormal : NORMAL;</span><br><span class="line">                float3 worldPos : TEXCOORD0;</span><br><span class="line">                float3 color : TEXCOORD1;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            VertexOutput vert(VertexInput i)</span><br><span class="line">            &#123;</span><br><span class="line">                VertexOutput o;</span><br><span class="line">                // 计算裁剪空间的位置</span><br><span class="line">                o.pos = TransformObjectToHClip(i.vertex);</span><br><span class="line">                // 计算片元着色需要的世界法线和世界坐标</span><br><span class="line">                o.worldNormal = TransformObjectToWorldNormal(i.normal);</span><br><span class="line">                o.worldPos = TransformObjectToWorld(i.vertex.xyz);</span><br><span class="line"></span><br><span class="line">                //Gourand着色模型</span><br><span class="line">                #if defined(_GOURAND)</span><br><span class="line">                    // 环境光</span><br><span class="line">                    float3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz * _Diffuse;</span><br><span class="line">                    Light mainLight = GetMainLight();</span><br><span class="line">                    half3 lightDir = normalize(TransformObjectToWorld(mainLight.direction));</span><br><span class="line">                    float3 worldNormal = normalize(o.worldNormal);</span><br><span class="line">                    //计算法线与光线的余弦</span><br><span class="line">                    float NdotL = max(0.0, dot(worldNormal, lightDir));</span><br><span class="line">                    float3 diffuse = mainLight.color.rgb * _Diffuse.rgb * NdotL;</span><br><span class="line"></span><br><span class="line">                    float viewDir = normalize(_WorldSpaceCameraPos.xyz - o.worldPos);</span><br><span class="line">                    // 计算反射方向R，worldLight要指向光源的方向</span><br><span class="line">                    float3 reflectDir = normalize(reflect(-lightDir, worldNormal));</span><br><span class="line">                    // 反射光方向与观察方向的夹角</span><br><span class="line">                    float VdotR = max(0.0, dot(reflectDir, viewDir));</span><br><span class="line">                    // 计算高光值</span><br><span class="line">                    float3 specular = mainLight.color.rgb * _Specular.rgb * pow(VdotR, _Gloss);</span><br><span class="line"></span><br><span class="line">                    o.color = diffuse + ambient + specular;</span><br><span class="line">                #endif</span><br><span class="line">  </span><br><span class="line">                return o;</span><br><span class="line">  </span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            half4 frag(VertexOutput i) : SV_TARGET</span><br><span class="line">            &#123;</span><br><span class="line">                // 环境光</span><br><span class="line">                float3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz * _Diffuse;</span><br><span class="line">                Light mainLight = GetMainLight();</span><br><span class="line">                half3 lightDir = normalize(TransformObjectToWorld(mainLight.direction));</span><br><span class="line">                float3 worldNormal = normalize(i.worldNormal);</span><br><span class="line">                //计算法线与光线的余弦</span><br><span class="line">                float NdotL = max(0.0, dot(worldNormal, lightDir));</span><br><span class="line">                float3 diffuse = mainLight.color.rgb * _Diffuse.rgb * NdotL;</span><br><span class="line"></span><br><span class="line">                float3 specular;</span><br><span class="line">                float3 color;</span><br><span class="line">  </span><br><span class="line">                float viewDir = normalize(_WorldSpaceCameraPos.xyz - i.worldPos);</span><br><span class="line">                // =======Lambert模型=======</span><br><span class="line">                #if defined(_LAMBERT)</span><br><span class="line">                    color = diffuse;</span><br><span class="line">                #endif</span><br><span class="line"></span><br><span class="line">                // =======Phong模型=======</span><br><span class="line">                #if defined(_PHONG)</span><br><span class="line">                    // 计算反射方向R，worldLight要指向光源的方向</span><br><span class="line">                    float3 reflectDir = normalize(reflect(-lightDir, worldNormal));</span><br><span class="line">                    // 反射光方向与观察方向的夹角</span><br><span class="line">                    float VdotR = max(0.0, dot(reflectDir, viewDir));</span><br><span class="line">                    // 计算高光值</span><br><span class="line">                    specular = mainLight.color.rgb * _Specular.rgb * pow(VdotR, _Gloss);</span><br><span class="line">                    color = diffuse + ambient + specular;</span><br><span class="line">                #endif</span><br><span class="line"></span><br><span class="line">                // =======Blinn-Phong模型=======</span><br><span class="line">                #if defined(_BLINNPHONG)</span><br><span class="line">                    // 计算半程向量</span><br><span class="line">                    float3 halfDir = normalize(viewDir + lightDir);</span><br><span class="line">                    // 半程向量与法线方向的夹角</span><br><span class="line">                    float NdotH = max(0.0, dot(worldNormal, halfDir));</span><br><span class="line">                    //计算高光值</span><br><span class="line">                    specular = mainLight.color.rgb * _Specular.rgb * pow(NdotH, _Gloss);</span><br><span class="line">                    color = diffuse + ambient + specular;</span><br><span class="line">                #endif</span><br><span class="line"></span><br><span class="line">                // =======GOURAND着色模型=======</span><br><span class="line">                #if defined(_GOURAND)</span><br><span class="line">                    color = i.color;</span><br><span class="line">                #endif</span><br><span class="line">  </span><br><span class="line">                return half4(color, 1.0);</span><br><span class="line">            &#125;</span><br><span class="line">  </span><br><span class="line">            ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="模仿PBR效果（用了几个Trick，并不基于物理）">模仿PBR效果（用了几个Trick，并不基于物理）</h5>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;URPLearn/BaseShader&quot;</span><br><span class="line">&#123;</span><br><span class="line">    ///////////目录/////////////</span><br><span class="line">    //lambert</span><br><span class="line">    //phong</span><br><span class="line">    //blinn-phong</span><br><span class="line">    //GGX等</span><br><span class="line">    ///////////////////////////</span><br><span class="line">    //法线贴图</span><br><span class="line">    //cube环境贴图 &gt; IBL</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Diffuse (&quot;Diffuse&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _MainTex (&quot;MainTex&quot;, 2D) = &quot;while&quot; &#123;&#125;</span><br><span class="line">    </span><br><span class="line">        _Specular (&quot;Specular&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _Gloss (&quot;Gloss&quot;, Range(1.0, 255)) = 20</span><br><span class="line">    </span><br><span class="line">        _Normalmap (&quot;Normalmap&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _LocalNormalSlide (&quot;LocalNormal&quot;, Range(0, 1)) = 0</span><br><span class="line">        _Cubemap (&quot;EnvMap&quot;, CUBE) = &quot;&quot; &#123;&#125;</span><br><span class="line">        _MipScale (&quot;MipScale&quot;, Range(0, 10)) = 0</span><br><span class="line">        _EnvScale (&quot;EnvScale&quot;, Range(0, 1)) = 1</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags &#123; &quot;RenderType&quot;=&quot;Opaque&quot; &quot;RenderPipeline&quot;=&quot;UniversalRenderPipeline&quot;&#125;</span><br><span class="line">        LOD 200</span><br><span class="line">        Pass </span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123; &quot;LightMode&quot; = &quot;UniversalForward&quot; &#125;</span><br><span class="line">            HLSLPROGRAM</span><br><span class="line">        </span><br><span class="line">            #include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl&quot;</span><br><span class="line">            #include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl&quot;</span><br><span class="line">        </span><br><span class="line"></span><br><span class="line">            #pragma vertex vert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line"></span><br><span class="line">            // 常量缓冲区的定义，GPU现在里面某一块区域，这一块区域可以非常快速的和GPU传输数据</span><br><span class="line">            // 因为要占GPU显存，所以其容量不是很大。</span><br><span class="line">            // CBUFFER_START = 常量缓冲区的开始，CBUFFER_END = 常量缓冲区的结束。</span><br><span class="line">            // UnityPerMaterial = 每一个材质球都用这一个Cbuffer，凡是在Properties里面定义的数据(Texture除外)，</span><br><span class="line">            // 都需要在常量缓冲区进行声明，并且都用这一个Cbuffer，通过这些操作可以享受到SRP的合批功能</span><br><span class="line">            CBUFFER_START(UnityPerMaterial)</span><br><span class="line">            float4 _Diffuse;</span><br><span class="line">            float4 _Specular;</span><br><span class="line">            float _Gloss;</span><br><span class="line">            float _LocalNormalSlide;</span><br><span class="line">            float _MipScale;</span><br><span class="line">            float _EnvScale;</span><br><span class="line">        </span><br><span class="line">            uniform float4 _Normalmap_ST;</span><br><span class="line">            float4 _MainTex_ST;</span><br><span class="line">            CBUFFER_END</span><br><span class="line"></span><br><span class="line">            TEXTURE2D(_MainTex);</span><br><span class="line">            SAMPLER(sampler_MainTex);</span><br><span class="line"></span><br><span class="line">            uniform TEXTURE2D(_Normalmap);</span><br><span class="line">            SAMPLER(sampler_Normalmap);</span><br><span class="line"></span><br><span class="line">            TEXTURECUBE(_Cubemap);</span><br><span class="line">            SAMPLER(sampler_Cubemap);</span><br><span class="line"></span><br><span class="line">            struct VertexInput</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">                float4 tangent : TANGENT;</span><br><span class="line">                float2 texcoord0 : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct VertexOutput</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float3 worldNormal : NORMAL;</span><br><span class="line">                float2 uv0 : TEXCOORD0;</span><br><span class="line">                float3 normalDir : TEXCOORD1;</span><br><span class="line">                float3 tangentDir : TEXCOORD2;</span><br><span class="line">                float3 bitangentDir : TEXCOORD3;</span><br><span class="line">                float3 worldPos : TEXCOORD4;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            VertexOutput vert(VertexInput i)</span><br><span class="line">            &#123;</span><br><span class="line">                VertexOutput o;</span><br><span class="line">                o.uv0 = i.texcoord0;</span><br><span class="line">                // 计算裁剪空间的位置</span><br><span class="line">                o.pos = TransformObjectToHClip(i.vertex);</span><br><span class="line">                // 计算片元着色需要的世界法线和世界坐标</span><br><span class="line">                o.worldNormal = TransformObjectToWorldNormal(i.normal);</span><br><span class="line">                o.worldPos = TransformObjectToWorld(i.vertex.xyz);</span><br><span class="line"></span><br><span class="line">                //计算TBN矩阵</span><br><span class="line">                o.normalDir = TransformObjectToWorldNormal(i.normal);</span><br><span class="line">                o.tangentDir = TransformObjectToWorldDir(i.tangent);</span><br><span class="line">                o.bitangentDir = normalize(cross(o.normalDir, o.tangentDir) * i.tangent.w);</span><br><span class="line">            </span><br><span class="line">                return o;</span><br><span class="line">            </span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            half4 frag(VertexOutput i) : SV_TARGET</span><br><span class="line">            &#123;</span><br><span class="line">                float4 MainTex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, TRANSFORM_TEX(i.uv0, _MainTex));</span><br><span class="line">            </span><br><span class="line">                // 环境光</span><br><span class="line">                float3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz * _Diffuse * MainTex.rgb;</span><br><span class="line">                Light light = GetMainLight();</span><br><span class="line">                // 归一化光方向</span><br><span class="line">                float worldLight = TransformObjectToWorldDir(light.direction);</span><br><span class="line">                // 再次归一化worldNormal</span><br><span class="line">                float3 worldNormal = normalize(i.worldNormal);</span><br><span class="line"></span><br><span class="line">                //////Normal</span><br><span class="line">                i.normalDir = worldNormal;</span><br><span class="line">                float3x3 tangentTransform = float3x3(i.tangentDir, i.bitangentDir, i.normalDir);</span><br><span class="line"></span><br><span class="line">                // 获取映射过的法线贴图数据</span><br><span class="line">                float3 normalLocal = UnpackNormal(SAMPLE_TEXTURE2D(_Normalmap, sampler_Normalmap, TRANSFORM_TEX(i.uv0, _Normalmap)));</span><br><span class="line">                float3 normalWorld = normalize(mul(normalLocal.rgb, tangentTransform));</span><br><span class="line"></span><br><span class="line">                // 计算漫反射Lambert公式</span><br><span class="line">                float finalNormal = lerp(worldNormal, normalWorld, _LocalNormalSlide);</span><br><span class="line"></span><br><span class="line">                float NdotL = max(0.0, dot(finalNormal, worldLight));</span><br><span class="line">                // float NdotNormalTex = dot(finalNormal, worldLight);</span><br><span class="line"></span><br><span class="line">                // trick：兰伯特模型黑的部分显示为环境光</span><br><span class="line">                float3 diffuse = lerp(ambient.rgb * _Diffuse.rgb * MainTex.rgb, light.color.rgb * _Diffuse.rgb * MainTex.rgb, NdotL);</span><br><span class="line"></span><br><span class="line">                // ========Phong模型==========</span><br><span class="line">                // 计算反射方向R，worldLight表示光源方向（指向光源），入射方向为-worldLight，通过reflect函数计算</span><br><span class="line">                float3 reflectDir = normalize(reflect(-worldLight, finalNormal));</span><br><span class="line">                // 计算观察方向</span><br><span class="line">                float3 viewDir = normalize(_WorldSpaceCameraPos.xyz - i.worldPos.xyz);</span><br><span class="line">                // 反射光方向与观察方向的夹角</span><br><span class="line">                float VdotR = max(0.0, dot(viewDir, reflectDir));</span><br><span class="line">                // 计算高光值</span><br><span class="line">                float3 specular = light.color.rgb * _Specular.rgb * pow(VdotR, _Gloss);</span><br><span class="line">                // 冯式模型</span><br><span class="line">                float3 color = diffuse + ambient + specular;</span><br><span class="line"></span><br><span class="line">                // =======Phong模型改进Blinn-Phong========</span><br><span class="line">                // 计算半程向量（光线方向 + 视角方向， 结果归一化）</span><br><span class="line">                float3 halfDir = normalize(worldLight + viewDir);</span><br><span class="line"></span><br><span class="line">                // 半程向量与法线方向的夹角</span><br><span class="line">                float NdotH = max(0.0, dot(halfDir, finalNormal));</span><br><span class="line"></span><br><span class="line">                // 环境贴图</span><br><span class="line">                float3 worldRef = normalize(reflect(-viewDir, finalNormal));</span><br><span class="line">                float4 reflCol = _Cubemap.SampleLevel(sampler_Cubemap, worldRef.rgb, (255-_Gloss)*8/(255)) * _EnvScale;</span><br><span class="line"></span><br><span class="line">                // 计算Specular</span><br><span class="line">                specular = light.color.rgb * _Specular.rgb * pow(NdotH, _Gloss);</span><br><span class="line">                // trick：根据高光程度来决定漫反射是否影响高光（为了模仿PBR效果）</span><br><span class="line">                specular = lerp(diffuse * specular, specular, _Gloss/255);</span><br><span class="line">                reflCol.rgb = lerp(reflCol * diffuse.rgb, reflCol, _Gloss/255);</span><br><span class="line"></span><br><span class="line">                color = diffuse + reflCol.rgb + specular;</span><br><span class="line"></span><br><span class="line">                return half4(color.rgb, 1.0);</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">        </span><br><span class="line">            ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="TASK">TASK</h2>
+<h5 id="说出能量守恒的理念在基础光照模型中的作用">说出能量守恒的理念在基础光照模型中的作用</h5>
+<p>一束光打在物体上，最终回到人眼的有反射光和漫射光。能量守恒在这里最重要的一点是入射光的能量要大于等于出射光的能量，能量不可能凭空增加。最直接的呈现是画面不能越来越亮。</p>
+<p>基础光照模型是基于经验总结的，由不同部分叠加而成，其漫反射部分认为光会被均匀地反射到不同的方向，并不遵循能量守恒的理念，渲染结果很大程度依赖于参数的搭配，好的参数可以接近基于物理观察的效果，不适当的参数给人第一眼很怪异。</p>
+<p>而微表面模型是基于物理渲染的，其理论在很多大佬的文章中已提到，这里不过多赘述（引用中可查看）。总而言之我认为遵循能量守恒定律可以科学地让场景看起来<strong>更符合物理、更真实</strong>，而不用将重点放在调参以及一些HACK的实现方案。</p>
+<h5 id="基于能量守恒的理念，自己写一条完整的光照模型，需要包含环境光照"><strong>基于能量守恒的理念，自己写一条完整的光照模型，需要包含环境光照</strong></h5>
+<p>主要参考了以下文章，大佬解释的非常好。（TODO:增加软硬阴影支持、法线贴图支持）</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://note.youdao.com/ynoteshare/index.html?id=45931e503a77cc50ff12a52dd412b13b&amp;type=note&amp;_time=1674020443123?auto">PBR 基于物理写实渲染</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/anesu/p/15786470.html#/c/subject/p/15786470.html">传统经验光照模型详解笔记</a></li>
+<li><a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/07%20PBR/01%20Theory/#_3">learnopengl-PBR</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1YK4y1T7yY?p=5">GAMES202</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/read/cv16075253?from=search">URP-我教我自己写一个PBR</a></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br></pre></td><td class="code"><pre><span class="line">//=========金属/粗糙度工作流=============</span><br><span class="line">Shader &quot;URPLearn/CustomPBR&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _Diffuse (&quot;Diffuse&quot;, Color) = (1,1,1,1)</span><br><span class="line">        _MainTex (&quot;MainTex&quot;, 2D) = &quot;while&quot; &#123;&#125;</span><br><span class="line">    </span><br><span class="line">        // 金属度贴图要伽马校正</span><br><span class="line">        [Gamma] _Metallic (&quot;Metallic&quot;, Range(0,1)) = 0</span><br><span class="line">        // 光滑度（1-粗糙度）</span><br><span class="line">        _Smoothness (&quot;Smoothness&quot;, Range(0, 1)) = 0.5</span><br><span class="line">        // 环境光BRDF积分部分</span><br><span class="line">        _LUT (&quot;LUT&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags </span><br><span class="line">        &#123;</span><br><span class="line">            &quot;RenderType&quot;=&quot;Opaque&quot;</span><br><span class="line">            &quot;RenderPipeline&quot;=&quot;UniversalRenderPipeline&quot;</span><br><span class="line">        &#125;</span><br><span class="line">        LOD 200</span><br><span class="line">        Pass </span><br><span class="line">        &#123;</span><br><span class="line">            Tags &#123; &quot;LightMode&quot; = &quot;UniversalForward&quot; &#125;</span><br><span class="line">            HLSLPROGRAM</span><br><span class="line">        </span><br><span class="line">            #include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl&quot;</span><br><span class="line">            #include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl&quot;</span><br><span class="line">            #include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl&quot;</span><br><span class="line">        </span><br><span class="line">            #pragma vertex vert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line"></span><br><span class="line">            // 常量缓冲区的定义，GPU现在里面某一块区域，这一块区域可以非常快速的和GPU传输数据</span><br><span class="line">            // 因为要占GPU显存，所以其容量不是很大。</span><br><span class="line">            // CBUFFER_START = 常量缓冲区的开始，CBUFFER_END = 常量缓冲区的结束。</span><br><span class="line">            // UnityPerMaterial = 每一个材质球都用这一个Cbuffer，凡是在Properties里面定义的数据(Texture除外)，</span><br><span class="line">            // 都需要在常量缓冲区进行声明，并且都用这一个Cbuffer，通过这些操作可以享受到SRP的合批功能</span><br><span class="line">            CBUFFER_START(UnityPerMaterial)</span><br><span class="line">            float4 _Diffuse;</span><br><span class="line">            float _Metallic;</span><br><span class="line">            float _Smoothness;</span><br><span class="line">            float4 _MainTex_ST;</span><br><span class="line">            CBUFFER_END</span><br><span class="line"></span><br><span class="line">            TEXTURE2D(_MainTex);</span><br><span class="line">            SAMPLER(sampler_MainTex);</span><br><span class="line"></span><br><span class="line">            TEXTURE2D(_LUT);</span><br><span class="line">            SAMPLER(sampler_LUT);</span><br><span class="line"></span><br><span class="line">            struct VertexInput</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex : POSITION;</span><br><span class="line">                float3 normal : NORMAL;</span><br><span class="line">                float2 texcoord : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct VertexOutput</span><br><span class="line">            &#123;</span><br><span class="line">                float4 pos : SV_POSITION;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line">                float3 worldNormal : TEXCOORD1;</span><br><span class="line">                float3 worldPos : TEXCOORD2;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            VertexOutput vert(VertexInput i)</span><br><span class="line">            &#123;</span><br><span class="line">                VertexOutput o;</span><br><span class="line">                o.uv = TRANSFORM_TEX(i.texcoord, _MainTex);</span><br><span class="line">                // 计算裁剪空间的位置</span><br><span class="line">                o.pos = TransformObjectToHClip(i.vertex);</span><br><span class="line">                // 计算片元着色需要的世界法线和世界坐标</span><br><span class="line">                o.worldNormal = TransformObjectToWorldNormal(i.normal);</span><br><span class="line">                o.worldPos = TransformObjectToWorld(i.vertex.xyz);</span><br><span class="line">            </span><br><span class="line">                return o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            // Schlick近似法计算菲涅尔系数</span><br><span class="line">            float3 fresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)</span><br><span class="line">            &#123;       </span><br><span class="line">                return F0 + (max(float3(1.0 - roughness, 1.0 - roughness, 1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            half4 frag(VertexOutput i) : SV_TARGET</span><br><span class="line">            &#123;</span><br><span class="line">                //-------------------</span><br><span class="line">                //渲染方程需要的数据</span><br><span class="line">                //-------------------</span><br><span class="line">                i.worldNormal = normalize(i.worldNormal);</span><br><span class="line">                Light light = GetMainLight();</span><br><span class="line">                float3 lightDir = TransformObjectToWorldDir(light.direction);</span><br><span class="line">                float3 viewDir = normalize(_WorldSpaceCameraPos.xyz - i.worldPos);</span><br><span class="line">                float3 halfDir = normalize(viewDir + lightDir);</span><br><span class="line"></span><br><span class="line">                // 粗糙度系列（闫老师说没必要用光滑度hh）</span><br><span class="line">                float roughness = 1 - _Smoothness;</span><br><span class="line">                float squareRoughness = roughness * roughness;</span><br><span class="line">                float quadRoughness = squareRoughness * squareRoughness;</span><br><span class="line"></span><br><span class="line">                // 点积</span><br><span class="line">                float NdotL = max(dot(i.worldNormal, lightDir), 0.000001);</span><br><span class="line">                float NdotV = max(dot(i.worldNormal, viewDir), 0.000001);</span><br><span class="line">                float NdotH = max(dot(i.worldNormal, halfDir), 0.000001);</span><br><span class="line">                float VdotH = max(dot(viewDir, halfDir), 0.000001);</span><br><span class="line">                float LdotH = max(dot(lightDir, halfDir), 0.000001);</span><br><span class="line"></span><br><span class="line">                // ----------------直接光----------------</span><br><span class="line">                float4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);</span><br><span class="line"></span><br><span class="line">                // 镜面反射部分</span><br><span class="line">                //（1）法线分布函数:Trowbridge-Reitz GGX</span><br><span class="line">                float D = squareRoughness / (pow((pow(NdotH, 2) * (squareRoughness - 1) + 1), 2) * PI);</span><br><span class="line"></span><br><span class="line">                //（2）几何函数: Schlick-GGX</span><br><span class="line">                float kDirect = pow((roughness + 1), 2) / 8;</span><br><span class="line">                float kIbl = squareRoughness / 2;  //间接光的k项计算不同</span><br><span class="line">                float Gnv = NdotV / (NdotV * (1 - kDirect) + kDirect);</span><br><span class="line">                float Gnl = NdotL / (NdotL * (1 - kDirect) + kDirect);</span><br><span class="line">                float G = Gnv * Gnl;</span><br><span class="line"></span><br><span class="line">                //（3）菲涅尔方程:</span><br><span class="line">                // *做插值，使得得到的F0可以在金属和非金属中通用</span><br><span class="line">                // float3(0.04, 0.04, 0.04)这个是Unity里面有定义的一个常数unity_ColorSpaceDielectricSpec.rgb。</span><br><span class="line">                // F0的计算在这个常数和表面颜色间根据金属度进行一个插值运算。</span><br><span class="line">                float3 F0 = float3(0.04, 0.04, 0.04);</span><br><span class="line">                F0 = lerp(F0, albedo, _Metallic);</span><br><span class="line">                //  1）Fresnel-Schlick近似法</span><br><span class="line">                float F = F0 + (1 - F0) * pow((1 - (VdotH)), 5);</span><br><span class="line">                //  2）UE4使用的菲涅尔方程近似方法 - 效率貌似更高</span><br><span class="line">                //float3 F = F0 + (1 - F0) * exp2((-5.55473 * VdotH - 6.98316) * VdotH);</span><br><span class="line">             </span><br><span class="line">                // 镜面反射的计算结果</span><br><span class="line">                float3 SpecularResult = (D * G * F * 0.25) / (NdotV * NdotL);</span><br><span class="line"></span><br><span class="line">                // 漫反射部分</span><br><span class="line">                // 计算漫反射系数            </span><br><span class="line">                // *F便是镜面反射系数Ks，(1 - F)是为了保证能量守恒</span><br><span class="line">                // *乘以(1 - _Metallic)是因为，金属更多地吸收折射光以导致漫反射光变少。</span><br><span class="line">                float3 Kd_Direct = (1 - F)*(1 - _Metallic);</span><br><span class="line">            </span><br><span class="line">                float3 specular = F * SpecularResult * light.color.rgb * NdotL * PI;  // 这个*UNITY_PI还是无法理解</span><br><span class="line">                float3 diffuse = Kd_Direct * albedo * light.color.rgb * NdotL;</span><br><span class="line">            </span><br><span class="line">                float3 directLightResult = diffuse + specular;</span><br><span class="line"></span><br><span class="line">                // ----------------间接光----------------</span><br><span class="line">                // --间接漫反射光--</span><br><span class="line">                // 采样环境贴图</span><br><span class="line">                // *由于我们并不需要传入真正的Cubemap供其采样，unity自己将环境贴图Cubemap积分成模糊的全局光照贴图，再将其投影到球谐光照的基函数上存储起来</span><br><span class="line">                // *总而言之，我们调用SampleSH函数，传入法线，就可以获得对应的环境光照信息了。</span><br><span class="line">                // *可以将这个过程理解为对积分后的全局光照贴图的采样</span><br><span class="line">                half ambient_contrib = SampleSH(i.worldNormal);</span><br><span class="line">                // 类似Phong模型中的ambient，我们给一个很小的值即可</span><br><span class="line">                float3 ambient = 0.03 * albedo;   </span><br><span class="line">                // 计算间接漫反射光</span><br><span class="line">                float3 iblDiffuse = max(half3(0, 0, 0), ambient.rgb + ambient_contrib);</span><br><span class="line">                // 计算漫反射系数</span><br><span class="line">                float F_Indirect = fresnelSchlickRoughness(max(0.0, NdotV), F0, roughness);</span><br><span class="line">                float kd_Indirect = (1 - F_Indirect) * (1 - _Metallic);</span><br><span class="line"> </span><br><span class="line">                // 最后的间接漫反射结果</span><br><span class="line">                float3 iblDiffuseResult = kd_Indirect * iblDiffuse * albedo;</span><br><span class="line">                // --间接镜面反射光--</span><br><span class="line">                // *基于Epic Games的分割求和近似法实现(split sum)</span><br><span class="line">                // 计算公式的前半部分：</span><br><span class="line">                //1、计算采样mipmap需要用的粗糙度</span><br><span class="line">                float mip_roughness = roughness * (1.7 - 0.7 * roughness);</span><br><span class="line">                //2、获得反射方向</span><br><span class="line">                float3 reflectDir = reflect(-viewDir, i.worldNormal);</span><br><span class="line">                //3、计算粗糙度对应的mipmap层级</span><br><span class="line">                half mip = mip_roughness * UNITY_SPECCUBE_LOD_STEPS;</span><br><span class="line">                //4、对mipmap进行采样</span><br><span class="line">                half4 rgbm = unity_SpecCube0.SampleLevel(samplerunity_SpecCube0, reflectDir, mip);</span><br><span class="line">                //5、解码HDR，将结果转换为RGB格式</span><br><span class="line">                float3 iblSpecular_Front = DecodeHDREnvironment(rgbm, unity_SpecCube0_HDR);  // 这便是公式前半部分的结果</span><br><span class="line"> </span><br><span class="line">                // 计算公式的后半部分：</span><br><span class="line">                // *这个部分是一个定值，我们通过nv和粗糙度对一张LUT采样即可得到结果</span><br><span class="line">                float2 BRDF_LUT = SAMPLE_TEXTURE2D(_LUT, sampler_LUT, float2(lerp(0, 0.99, NdotV), lerp(0, 0.99, roughness))).rg;  // 在[0, 0.99]之间插值是为了防止两个值都为1时产生的亮度突变</span><br><span class="line">                // 计算后半部分的结果</span><br><span class="line">                float3 iblSpecular_Rear = F_Indirect * BRDF_LUT.r + BRDF_LUT.g;</span><br><span class="line">                // 间接镜面反射光的最后结果</span><br><span class="line">                float3 iblSpecularResult = iblSpecular_Front * iblSpecular_Rear;  </span><br><span class="line">                // ------------------</span><br><span class="line"> </span><br><span class="line">                // 间接光的最后结果</span><br><span class="line">                float3 indirectLightResult = iblDiffuseResult + iblSpecularResult;</span><br><span class="line">                // ------------------------------------------------</span><br><span class="line"> </span><br><span class="line">                // 最终光照结果！</span><br><span class="line">                float4 result = float4(directLightResult + indirectLightResult, 1.0);</span><br><span class="line"> </span><br><span class="line">                return result;</span><br><span class="line">            &#125;</span><br><span class="line">        </span><br><span class="line">            ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="引用">引用</h2>
+<ul>
+<li>课程链接1：<a target="_blank" rel="noopener" href="http://bilibili.com/video/BV1B54y1j7zE/?p=2">bilibili.com/video/BV1B54y1j7zE/?p=2</a></li>
+<li>课程链接2：<a target="_blank" rel="noopener" href="http://bilibili.com/video/BV18h411C7sE">bilibili.com/video/BV18h411C7sE</a></li>
+<li>GAMES202：<a target="_blank" rel="noopener" href="http://bilibili.com/video/BV1YK4y1T7yY/?p=5">bilibili.com/video/BV1YK4y1T7yY/?p=5</a></li>
+<li>learnopengl-基础光照：<a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/02%20Lighting/02%20Basic%20Lighting/">https://learnopengl-cn.github.io/02 Lighting/02 Basic Lighting/</a></li>
+<li>learnopengl-PBR：<a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/07%20PBR/01%20Theory/#_3">https://learnopengl-cn.github.io/07 PBR/01 Theory/#_3</a></li>
+<li>PBR 基于物理写实渲染：<a target="_blank" rel="noopener" href="https://note.youdao.com/ynoteshare/index.html?id=45931e503a77cc50ff12a52dd412b13b&amp;type=note&amp;_time=1674020443123">https://note.youdao.com/ynoteshare/index.html?id=45931e503a77cc50ff12a52dd412b13b&amp;type=note&amp;_time=1674020443123</a></li>
+<li>大佬笔记1：<a target="_blank" rel="noopener" href="https://www.yuque.com/u12120868/md8ze7/bl5ie8">https://www.yuque.com/u12120868/md8ze7/bl5ie8</a></li>
+<li>大佬笔记2：<a target="_blank" rel="noopener" href="https://www.yuque.com/xinghen-q7o8z/ru547n/zuw91o">https://www.yuque.com/xinghen-q7o8z/ru547n/zuw91o</a></li>
+<li>大佬笔记3：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/anesu/p/15786470.html#/c/subject/p/15786470.html">https://www.cnblogs.com/anesu/p/15786470.html#/c/subject/p/15786470.html</a></li>
+<li>大佬笔记4：<a target="_blank" rel="noopener" href="https://blog.csdn.net/wsWind/article/details/120005768">https://blog.csdn.net/wsWind/article/details/120005768</a></li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/a592dd1a/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">百人计划-美术-1.1 美术理论基础</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/68eed964/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">Unity序列化属性</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>94</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        5
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        25
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (88)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.25px;" class="tags-cloud-6">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15px;" class="tags-cloud-5">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.5px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.5px;" class="tags-cloud-3">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.25px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;" class="tags-cloud-0">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.25px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.75px;" class="tags-cloud-4">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.75px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2024 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>
