@@ -26,7 +26,7 @@
 
   
 
-  <title>C#本质论-章节01&amp;22 | 不特别周のBlog</title>
+  <title>【Refactoring】重构的原则 | 不特别周のBlog</title>
 
   
 
@@ -100,17 +100,12 @@
     <div class="header-content">
       <div class="post-text layout-block">
         <div class="layout-margin">
-          <h1 class="title-wrap">C#本质论-章节01&amp;22</h1>
+          <h1 class="title-wrap">【Refactoring】重构的原则</h1>
           <h2 class="title-sub-wrap">
             <strong>kio0o0</strong>
             <span>发布于</span>
-            <time  class="article-date" datetime="2022-09-07T14:33:00.000Z" itemprop="datePublished">2022-09-07</time>
+            <time  class="article-date" datetime="2024-07-28T07:09:54.913Z" itemprop="datePublished">2024-07-28</time>
           </h2>
-          
-            <h2 class="title-sub-wrap new-date">
-              <span>最后更新于</span>
-              <time  class="article-updated" datetime="2024-07-14T09:03:59.239Z" itemprop="dateUpdated">2024-07-14</time>
-            </h2>
           
           
           <ul class="wrap-list dark">
@@ -120,7 +115,9 @@
 </ul>
           <ul class="wrap-list dark">
   
-    <li><a href="/tags/C-%E7%AC%94%E8%AE%B0/">🏷️ C#笔记</a></li>
+    <li><a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/">🏷️ 代码设计</a></li>
+  
+    <li><a href="/tags/%E9%87%8D%E6%9E%84/">🏷️ 重构</a></li>
   
 </ul>
         </div>
@@ -144,61 +141,103 @@
       
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
-        <p>求知若饥，虚心若愚</p>
+        <p>重构是什么？为什么？什么时候该做？</p>
 <span id="more"></span>
-<h3 id="使用Dontnet-CLI编译运行">使用Dontnet CLI编译运行</h3>
+<h2 id="何谓重构">何谓重构</h2>
+<p>在不影响原有行为的前提下，对既有代码设计进行调整，使其更容易理解，更容易修改。</p>
+<h2 id="为何重构">为何重构</h2>
+<h3 id="重构改进软件的设计">重构改进软件的设计</h3>
+<p>经常性的重构有助于代码维持自己该有的形态。很多情况是代码一开始设计的很好符合<strong>当时的需求</strong>，但随着新增预想不到的需求、没完全理解代码设计去修改代码等情况增加，会使得完成一件事情所需要的代码越来越多。</p>
+<p>改进的一个重要方向是<strong>消除重复代码</strong>，其表现是我在这里做了点儿修改，系统却不如预期那样工作，因为我没有修改另一处。</p>
+<ul>
+<li>不同函数有完全相同的语句做同样的事，而你只修改了一个函数。</li>
+<li>新增功能的配置太分散，你需要在多处新增分支来加入新功能</li>
+</ul>
+<h3 id="重构使软件更容易理解">重构使软件更容易理解</h3>
+<p>再精巧的设计，如果阅读你代码的人看不懂，别人任何一处改动将破坏你原先巧夺天工的设计，更何况这个别人通常是几个月后的你。<br>
+将需要记忆的部分，写在代码里，让你大脑减负。（比如前面提到的新增功能需要同时修改很多处地方）</p>
+<h3 id="重构帮助找到bug">重构帮助找到bug</h3>
+<p>好的代码能让你更容易去debug，这里举最近遇到的例子</p>
+<ul>
+<li>比如游戏中模型的位置和角度不如预期，你需要去找哪里修改了transform，如果有个通用的接口去修改，你只需要去追踪接口的调用栈。但如果很多地方另起炉灶，实现很多不同的修改transform接口，将耗费更多的时间去定位。（有时候只能等灵光一现）</li>
+<li>传递的数据有问题，如果有统一的地方管理数据的修改，定位问题也会很简单。但如果到处都能修改数据，到处都能传递数据，如同蜘蛛网般的结构，正如著名诗人那句<em><strong>剪不断理还乱</strong></em></li>
+</ul>
+<h3 id="重构提高编程速度">重构提高编程速度</h3>
+<p>没有维护过的架构到后期经常会出现需要花越来越多的时间去考虑如何把新功能塞进现有的代码库，不断蹦出来的 bug 修复起来也越来越慢。代码库看起来就像补丁摞补丁，需要细致的考古工作才能弄明白整个系统是如何工作的。这份负担不断拖慢新增功能的速度，到最后程序员恨不得从头开始重写整个系统。</p>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/24/7/f1eee7eb-043a-4b03-aa66-c1ebd4786113_339ebbf40471c9b04cdaae359154ea27.gif" alt="修水管"></p>
+<p>需要添加新功能时，内部质量良好的软件让我可以很容易找到在哪里修改、如何修改。良好的模块划分使我只需要理解代码库的一小部分，就可以做出修改。如果代码很清晰，我引入 bug 的可能性就会变小，即使引入了 bug，调试也会容易得多。</p>
+<h2 id="何时重构">何时重构</h2>
 <blockquote>
-<p>注意：CLI在这里指命令行接口（Command Line Inrterface）而不是公共语言基础框架（Common Language Infrastructure）</p>
+<p>第一次做某件事时只管去做；第二次做类似的事会产生反感，但无论如何还是可以去做；第三次再做类似的事，你就应该重构。事不过三，三则重构。</p>
 </blockquote>
+<h3 id="预备性重构：让添加新功能更容易">预备性重构：让添加新功能更容易</h3>
+<p>添加新功能一个好的习惯是</p>
 <ul>
-<li>dotnet new console来创建程序机架</li>
-<li>dotnet run 会自动编译并执行</li>
-<li>dotnet build 将生成程序集（assembly），一般是dll结尾的动态链接库，需要CLI寄宿代码</li>
-<li>dotnet test 可运行单元测试</li>
+<li>先阅读原有代码库是不是已有相关逻辑或者是否能通过已有逻辑组合来实现新需求。</li>
 </ul>
-<h3 id="命名规范">命名规范</h3>
+<p>可能会出现的情况</p>
 <ul>
-<li>不要使用匈牙利命名法（不要为变量名称附加类型前缀，避免后续类型变更）</li>
-<li>一般不要用双下划线的变量名，有极小可能会变微软使用为新关键字</li>
-<li>老生常态的有不要随便用非通用的缩写，尽量命名准确</li>
+<li>已有逻辑和你的需求有细微不同，一般是修改已有函数参数去扩展，又或者新增一个重载函数，部分逻辑调用已有接口</li>
+<li>不要重复复制原有函数逻辑，这会坑了未来的你和别人</li>
 </ul>
-<h3 id="公共中间语言">公共中间语言</h3>
+<h3 id="帮助理解的重构：使代码更易懂">帮助理解的重构：使代码更易懂</h3>
+<p>如果不想你精心设计的代码被后来人没有充分理解的情况下破坏了，那就应该写的更易懂。常用的手段有</p>
 <ul>
-<li>c#编译器将代码转为中间语言CIL（IL），即Common Intermediate Language</li>
-<li>即时编译（JIT），虚拟执行系统即运行时编译CIL的过程</li>
-<li>托管代码，代码在&quot;代理&quot;的上下文中执行，执行的流程则称为托管执行</li>
-<li>托管数据，执行的控制转向数据，数据所需的内存是运行时自动分配和回收的</li>
-<li>不仅仅是c#能转成CIL（当然要接入CLI还要符合其规范，比如CTS和CLS），实现了语言之间的互操作性以及平台可移植性</li>
+<li>拆分长函数</li>
+<li>修改变量名/函数名</li>
+<li>…</li>
 </ul>
+<h3 id="捡垃圾式重构">捡垃圾式重构</h3>
+<p>摇曳露营里提到：至少要让营地比你到达时更干净</p>
+<p>有时看到一段代码确实比较难忍，但是需求排期又比较紧。细微的重构可以先做了，比较棘手的可以先留下一处TODO</p>
+<h3 id="有计划的重构和见机行事的重构">有计划的重构和见机行事的重构</h3>
+<ul>
+<li>前面提到的三种重构时机都是见机行事的重构，属于顺手捡垃圾那种程度，不会影响已有需求的排期，又能让你更愉快地写代码</li>
+<li>如果代码出现了上面说的剪不断理还乱的情况，这是一个警告，意味着是时候该进行一次大型重构。</li>
+<li>只要日常开发中有重构意识，大部分重构应该是不起眼的、见机行事的</li>
+</ul>
+<h3 id="怎么对PM说">怎么对PM说</h3>
 <blockquote>
-<p>之所以叫托管，是因为运行时管理着诸如内存分配，安全性和JIT编译等方面，从而控制了主要的程序行为。执行不需要运行时的代码称为本机代码（native code）或非托管代码（unmanaged code）</p>
+<p>“重构”被视为一个脏词——经理（和客户）认为重构要么是在弥补过去犯下的错误，要么是不增加价值的无用功。如果团队又计划了几周时间专门做重构，情况就更糟糕了——如果他们做的其实还不是重构，而是不加小心的结构调整，然后又对代码库造成了破坏，那可就真是糟透了。</p>
 </blockquote>
-<h3 id="公共语言基础框架">公共语言基础框架</h3>
-<blockquote>
-<p>CLI是理解C#程序的执行环境以及C#如何与其他程序和库（甚至是用其他语言编写）进行无缝交互的一个重要规范</p>
-</blockquote>
-<h5 id="规范">规范</h5>
+<p>我觉得只要说清楚重构的必要性以及能带来什么收益，一切都是可以聊的。最好能带上一些量化的数据和案例，做完这次重构我们新增需求能节省多少时间之类、减少BUG的排查时间。</p>
+<h3 id="何时不应该重构">何时不应该重构</h3>
 <ul>
-<li>虚拟执行系统（VES即常说的运行时，现在比较常用的是CLR公共语言进行时，ps：非程序运行中那个运行时）</li>
-<li>公共中间语言，Common Intermediate Language-CIL</li>
-<li>公共类型系统，Common Type System-CTS</li>
-<li>公共语言规范，Common Language Specification-CLS</li>
-<li>元数据，Metadata</li>
-<li>框架，Framework</li>
+<li>没有人需要去了解代码的工作原理，它被API好好保护着时，就没有必要去浪费精力（比如一个大型函数，你不需要对其新增功能</li>
+<li>重写比重构快的情况，比如一些比较抽象的代码，你根本无法理解</li>
 </ul>
-<h5 id="垃圾回收">垃圾回收</h5>
+<h2 id="重构的挑战">重构的挑战</h2>
+<h3 id="延缓新功能开发">延缓新功能开发</h3>
 <ul>
-<li>不是CLI语言规范的一部分，但能让程序员更专注于程序功能上</li>
-<li>一般是分代、支持压缩、基于mark-and-sweep（标记清除）的算法</li>
+<li>有足够的理由和数据去说明重构带来的收益：添加功能更快，修复BUG越快</li>
+<li>不重构无法进行新功能的开发</li>
+<li>重构完可以通过配置组合已有代码，快速实现新功能</li>
 </ul>
-<h5 id="元数据">元数据</h5>
-<blockquote>
-<p>描述 类型和程序中包含的文件，可供反射功能使用</p>
-</blockquote>
+<h3 id="代码所有权">代码所有权</h3>
+<p>你无法修改那段让你恶心的代码或接口，因为他不只你一个系统在维护，或者被封装起来导致没有修改权</p>
 <ul>
-<li>程序或类库中每一个类型的描述</li>
-<li>清单信息，包括与程序本身有关的数据，以及他依赖的库</li>
-<li>在代码中嵌入的自定义特性，提供与特性所修饰的构造有关的额外信息</li>
+<li>如果是接口已经派发出去，重构接口名或参数会影响很多第三方使用者，可以新增一个接口，将旧的接口保留并标记为过时，慢慢去过渡新接口</li>
+<li>没有修改权的情况，提交修改需求或者提交修改代码去让相关方审核</li>
+</ul>
+<h3 id="分支">分支</h3>
+<p>如果多个人有自己的特性分支，这种情况下做重构确实会影响很多人。即使你经常拉取主分支修改，但是其他第三方分支对你来说是不透明的，一但你的重构提交上去，将会对其他分支造成大范围的冲突，这将严重影响其他人的工作。</p>
+<p>解决的思路：让特性分支存在的时间足够短，或者同时只存在一个特性分支</p>
+<p>书中给出了<strong>持续集成</strong>(Continuous Integration，CI）的方案，CI的核心目的就是让特性分支存在的时间足够短，每天都把特性分支的修改提交到主干分支，让其他人提前知道你的改动，谨防滚雪球效应。但如果你不希望主干分支受到你未完成的功能影响，这时候就要使用一些开关来让主干分支不会运行到你的未完成代码。这对自我测试比较苛刻，你要时刻记住你提交的代码会对主干造成什么影响。</p>
+<h2 id="重构与性能">重构与性能</h2>
+<p>除了对性能有严格要求的实时系统，其他任何情况下“编写快速软件”的秘密就是：先写出可调优的软件，然后调优它以求获得足够的速度。</p>
+<p>对于游戏来说，在update运行的逻辑需要谨慎对待。其他情况下更应优先考虑代码的可阅读性，再来考虑性能。很多时候你预想的性能优化过的代码可能根本都运行不到几次，更应该使用性能分析工具去分析热点代码，再来逐一击破。</p>
+<h2 id="自动化重构">自动化重构</h2>
+<p>现代代码编辑器都有重构代码相关的工具，方便你去替换函数名和变量名。</p>
+<ul>
+<li>但在像lua这样的弱语言还是要谨慎，避免把其他不同table同名的函数给修改了</li>
+<li>尽量避免多个功能模块使用了相同同名无意义的名字，会给名字修改带来麻烦。</li>
+<li>使用Emmylua的标记功能来减少重构难度</li>
+</ul>
+<h2 id="最近见机行事的重构">最近见机行事的重构</h2>
+<p>有A模块和B模块，A模块有个地方需要根据B模块逻辑特殊处理，一开始是使用A模块去if判断B模块是否处于某个状态的特判代码，后面觉得不妥，还是改成A模块本身支持处理不同情况，由B模块去切换A模块运行模式，避免A模块去依赖具体的业务逻辑。</p>
+<h2 id="引用">引用</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/NxeedGoto/Refactoring2-zh/blob/master/docs/ch2.md">https://github.com/NxeedGoto/Refactoring2-zh/blob/master/docs/ch2.md</a></li>
 </ul>
 
       </section>
@@ -207,28 +246,14 @@
       
         <nav class="article-nav">
           
-            <div class="article-nav-item layout-padding">
-  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
-    
-    <div class="card-text">
-      
-        <a href="/posts/ebc6bcdf/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">C#本质论-章节02&amp;03</h2>
-        </a>
-      
-      <div class="card-text--row">Newer</div>
-    </div>
-  </article>
-</div>
-          
           
             <div class="article-nav-item layout-padding">
   <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
     
     <div class="card-text">
       
-        <a href="/posts/b510e05a/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">LuaClass的实现</h2>
+        <a href="/posts/761863e6/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">【Refactoring】重构，第一个示例</h2>
         </a>
       
       <div class="card-text--row">Older</div>
