@@ -26,7 +26,7 @@
 
   
 
-  <title>《Unity性能优化》-- 100. 游戏性能调试工具汇总 | 不特别周のBlog</title>
+  <title>【Refactoring】代码的坏味道 | 不特别周のBlog</title>
 
   
 
@@ -100,16 +100,16 @@
     <div class="header-content">
       <div class="post-text layout-block">
         <div class="layout-margin">
-          <h1 class="title-wrap">《Unity性能优化》-- 100. 游戏性能调试工具汇总</h1>
+          <h1 class="title-wrap">【Refactoring】代码的坏味道</h1>
           <h2 class="title-sub-wrap">
             <strong>kio0o0</strong>
             <span>发布于</span>
-            <time  class="article-date" datetime="2023-04-14T07:14:16.000Z" itemprop="datePublished">2023-04-14</time>
+            <time  class="article-date" datetime="2024-08-24T04:03:03.608Z" itemprop="datePublished">2024-08-24</time>
           </h2>
           
             <h2 class="title-sub-wrap new-date">
               <span>最后更新于</span>
-              <time  class="article-updated" datetime="2024-07-14T09:03:59.236Z" itemprop="dateUpdated">2024-07-14</time>
+              <time  class="article-updated" datetime="2024-08-25T05:13:15.072Z" itemprop="dateUpdated">2024-08-25</time>
             </h2>
           
           
@@ -120,9 +120,9 @@
 </ul>
           <ul class="wrap-list dark">
   
-    <li><a href="/tags/Unity/">🏷️ Unity</a></li>
+    <li><a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/">🏷️ 代码设计</a></li>
   
-    <li><a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">🏷️ 性能优化</a></li>
+    <li><a href="/tags/%E9%87%8D%E6%9E%84/">🏷️ 重构</a></li>
   
 </ul>
         </div>
@@ -147,51 +147,135 @@
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
         <span id="more"></span>
-<h2 id="PC通用性能分析工具（某些需要特殊硬件支持）">PC通用性能分析工具（某些需要特殊硬件支持）</h2>
+<p>何时重构？何时停止？</p>
+<h2 id="神秘命名（Mysterious-Name）">神秘命名（Mysterious Name）</h2>
+<p>总不能看代码需要小虎解密卡解密吧，就像阅读里有一堆专业名词你看不懂，对你理解全文将是毁灭性打击。</p>
+<p>一些通用的命名规范：</p>
+<ol>
+<li>命名要具有描述性（除了描述意义，也可描述类型比如GO，以及是集合还是单一元素）</li>
+<li>只使用人尽皆知的缩写，不要担心过长，让代码易于新读者理解更重要</li>
+<li>避免增加无附加意义的词语</li>
+<li>避免有歧义的单词</li>
+</ol>
+<p><em>ps：替换变量名字需要注意替换干净，强类型语言可以用IDE的重构命名，弱类型语言比如lua，如果复制了一个类，此时对类名重命名可能会影响原有类</em></p>
+<h2 id="重复代码（Duplicated-Code）">重复代码（Duplicated Code）</h2>
+<p>简而言之就是你需要新增某个功能时，需要在不同的地方新增相同的代码</p>
+<p>坏味道：</p>
 <ul>
-<li>AMD μProf：<a target="_blank" rel="noopener" href="https://developer.amd.com/amd-uprof/">https://developer.amd.com/amd-uprof/</a></li>
-<li>NVIDIA NSight：<a target="_blank" rel="noopener" href="https://developer.nvidia.com/tools-overview">https://developer.nvidia.com/tools-overview</a></li>
-<li>Intel VTune：<a target="_blank" rel="noopener" href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/vtune-profiler.html">https://www.intel.com/content/www/us/en/developer/tools/oneapi/vtune-profiler.html</a></li>
-<li>Intel GPA suite：<a target="_blank" rel="noopener" href="https://www.intel.com/content/www/us/en/developer/tools/graphics-performance-analyzers/overview.html">https://www.intel.com/content/www/us/en/developer/tools/graphics-performance-analyzers/overview.html</a></li>
-<li>Superluminal：<a target="_blank" rel="noopener" href="https://superluminal.eu/">https://superluminal.eu/</a></li>
+<li>同一个类的两个函数含有相同的表达式</li>
+<li>AB模块都引用了同一种枚举，但是枚举在AB模块都存在</li>
 </ul>
-<h2 id="平台性能分析工具（需要特殊操作系统、浏览器或硬件支持）">平台性能分析工具（需要特殊操作系统、浏览器或硬件支持）</h2>
-<h3 id="IOS">IOS:</h3>
+<p>手段：</p>
 <ul>
-<li>Xcode Instruments: <a target="_blank" rel="noopener" href="https://developer.apple.com/library/archive/documentation/AnalysisTools/Conceptual/instruments_help-collection/Chapter/Chapter.html">https://developer.apple.com/library/archive/documentation/AnalysisTools/Conceptual/instruments_help-collection/Chapter/Chapter.html</a></li>
+<li>提炼函数+移动语句：将相同部分代码提取到函数</li>
+<li>函数上移：提取后避免A类调用B类函数</li>
 </ul>
-<h3 id="Android">Android</h3>
+<h2 id="过长函数（Long-Function）">过长函数（Long Function）</h2>
+<p>用函数来取代注释，避免一个函数做过多事情。</p>
+<blockquote>
+<p>吐槽下之前经历过的项目一个处理技能特效的函数，把所有可能触发的特效都塞里面，由于特效的播放依赖其他变量的变动（类似时间线机制），导致那个函数充斥了IF分支以及各种回调函数。整个函数长达上千行，让人望而却步。</p>
+</blockquote>
+<p>坏味道（这里指可以拆成小函数的时机）：</p>
 <ul>
-<li>Android Studio: <a target="_blank" rel="noopener" href="https://developer.android.com/studio/profile">https://developer.android.com/studio/profile</a></li>
-<li>Arm Mobile Studio: <a target="_blank" rel="noopener" href="https://developer.arm.com/Tools%20and%20Software/Arm%20Mobile%20Studio">https://developer.arm.com/Tools and Software/Arm Mobile Studio</a></li>
-<li>Snapdragon Profiler: <a target="_blank" rel="noopener" href="https://developer.qualcomm.com/software/snapdragon-profiler">https://developer.qualcomm.com/software/snapdragon-profiler</a></li>
+<li>需要注释说明的地方</li>
+<li>条件表达式</li>
+<li>循环</li>
 </ul>
-<h3 id="Windows-XBox">Windows/XBox</h3>
+<p>手段：</p>
 <ul>
-<li>PIX: <a target="_blank" rel="noopener" href="https://devblogs.microsoft.com/pix/introduction/">https://devblogs.microsoft.com/pix/introduction/</a></li>
+<li>大部分情况可以通过提炼函数解决</li>
+<li>如果代码依赖大量变量导致需要传递的参数过多，则考虑减少参数手段（下面提到）</li>
+<li>对分支或循环的内容进行函数拆分，部分分支甚至可以采用多态来优化</li>
 </ul>
-<h3 id="PlayStation">PlayStation</h3>
+<h2 id="过长参数列表（Long-Parameter-List）">过长参数列表（Long Parameter List）</h2>
+<p>过长的参数列表会让调用时感到疑惑，特别是lua这种弱语言类型，经常在数第几个参数需要传什么内容，一不小心就将东西送错给别的参数</p>
+<p>常用手段：</p>
 <ul>
-<li>CPU profiler tools: <a target="_blank" rel="noopener" href="https://partners.playstation.net/">https://partners.playstation.net/</a></li>
+<li>查询取代临时变量：比如某些变量就是纯粹用其他参数计算或查询得到的</li>
+<li>引入参数对象：好几个数据成对出现，考虑抽成结构体或对象</li>
+<li>保持对象完整：多处地方只是拿对象的某些成员，可以考虑传递对象</li>
+<li>以命令取代函数</li>
 </ul>
-<h3 id="WebGL">WebGL</h3>
+<h2 id="全局数据（Global-Data）">全局数据（Global Data）</h2>
+<p>减少代码出错的方法之一就是让变量的生命周期足够短和作用域足够小</p>
+<p>试想某个变量作用域是全局，但遇到bug数据不对，若干地方都在修改这个变量，想想就汗流浃背了。</p>
+<blockquote>
+<p>比如上次不小心将某个全局的VectorZero修改了，导致其他地方拿到的数据不是Zero</p>
+</blockquote>
+<p>手段：</p>
 <ul>
-<li>Chrome DevTools Performance: <a target="_blank" rel="noopener" href="https://developer.chrome.com/docs/devtools/evaluate-performance/">https://developer.chrome.com/docs/devtools/evaluate-performance/</a></li>
-<li>Firefox Profiler: <a target="_blank" rel="noopener" href="https://profiler.firefox.com/">https://profiler.firefox.com/</a></li>
+<li>能不用全局就不用全局</li>
+<li>能不修改就设置为可读</li>
+<li>实在需要修改，请封装变量，通过函数来修改，这样可以追踪函数调用堆栈</li>
 </ul>
-<h2 id="GPU性能调试工具（某些需要对应硬件支持）">GPU性能调试工具（某些需要对应硬件支持）</h2>
+<h2 id="可变数据（Mutable-Data）">可变数据（Mutable Data）</h2>
+<p>对数据的修改经常导致出乎意料的结果和难以发现的 bug。在一处更新数据，却没有意识到软件中的另一处期望着完全不同的数据。</p>
+<p>手段：</p>
 <ul>
-<li>Arm Graphics Analyzer：<a target="_blank" rel="noopener" href="https://developer.arm.com/Tools%20and%20Software/Graphics%20Analyzer">https://developer.arm.com/Tools and Software/Graphics Analyzer</a></li>
-<li>Tegra Graphics Debugger：<a target="_blank" rel="noopener" href="https://developer.nvidia.com/tegra-graphics-debugger">https://developer.nvidia.com/tegra-graphics-debugger</a></li>
-<li>Intel Graphics Performance Analyzers：<a target="_blank" rel="noopener" href="https://www.intel.com/content/www/us/en/developer/tools/graphics-performance-analyzers/overview.html">https://www.intel.com/content/www/us/en/developer/tools/graphics-performance-analyzers/overview.html</a></li>
-<li>NVIDIA Nsight Frame Debugger: <a target="_blank" rel="noopener" href="https://docs.nvidia.com/gameworks/content/developertools/desktop/frame_debugger_ogl.htm">https://docs.nvidia.com/gameworks/content/developertools/desktop/frame_debugger_ogl.htm</a></li>
-<li>AMD Radeon Developer Tool Suite: <a target="_blank" rel="noopener" href="https://gpuopen.com/tools/">https://gpuopen.com/tools/</a></li>
-<li>Xcode Frame Capture Debugging Tools: <a target="_blank" rel="noopener" href="https://developer.apple.com/documentation/metal/debugging_tools">https://developer.apple.com/documentation/metal/debugging_tools</a></li>
-<li>Visual Studio Graphics Diagnostics: <a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-gb/visualstudio/debugger/graphics/visual-studio-graphics-diagnostics?view=vs-2019&amp;redirectedfrom=MSDN&amp;viewFallbackFrom=vs-2015">https://docs.microsoft.com/en-gb/visualstudio/debugger/graphics/visual-studio-graphics-diagnostics?view=vs-2019&amp;redirectedfrom=MSDN&amp;viewFallbackFrom=vs-2015</a></li>
-<li>RenderDoc: <a target="_blank" rel="noopener" href="https://renderdoc.org/builds">https://renderdoc.org/builds</a></li>
+<li>函数式编程，所有数据都是副本，不修改原有数据。这种比较极端，在lua这种自由度高的语言不太适用</li>
+<li>封装变量，让变量修改在可控范围</li>
+<li>拆分变量，避免一个变量负责过多的用途，比如ab模块都用它来存数据</li>
+<li>如果数据不需要修改数值，请不要增加设值函数（set）</li>
+<li>如果可变数据可以通过计算处理，则尽量用查询来替代</li>
 </ul>
-<h2 id="总结">总结</h2>
-<p>还是Xcode好用，信息最全，而且可以定量分析</p>
+<p>主要还是看数据的作用域范围以及生命周期，如果都足够mini的情况，数据变动也不是什么大问题</p>
+<h2 id="发散式变化（Divergent-Change）">发散式变化（Divergent Change）</h2>
+<p>最理想的情况，新增需求只需要在一处地方新增对应的逻辑，不需要几处脚本都修改。<br>
+但一般复杂的系统并不能达成这种理想条件，这时候需要注意本节提到的坏味道。</p>
+<p>核心点是“每次只关心一次上下文”，新增需求不可避免会涉及多个方向的修改，那就应该每个方向都有专一的事情（上下文），职责单一原则。比如新增一个状态，表现层就在状态机内做，具体的移动逻辑在对应的移动组件，由状态统一去驱动，而不是某个脚本抢了移动组件的活，即某个上下文需要处理表现又要处理移动逻辑。</p>
+<p>手段：</p>
+<ul>
+<li>拆分阶段：将两个揉杂的阶段拆离，并用清晰的数据结构沟通</li>
+<li>搬移函数、提炼函数、提炼类：来处理两个方向互相调用的逻辑</li>
+</ul>
+<h2 id="霰弹式修改（Shotgun-Surgery）">霰弹式修改（Shotgun Surgery）</h2>
+<p>如果每遇到某种变化，你都必须在许多不同的类内做出许多小修改，你所面临的坏味道就是霰弹式修改。如果需要修改的代码散布四处，你不但很难找到它们，也很容易错过某个重要的修改。</p>
+<p>听着很像发散式变化，其实不然，这里应该是两个上下文沟通的逻辑分散在各个上下文，比如AB模块都需要读取一些枚举或者共同的数据，两个模块都实现了一份或者都刚好拥有各模块所需要的部分。比如技能释放逻辑和技能的ui表现，技能系统和ui系统都需要技能数据，各自又存了一份拷贝或者实现之类的，这时候应该抽离出来，放在一个中心的地方。</p>
+<p>手段：</p>
+<ul>
+<li>搬移函数、搬移字段：移动逻辑到同一模块</li>
+<li>函数组合成类、函数组合成变换：把不同模块处理一样的数据的部分让类统一去处理</li>
+</ul>
+<p>原则是：把本不该分散的逻辑拽回一处</p>
+<h2 id="依恋情结（Feature-Envy）">依恋情结（Feature Envy）</h2>
+<p>一个函数跟另一个模块中的函数或数据交流格外频繁，远胜于在自己所处模块内部的交流</p>
+<p>影响：</p>
+<ul>
+<li>可读性、可维护性低</li>
+<li>调用另一模块功能时往往需要打一套组合拳才能完成，需要知道过多的细节</li>
+<li>往往会伴随有“内幕交易、重复代码、霰弹式修改……”</li>
+</ul>
+<p>改进目标：</p>
+<ul>
+<li>将函数搬移到对应的类</li>
+<li>解除跨模块的过多交流</li>
+</ul>
+<p>手段：</p>
+<ul>
+<li>提炼函数、搬移函数</li>
+</ul>
+<p><em>注：策略模式、访问者模式往往会带来依恋情节，这不是说这两个模式不可取。我们需要理解：从根本上，我们消除“依恋情节”和应用这些设计模式都是为了把一起变化的东西放到一块儿。</em></p>
+<h2 id="数据泥团（Data-Clumps）">数据泥团（Data Clumps）</h2>
+<p>在很多地方看到相同的三四项数据：两个类中相同的字段、许多函数签名中相同的参数，成群结队地待在一块儿。</p>
+<p>判断：</p>
+<ul>
+<li>删掉众多数据中的一项。如果这么做，其他数据有没有因而失去意义？</li>
+<li>如果它们不再有意义，这就是一个明确信号：你应该为它们产生一个新对象</li>
+</ul>
+<p>手段：</p>
+<ul>
+<li>提炼类：给他们一个家，让他们呆一起吧</li>
+<li>引入参数对象、保持对象完整：来缩短参数列表（以家为对象参与吧</li>
+</ul>
+<h2 id="基本类型偏执（Primitive-Obsession）">基本类型偏执（Primitive Obsession）</h2>
+<p>赋予基本类型意义，比如日期，直接用int类型来使用（20240820），数字的加法和日期的加法并不一致，直接用int相加时要引入其他额外逻辑，这些额外逻辑就应该处在同一个类中，比如日期类。</p>
+<p>直接用基本类型来面对具体业务需求，当后期需要新增功能时将显得很被动。比如游戏道具价格一开始用数字或者字符串去使用，但到后期游戏要做海外时，价格需要转换成其他地区的货币，这时候就要对原有价格进行换算。如果很多地方都要处理这种换算，又闻到一丝其他坏味道。</p>
+<p>手段：</p>
+<ul>
+<li>以对象取代基本类型：抽离基本类型成对象</li>
+<li>提炼类、引入参数对象：如果基本类型数据总是成组出现</li>
+<li>以子类取代类型码、以多态取代条件表达式：基本类型用于控制条件行为时</li>
+</ul>
 
       </section>
 
@@ -199,28 +283,14 @@
       
         <nav class="article-nav">
           
-            <div class="article-nav-item layout-padding">
-  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
-    
-    <div class="card-text">
-      
-        <a href="/posts/6f1f548d/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">《Unity性能优化》-- 6. 发布前优化</h2>
-        </a>
-      
-      <div class="card-text--row">Newer</div>
-    </div>
-  </article>
-</div>
-          
           
             <div class="article-nav-item layout-padding">
   <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
     
     <div class="card-text">
       
-        <a href="/posts/c33c353/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">《Unity性能优化》-- 5.1 性能优化实战理论</h2>
+        <a href="/posts/e6aa76e/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">初探MotionWarping</h2>
         </a>
       
       <div class="card-text--row">Older</div>
