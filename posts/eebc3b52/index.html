@@ -109,7 +109,7 @@
           
             <h2 class="title-sub-wrap new-date">
               <span>最后更新于</span>
-              <time  class="article-updated" datetime="2024-08-25T05:13:15.072Z" itemprop="dateUpdated">2024-08-25</time>
+              <time  class="article-updated" datetime="2024-09-08T06:56:12.210Z" itemprop="dateUpdated">2024-09-08</time>
             </h2>
           
           
@@ -275,6 +275,148 @@
 <li>以对象取代基本类型：抽离基本类型成对象</li>
 <li>提炼类、引入参数对象：如果基本类型数据总是成组出现</li>
 <li>以子类取代类型码、以多态取代条件表达式：基本类型用于控制条件行为时</li>
+</ul>
+<h2 id="重复的-switch-（Repeated-Switches）">重复的 switch （Repeated Switches）</h2>
+<p>在不同的地方反复使用同样的 switch 逻辑（可能是以 switch/case 语句的形式，也可能是以连续的 if/else 语句的形式）<br>
+重复的 switch 的问题在于：每当你想增加一个选择分支时，必须找到所有的 switch，并逐一更新</p>
+<p>比如一个系统里支持很多功能，同时只能使用一个功能，此时可能会有个标记记录当前是什么功能，那么代码中必然存在很多判断当前是什么功能需要做什么的代码。如果这种判断分散在这个系统各处，当后续要新增功能时会让人摸不着头脑该怎么新增。</p>
+<p>手段：</p>
+<ul>
+<li>以多态取代条件表达式：将每种功能必须提供的功能拆出成类，切换不同子类来保证切换逻辑简单、唯一</li>
+</ul>
+<h2 id="循环语句（Loops）">循环语句（Loops）</h2>
+<p>书里主张以管道取代循环，在c#语言即多用Linq这种基于迭代器的概念来取代循环，使得代码更清晰易懂。<br>
+但在游戏开发中使用Linq会造成大量垃圾对象，所以在编辑器可能用的多一点，比如下面代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mModules = editorAssembly             </span><br><span class="line">                .GetTypes()</span><br><span class="line">                .Where(type =&gt; moduleType.IsAssignableFrom(type) &amp;&amp; !type.IsAbstract)</span><br><span class="line">                .Select(type =&gt; type.GetConstructors().First().Invoke(null))</span><br><span class="line">                .Cast&lt;IEditorPlatformModule&gt;()</span><br><span class="line">                .ToList();</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">foreach (var type in editorAssembly.GetTypes())</span><br><span class="line">        &#123;</span><br><span class="line">            if (moduleType.IsAssignableFrom(type) &amp;&amp; !type.IsAbstract)</span><br><span class="line">            &#123;</span><br><span class="line">                var instance = type.GetConstructors().First().Invoke(null) as IEditorPlatformModule;</span><br><span class="line"></span><br><span class="line">                mModules.Add(instance);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<p><strong>题外话：</strong><br>
+游戏开发中有很多时间上异步的逻辑，比如等待网络请求到了才能做什么事、等待多少秒后执行什么，<br>
+常用的方法有循环中轮询或者事件主动通知。这两种方法都会让逻辑比较分散，一眼看不出在做什么，有点像上面循环的例子，循环里做了太多事情。<br>
+基于上面有一种UniRx/UniTask的解决方案，其写法还和“以管道取代循环”的思路挺近似的。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Observable.EveryUpdate()</span><br><span class="line">          .Where(\_ =&gt; Input.GetMouseButtonUp(0))</span><br><span class="line">          .First()</span><br><span class="line">          .Subscribe(\_ =&gt; &#123; // do something   &#125;);</span><br></pre></td></tr></table></figure>
+<h2 id="冗赘的元素（Lazy-Element）">冗赘的元素（Lazy Element）</h2>
+<p>定义：冗赘的元素主要包括由于过度设计或在代码演进过程中，产生的冗余、废弃或不足以独立承担其职责的类、方法、变量等</p>
+<p>影响：代码不简洁，存在多余的元素，造成在维护时无用修改，难以维护，影响代码的可读性。</p>
+<p>改进目标：消除冗赘的程序元素，提高代码的可读性、可维护性。</p>
+<p><em>感觉过度设计还是不多的，更多可能是一些废弃代码要及时移除</em></p>
+<p>手段：</p>
+<ul>
+<li>内联函数或内联类</li>
+<li>如果这个类处于一个继承体系中，可以使用折叠继承体系</li>
+<li>安全删除冗余元素</li>
+</ul>
+<h2 id="夸夸其谈通用性（Speculative-Generality）">夸夸其谈通用性（Speculative Generality）</h2>
+<p>定义：过度的考虑程序的通用性</p>
+<p>影响：过度的设计导致代码不易理解和维护</p>
+<p>改进目标：删除过度设计的代码</p>
+<p>手段：</p>
+<ul>
+<li>折叠继承体系：如果你的某个抽象类其实没有太大作用</li>
+<li>内联类、内联函数：不必要的委托</li>
+<li>改变函数声明：如果函数的某些参数未被用上</li>
+<li>移除死代码：根本没用到的代码</li>
+</ul>
+<h2 id="临时字段（Temporary-Field）">临时字段（Temporary Field）</h2>
+<p>定义：某个实例变量仅为代码中一小部分功能临时所用而创建</p>
+<p>影响：</p>
+<ul>
+<li>通常一个对象会需要它的全部的变量。当一个变量看上去没什么用，却要试图了解他为什么在哪里时，会使类的作用变得更难理解，影响了代码的可读性和可维护性</li>
+<li>临时字段只在特定情况下有值（因此它们被对象需要），在这种情况之外，他的值是空的</li>
+<li>可能某个函数需要这个字段，但在不执行这个函数的时候，这个字段是没有意义的</li>
+</ul>
+<p>改进目标：消除临时字段，提升代码可读性、可维护性</p>
+<p>手段：</p>
+<ul>
+<li>提取类：将这个字段和相关的代码抽象成类</li>
+<li>引入特例</li>
+</ul>
+<h2 id="过长的消息链（Message-Chains）">过长的消息链（Message Chains）</h2>
+<p>定义：获取一个对象，从这个对象获取另一个对象，接着继续从另一个对象取东西，在实际代码中你看到的可能是一长串取值函数或一长串临时变量。</p>
+<p>影响：客户端代码将与查找过程中的调用结构紧密耦合。一旦对象间的关系发生任何变化，客户端就不得不做出相应修改。</p>
+<p>改进目标：针对过长消息链，可以用这时候应该使用隐藏委托关系，把调用链这种耦合关系放在中间人中。</p>
+<p>手段：</p>
+<ol>
+<li>观察清楚消息链的调用业务逻辑。</li>
+<li>通过提炼函数把所有相同调用放在一个函数中</li>
+<li>搬移函数到对应的中间人类中（新增或者使用以前的类）</li>
+<li>替换这个函数到之前调用链。隐藏委托关系</li>
+</ol>
+<h2 id="中间人（Middle-Man）">中间人（Middle Man）</h2>
+<p>定义：一种过度使用委托（某类中一半以上方法都委托给其他类）的代码</p>
+<p>影响：当需求发生某些变化的时候，作为中间人的代码总会被牵连一并修改，代码越发臃肿</p>
+<p><em>比如需要调用系统里某个功能，系统里是某个成员来实现这个功能，很可能代码会变成在系统里新增一个函数，然后函数里再调用成员里的方法，多了一层中间人转接</em></p>
+<p>改进目标：减少委托</p>
+<p>手段：</p>
+<ul>
+<li>移除中间人：内联、以委托取代超类/子类</li>
+</ul>
+<h2 id="内幕交易（Insider-Trading）">内幕交易（Insider Trading）</h2>
+<p>定义：模块之间互相引用，私下直接进行大量的数据访问和交换</p>
+<p>影响：增大模块间的耦合，容易导致循环依赖，严重影响可维护性</p>
+<p>改进目标：消除模块间不合理的依赖关系（特别是循环依赖），将私下的数据访问和交换放到明面上，使模块间解耦，提高可维护性</p>
+<p><em>感觉比较常见是另一个模块拿一个模块本不希望公开的数据，有些数据可能设计初衷是私有的，但为了快速迭代改成公有或者加上get/set。在lua这种弱语言更容易随便拿到内部变量，更多是加_去约束命名。</em></p>
+<p>手段：</p>
+<ul>
+<li>搬移函数、搬移字段：减少两个模块私下交流，如果避免不了，应挪到一个模块专门来复杂交流这件事，</li>
+<li>隐藏委托关系：把另一个模块变成这两者的中介</li>
+<li>以委托取代子类/超类：出现子类拿父类不希望使用的方法或数据，过度交流</li>
+</ul>
+<h2 id="过大的类（Large-Class）">过大的类（Large Class）</h2>
+<p>定义：由于属性未分组和职责不单一而包含过多属性、方法和代码行的类，一个类负责的事情过多</p>
+<p>影响：随着属性、方法和代码行数的不断增加，重复代码接踵而至，最终走向混乱</p>
+<p>改进目标：拆分过大的类，确保类职责单一</p>
+<p><em>大体是当你发现要往这个类新增功能时发现很难有插入点，需要考虑的事情过多，就说明这个类有点过大了</em></p>
+<p>手段：</p>
+<ul>
+<li>提取类、子类：
+<ul>
+<li>把一些明显负责一样事情的字段、函数挪到新类，</li>
+<li>有时候会发现这个类有多种状态，但是对外行为一致，可以采用提取子类</li>
+<li>如果某个字段只有特定情况下使用，采取进一步提取</li>
+</ul>
+</li>
+<li>提取接口：
+<ul>
+<li>如果发现有大量代码重复，提炼成函数</li>
+</ul>
+</li>
+</ul>
+<h2 id="异曲同工的类（Alternative-Classes-with-Different-Interfaces）">异曲同工的类（Alternative Classes with Different Interfaces）</h2>
+<p>面向接口编程，两个类的行为一致，而且不同情况下可以互相替换，那就应该用接口来约束，常用的多态思想。</p>
+<p><em>组合拳：接口+超类，可以关联前面的过多分支语句</em></p>
+<p>手段：</p>
+<ul>
+<li>改变函数声明：使两者函数签名一致（前提本身就行为一致）</li>
+<li>搬移函数、提炼超类：为了让两者函数签名一致需要搬运代码</li>
+</ul>
+<h2 id="纯数据类（Data-Class）">纯数据类（Data Class）</h2>
+<p>指的是只存放数据，但没有任何处理数据的方法。出现这种类常常意味着行为被放在了错误的地方</p>
+<p>需要做的是：</p>
+<ul>
+<li>对已有的数据明确哪些需要公开给外部，移除不必要的GET和SET</li>
+<li>将对数据的处理函数挪到类内部</li>
+<li>也有保留纯数据类的例外情况：只作为函数返回值且不可修改</li>
+</ul>
+<h2 id="被拒绝的遗赠（Refused-Bequest）">被拒绝的遗赠（Refused Bequest）</h2>
+<p>定义: 被拒绝的遗赠是指：对于某个子类，它只想继承基类的部分函数和数据，不需要基类提供的全部内容，这些不需要的内容就成为了子类的负担</p>
+<p>影响: 这种坏味道通常影响并不大，但如果子类拒绝实现部分接口或者基类的方法只适用于某个子类特定的方法，就会对可维护、可扩展性等造成较大影响。</p>
+<p>改进目标: 改进不合理的继承体系，使代码结构清晰、可控。</p>
+<p><em>并不建议对所有存在“被拒绝的遗赠”的代码都进行修改，我们经常使用继承复用一些行为，可以很好的应对日常工作，所以修改的成本和收益还是需要开发者自己权衡。但是当“被拒绝的遗赠”使开发人员困惑时，就建议及时处理掉。</em></p>
+<p>手段：</p>
+<ul>
+<li>函数/字段下移，让超类只持有子类共享的东西</li>
+<li>以委托取代超类/子类</li>
+</ul>
+<h2 id="注释（Comments）">注释（Comments）</h2>
+<ul>
+<li>注释可以带我们找到本章先前提到的各种坏味道</li>
+<li>找到坏味道后，我们首先应该以各种重构手法把坏味道去除</li>
+<li>完成之后我们常常会发现：注释已经变得多余了，因为代码已经清楚地说明了一切</li>
+</ul>
+<p>什么时候该注释：</p>
+<ul>
+<li>如果你不知道该做什么，这才是注释的良好运用时机。除了用来记述将来的打算之外，</li>
+<li>注释还可以用来标记你并无十足把握的区域。你可以在注释里写下自己“为什么做某某事”。这类信息可以帮助将来的修改者，尤其是那些健忘的家伙。</li>
 </ul>
 
       </section>
