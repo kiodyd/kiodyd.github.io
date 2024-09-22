@@ -26,7 +26,7 @@
 
   
 
-  <title>cocos creator微信小游戏截图 | 不特别周のBlog</title>
+  <title>【Refactoring】构筑测试体系、介绍重构名录 | 不特别周のBlog</title>
 
   
 
@@ -100,29 +100,24 @@
     <div class="header-content">
       <div class="post-text layout-block">
         <div class="layout-margin">
-          <h1 class="title-wrap">cocos creator微信小游戏截图</h1>
+          <h1 class="title-wrap">【Refactoring】构筑测试体系、介绍重构名录</h1>
           <h2 class="title-sub-wrap">
-            <strong>kiodyd</strong>
+            <strong>kio0o0</strong>
             <span>发布于</span>
-            <time  class="article-date" datetime="2018-11-17T10:08:55.000Z" itemprop="datePublished">2018-11-17</time>
+            <time  class="article-date" datetime="2024-09-22T04:04:57.216Z" itemprop="datePublished">2024-09-22</time>
           </h2>
-          
-            <h2 class="title-sub-wrap new-date">
-              <span>最后更新于</span>
-              <time  class="article-updated" datetime="2024-07-14T09:03:59.235Z" itemprop="dateUpdated">2024-07-14</time>
-            </h2>
           
           
           <ul class="wrap-list dark">
   
-    <li><a href="/categories/%E8%BD%AF%E4%BB%B6/">📒 软件</a></li>
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
   
 </ul>
           <ul class="wrap-list dark">
   
-    <li><a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/">🏷️ 游戏开发</a></li>
+    <li><a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/">🏷️ 代码设计</a></li>
   
-    <li><a href="/tags/cocos/">🏷️ cocos</a></li>
+    <li><a href="/tags/%E9%87%8D%E6%9E%84/">🏷️ 重构</a></li>
   
 </ul>
         </div>
@@ -146,22 +141,58 @@
       
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
-        <p>还不会cocos实现截图？快点进来看看吧</p>
-<span id="more"></span>
-<h2 id="前言">前言</h2>
-<p>在之前，用CocosCreator制作的游戏，截图功能的实现是一个比较麻烦的地方，之前的官方文档也没有相关资料，只有论坛大神给出的一些解决方案。后来cocos更新了2.0版本，camera组件大改，截图功能也有了官方的解决方案，详情请见<a target="_blank" rel="noopener" href="https://docs.cocos.com/creator/manual/zh/render/camera.html">这里</a>。不过本文讨论的不是h5或是原生平台，以上平台可以参考上面官方文档。</p>
-<h2 id="开始">开始</h2>
-<p>微信小游戏其实已经给开发者准备了相关的截图api–<a target="_blank" rel="noopener" href="https://developers.weixin.qq.com/minigame/dev/document/render/canvas/Canvas.toTempFilePath.html">Canvas.toTempFilePath</a>，你们可以先进去看看文档关于各个参数的解释。这个函数的作用是，在当前的Canvas指定一个区域（没有参数情况下则截取整个Canvas）来截图，最后返回一个图片临时路径。根据不同的需求来使用函数返回的路径图片。</p>
-<h3 id="需求Ⅰ-预览所截的图，并保存图片">需求Ⅰ 预览所截的图，并保存图片</h3>
-<p>这里需要配合微信api的另一个函数<a target="_blank" rel="noopener" href="https://developers.weixin.qq.com/minigame/dev/document/media/image/wx.previewImage.html">wx.previewImage</a>，同理可先进去看看文档怎么解释的。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">wechat_download() &#123;</span><br><span class="line">        let canvas = cc.game.canvas;</span><br><span class="line">        let rate = this.wechat_canvas.parent.width / canvas.width;</span><br><span class="line">        let width = this.wechat_canvas.width / rate;</span><br><span class="line">        let height = this.wechat_canvas.height / rate;</span><br><span class="line"></span><br><span class="line">        canvas.toTempFilePathSync(&#123;</span><br><span class="line">            x: canvas.width / 2 - this.wechat_canvas.width / rate / 2,</span><br><span class="line">            y: canvas.height / 2 - (this.wechat_canvas.height / 2 + this.wechat_canvas.y) / rate,</span><br><span class="line">            width: width,</span><br><span class="line">            height: height,</span><br><span class="line">            destWidth: width,</span><br><span class="line">            destHeight: height,</span><br><span class="line">            success : (res)=&gt; &#123;</span><br><span class="line">	            wx.previewImage(&#123;</span><br><span class="line">                     current: res.tempFilePath,</span><br><span class="line">                     urls: [res.tempFilePath]</span><br><span class="line">                &#125;)</span><br><span class="line">           &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;,</span><br></pre></td></tr></table></figure>
-<p>上面是我调用的过程，其中要注意的是，不同设备适配的时候会将canvas拉伸，所以不可以直接用我们在cocos里的尺寸，这里我先计算放缩的比例rate，再根据rate调整截图位置和截图区域大小。</p>
-<h3 id="需求-Ⅱ-根据截图分享小游戏给好友">需求 Ⅱ 根据截图分享小游戏给好友</h3>
-<p>相关函数<a target="_blank" rel="noopener" href="https://developers.weixin.qq.com/minigame/dev/document/share/wx.shareAppMessage.html">wx.shareAppMessage</a></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">shareFriend() &#123;</span><br><span class="line">        let canvas = cc.game.canvas;</span><br><span class="line">        let rate = this.wechat_canvas.parent.width / canvas.width;</span><br><span class="line">        let width = this.wechat_canvas.width / rate;</span><br><span class="line">        let height = this.wechat_canvas.height / rate;</span><br><span class="line"></span><br><span class="line">        canvas.toTempFilePathSync(&#123;</span><br><span class="line">            x: canvas.width / 2 - this.wechat_canvas.width / rate / 2,</span><br><span class="line">            y: canvas.height / 2 - (this.wechat_canvas.height / 2 + this.wechat_canvas.y) / rate,</span><br><span class="line">            width: width,</span><br><span class="line">            height: height,</span><br><span class="line">            destWidth: 500,</span><br><span class="line">            destHeight: 400,</span><br><span class="line">            success: (res) =&gt; &#123;</span><br><span class="line">                 wx.shareAppMessage(&#123;</span><br><span class="line">                 	 imageUrl: res.tempFilePath</span><br><span class="line">                 &#125;)</span><br><span class="line">             &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;,</span><br></pre></td></tr></table></figure>
-<p>使用方法其实和上面差不多，注意目标尺寸最好是5：4吧</p>
-<h2 id="总结">总结</h2>
-<p>调用微信api的话截图比较简单，但需要注意位置的定位和canvas的转换，还有一点，上述转发图片功能我测试的时候，用游客appid是不能用的，所以需要自己去申请一个appid才能使用shareAppMessage函数。</p>
+        <span id="more"></span>
+<h1>构筑测试体系</h1>
+<p>重构是很有价值的工具，但没人能保证重构完的代码就是对的，所以我们需要一套测试体系来避免滋生了新的BUG。</p>
+<h2 id="自测试代码的价值">自测试代码的价值</h2>
+<blockquote>
+<p>编写代码的时间仅占所有时间中很少的一部分。<br>
+有些时间用来决定下一步干什么，有些时间花在设计上，但是，花费在调试上的时间是最多的。</p>
+</blockquote>
+<blockquote>
+<p>我敢肯定，每一位读者一定都记得自己花数小时调试代码的经历——而且常常是通宵达旦。<br>
+每个程序员都能讲出一个为了修复一个 bug 花费了一整天（甚至更长时间）的故事。</p>
+</blockquote>
+<blockquote>
+<p>修复 bug 通常是比较快的，但找出 bug 所在却是一场噩梦。当修复一个 bug 时，常常会引起另一个 bug，却在很久之后才会注意到它。那时，你又要花上大把时间去定位问题。</p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/24/7/f1eee7eb-043a-4b03-aa66-c1ebd4786113_339ebbf40471c9b04cdaae359154ea27.gif" alt="修水管"></p>
+<p>一个好的循环是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">while(发现代码坏味道)</span><br><span class="line">do </span><br><span class="line">    使用重构手段</span><br><span class="line">    自测试改动内容</span><br><span class="line">    存档（版本管理工具）</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+<p>这节的重点在怎么去快速自测试改动内容，作者给出“自测试代码”的解决方案，“类应该包含它们自己的测试代码。”<br>
+理想情况是每次改动完，把代码扔进神秘盒子，它将会判决你此次改动有没有触犯代码世界的法律。</p>
+<p>神秘盒子其实是一套由<strong>测试代码</strong>组成的系统，他将一系列模拟输入传递到你的代码中，得到返回值后与正确答案进行比较，如果<strong>符合预期</strong>则通过，不符合则<strong>反馈不通过的测试项</strong>。</p>
+<p>在游戏开发中，这套测试体系可能不是那么好用，它要求有可预测的输入以及能得到可判定对错的结果。而游戏中输入通常会比较多，角色控制输入、相机控制输入、UI交互输入等等。系统输出的结果也多种多样，特别是容易受到多个系统组合影响，比如角色移动会受输入、物理、地形关卡设计等等因素叠加得到角色的位置。</p>
+<p>但在一些数值计算相关，也可以适当使用自测试框架（取决于对BUG的容错、测试代码的维护成本以及系统是否足够复杂）。比如人物血量计算、技能CD计算等等。</p>
+<h2 id="Unity中的单元测试">Unity中的单元测试</h2>
+<p>使用了NUnit框架 ，具体写法和书中提到的Assert断言类似。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">using NUnit.Framework;</span><br><span class="line">using UnityEngine;</span><br><span class="line">public class HealthSystem</span><br><span class="line">&#123;</span><br><span class="line">    private int health;</span><br><span class="line">    public HealthSystem(int initialHealth)</span><br><span class="line">    &#123;</span><br><span class="line">        health = initialHealth;</span><br><span class="line">    &#125;</span><br><span class="line">    public void TakeDamage(int damage)</span><br><span class="line">    &#123;</span><br><span class="line">        health -= damage;</span><br><span class="line">        if (health &lt; 0)</span><br><span class="line">            health = 0;</span><br><span class="line">    &#125;</span><br><span class="line">    public int GetHealth()</span><br><span class="line">    &#123;</span><br><span class="line">        return health;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">[TestFixture]</span><br><span class="line">public class HealthSystemTests</span><br><span class="line">&#123;</span><br><span class="line">    [Test]</span><br><span class="line">    public void TestTakeDamage()</span><br><span class="line">    &#123;</span><br><span class="line">        HealthSystem playerHealth = new HealthSystem(100);</span><br><span class="line">        playerHealth.TakeDamage(10);</span><br><span class="line">        Assert.AreEqual(90, playerHealth.GetHealth(), &quot;Player&#x27;s health should decrease by the damage amount.&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    [Test]</span><br><span class="line">    public void TestHealthDoesNotGoBelowZero()</span><br><span class="line">    &#123;</span><br><span class="line">        HealthSystem playerHealth = new HealthSystem(50);</span><br><span class="line">        playerHealth.TakeDamage(100);</span><br><span class="line">        Assert.AreEqual(0, playerHealth.GetHealth(), &quot;Player&#x27;s health should not go below zero.&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="游戏开发中可以引入测试工具的地方">游戏开发中可以引入测试工具的地方</h2>
+<ul>
+<li>AirTest+PerfDog，模拟玩家输入，观察结果是否符合预期以及结合性能检测工具检测有没有内存泄露。更多用于上线游戏的检测（纯UI游戏比较好用）</li>
+<li>协议测试工具，测试能否通过发包来获取奖励</li>
+<li>UWA 的静态资源检查，检测资源是否冗余、设置是否符合项目规范</li>
+<li>表检查工具，检查策划的配置是否有常见错误</li>
+</ul>
+<h1>介绍重构名录</h1>
+<p>本书剩余的篇幅是一份重构的名录，用于提示自己如何以安全且高效的方式进行重构。</p>
+<h2 id="重构的记录格式">重构的记录格式</h2>
+<ul>
+<li>首先是名称（name）。要建造一个重构词汇表，名称是很重要的。这个名称也就是我将在本书其他地方使用的名称。如今重构经常会有多个名字，所以我会同时列出常见的别名。</li>
+<li>名称之后是一个简单的速写（sketch）。这部分可以帮助你更快找到你所需要的重构手法。</li>
+<li>动机（motivation）为你介绍“为什么需要做这个重构”和“什么情况下不该做这个重构”。</li>
+<li>做法（mechanics）简明扼要地一步一步介绍如何进行此重构。</li>
+<li>范例（examples）以一个十分简单的例子说明此重构手法如何运作。</li>
+</ul>
+<blockquote>
+<p>一个重构并非只有一套做法。本书中选择介绍这些做法，因为它们大多数时候都管用。等你经过练习获得更多重构经验，你可能会调整重构的做法，那完全没问题。只要牢记一点：小步前进，情况越复杂，步子就要越小。</p>
+</blockquote>
+<h2 id="挑选重构的依据">挑选重构的依据</h2>
+<p>很常用的重构手法，并且值得给它们命名和详细的介绍：</p>
+<ul>
+<li>其中一些做法很有意思，能帮助读者提高整体重构技能水平</li>
+<li>另外一些则对于代码设计质量的提升效果显著</li>
+</ul>
 
       </section>
 
@@ -169,28 +200,14 @@
       
         <nav class="article-nav">
           
-            <div class="article-nav-item layout-padding">
-  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
-    
-    <div class="card-text">
-      
-        <a href="/posts/66324210/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">关于最近和小米平板救砖</h2>
-        </a>
-      
-      <div class="card-text--row">Newer</div>
-    </div>
-  </article>
-</div>
-          
           
             <div class="article-nav-item layout-padding">
   <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
     
     <div class="card-text">
       
-        <a href="/posts/d5505144/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">怎么把dr.com装进你的路由器里</h2>
+        <a href="/posts/eebc3b52/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">【Refactoring】代码的坏味道</h2>
         </a>
       
       <div class="card-text--row">Older</div>
