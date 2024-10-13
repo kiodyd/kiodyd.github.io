@@ -26,7 +26,7 @@
 
   
 
-  <title>C#本质论-章节05 方法和参数 | 不特别周のBlog</title>
+  <title>【Refactoring】第一组重构 | 不特别周のBlog</title>
 
   
 
@@ -100,17 +100,12 @@
     <div class="header-content">
       <div class="post-text layout-block">
         <div class="layout-margin">
-          <h1 class="title-wrap">C#本质论-章节05 方法和参数</h1>
+          <h1 class="title-wrap">【Refactoring】第一组重构</h1>
           <h2 class="title-sub-wrap">
             <strong>kio0o0</strong>
             <span>发布于</span>
-            <time  class="article-date" datetime="2022-09-12T14:33:00.000Z" itemprop="datePublished">2022-09-12</time>
+            <time  class="article-date" datetime="2024-10-13T03:50:41.087Z" itemprop="datePublished">2024-10-13</time>
           </h2>
-          
-            <h2 class="title-sub-wrap new-date">
-              <span>最后更新于</span>
-              <time  class="article-updated" datetime="2024-07-14T09:03:59.239Z" itemprop="dateUpdated">2024-07-14</time>
-            </h2>
           
           
           <ul class="wrap-list dark">
@@ -120,7 +115,9 @@
 </ul>
           <ul class="wrap-list dark">
   
-    <li><a href="/tags/C-%E7%AC%94%E8%AE%B0/">🏷️ C#笔记</a></li>
+    <li><a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/">🏷️ 代码设计</a></li>
+  
+    <li><a href="/tags/%E9%87%8D%E6%9E%84/">🏷️ 重构</a></li>
   
 </ul>
         </div>
@@ -144,31 +141,138 @@
       
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
-        <p>求知若饥，虚心若愚</p>
-<span id="more"></span>
-<h3 id="using指令">using指令</h3>
-<ul>
-<li>一般用来省略命名空间限定符，或者为命名空间或者类型使用别名</li>
-<li>using static，比较少用，可以连同类型名（类）一起省略</li>
-</ul>
-<h3 id="命令行参数">命令行参数</h3>
-<ul>
-<li>可以通过Main方法的数组参数获取</li>
-<li>可以通过System.Environment.GetCommondLineArgs()获取</li>
-</ul>
-<h3 id="高级方法参数">高级方法参数</h3>
+        <span id="more"></span>
+<h2 id="6-1-提炼函数（Extract-Function）">6.1 提炼函数（Extract Function）</h2>
 <blockquote>
-<p>默认传参都会触发值内存拷贝，且修改不了原值类型</p>
+<p>提炼的关键在于命名</p>
 </blockquote>
+<p><img src="https://github.com/NxeedGoto/Refactoring2-zh/raw/master/docs/figures/image00284.jpeg" alt="https://github.com/NxeedGoto/Refactoring2-zh/raw/master/docs/figures/image00284.jpeg"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">function printOwing(invoice) &#123;</span><br><span class="line">  printBanner();</span><br><span class="line">  let outstanding = calculateOutstanding();</span><br><span class="line"></span><br><span class="line">  //print details</span><br><span class="line">  console.log(`name: $&#123;invoice.customer&#125;`);</span><br><span class="line">  console.log(`amount: $&#123;outstanding&#125;`);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function printOwing(invoice) &#123;</span><br><span class="line">  printBanner();</span><br><span class="line">  let outstanding = calculateOutstanding();</span><br><span class="line">  printDetails(outstanding);</span><br><span class="line"></span><br><span class="line">  function printDetails(outstanding) &#123;</span><br><span class="line">    console.log(`name: $&#123;invoice.customer&#125;`);</span><br><span class="line">    console.log(`amount: $&#123;outstanding&#125;`);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="何时该提炼">何时该提炼</h3>
+<p>常见观点：</p>
 <ul>
-<li>ref</li>
-<li>out，c#7.0支持不用提前声明</li>
-<li>in，c#7.2开始支持，只读传引用，目的是优化性能，避免值类型的内存拷贝，虽然传的是引用，但也保留了不影响原数据的优点</li>
-<li><a target="_blank" rel="noopener" href="http://t.zoukankan.com/minotauros-p-10309252.html">返回引用</a>，能优化部分内存拷贝造成的性能浪费，但也有一些限制。</li>
-<li>函数重载，会选择一个更匹配的，隐式转换最接近的</li>
-<li>可变参数，0-n个，必须放最后，如果要至少一个，可以一个参数+一个可变参数</li>
-<li>可选参数，有参数默认值，必须在常规参数后面</li>
-<li>具名参数，可指定赋值给某个参数，有多个可选参数时有用</li>
+<li>代码长度：一个函数应该能在一屏中显示</li>
+<li>代码复用：只要被用过不止一次的代码，就应该单独放进一个函数；只用过一次的代码则保持内联（inline）</li>
+<li><strong>代码阅读：将意图与实现分开，需要理解、注释的代码就应该提炼，让人一眼过去知道这段代码的意图</strong></li>
+</ul>
+<p>大胆用小函数，只要它能表明意图，即使函数名比代码还长。优化就交给编译器吧，代码是给人阅读的。</p>
+<h3 id="怎么去提炼">怎么去提炼</h3>
+<ul>
+<li>根据函数是“做什么”创建合适命名的函数</li>
+<li>可以先局部嵌套函数来避免变量作用域的问题，然后再搬移函数出去</li>
+<li>迁移代码，并检查变量作用域
+<ul>
+<li>仅提炼函数使用 =&gt; 提炼变量</li>
+<li>提炼函数只读 =&gt; 传参</li>
+<li>提炼函数和外部都会修改 =&gt; 提炼函数返回新值，如果返回多个，先看能否再拆，再考虑返回结构体之类</li>
+</ul>
+</li>
+<li>充分自测，并检查其他代码是否和提炼代码有相同的，避免漏修改</li>
+</ul>
+<h2 id="6-2-内联函数（Inline-Function）">6.2 内联函数（Inline Function）</h2>
+<p><img src="https://github.com/NxeedGoto/Refactoring2-zh/raw/master/docs/figures/image00286.jpeg" alt="https://github.com/NxeedGoto/Refactoring2-zh/raw/master/docs/figures/image00286.jpeg"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">function rating(aDriver) &#123;</span><br><span class="line">    return moreThanFiveLateDeliveries(aDriver) ? 2 : 1;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function moreThanFiveLateDeliveries(dvr) &#123;</span><br><span class="line">    return dvr.numberOfLateDeliveries &gt; 5;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function rating(aDriver) &#123;</span><br><span class="line">    return aDriver.numberOfLateDeliveries &gt; 5 ? 2 : 1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="何时去内联">何时去内联</h3>
+<ul>
+<li>某些函数本身意图就很清晰，重构价值不大，间接性可能带来帮助，但非必要的间接性总是让人不舒服。</li>
+<li>有一堆不合理的小函数，可以先内联大函数，再拆分</li>
+<li>太多间接层，A-B-C，再每个类都实现了一层跳转。间接层有其价值，但不是所有间接层都有价值</li>
+</ul>
+<h3 id="怎么去内联">怎么去内联</h3>
+<ul>
+<li>避免多态重载的函数</li>
+<li>找到所有调用点，可以逐步替换</li>
+<li>当引用次数为0时，去掉函数定义</li>
+</ul>
+<p><strong>注意的点：</strong></p>
+<ul>
+<li>不要无脑CV，有时候可能函数内的变量名和外部代码变量名不一致，尽管是同一个引用</li>
+<li>多依赖IDE的变量是否【存在/使用】提示</li>
+</ul>
+<h2 id="6-3-提炼变量（Extract-Variable）">6.3 提炼变量（Extract Variable）</h2>
+<p><img src="https://github.com/NxeedGoto/Refactoring2-zh/raw/master/docs/figures/image00288.jpeg" alt=""></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">return (</span><br><span class="line">  order.quantity * order.itemPrice -</span><br><span class="line">  Math.max(0, order.quantity - 500) * order.itemPrice * 0.05 +</span><br><span class="line">  Math.min(order.quantity * order.itemPrice * 0.1, 100)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">const basePrice = order.quantity * order.itemPrice;</span><br><span class="line">const quantityDiscount =</span><br><span class="line">  Math.max(0, order.quantity - 500) * order.itemPrice * 0.05;</span><br><span class="line">const shipping = Math.min(basePrice * 0.1, 100);</span><br><span class="line">return basePrice - quantityDiscount + shipping;</span><br></pre></td></tr></table></figure>
+<h3 id="何时去提炼">何时去提炼</h3>
+<ul>
+<li>表达式太长，难以阅读</li>
+<li>某些变量获取有性能成本，多次使用可以先提取出来</li>
+<li>如果提取的表达式上下文比较宽，比如在类内也有意义，可以考虑提炼成成员函数（比如范例中的获取单价可以是订单类的一个成员函数）</li>
+</ul>
+<h3 id="怎么去提炼-2">怎么去提炼</h3>
+<ul>
+<li>注意表达式如果出现多次，需要逐一替换</li>
+</ul>
+<h2 id="6-4-内联变量（Inline-Variable）">6.4 内联变量（Inline Variable）</h2>
+<p><img src="https://github.com/NxeedGoto/Refactoring2-zh/raw/master/docs/figures/image00290.jpeg" alt=""></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">let basePrice = anOrder.basePrice;</span><br><span class="line">return (basePrice &gt; 1000);</span><br><span class="line"></span><br><span class="line">return anOrder.basePrice &gt; 1000;</span><br></pre></td></tr></table></figure>
+<p>如果表达式意图已经很清晰了，就没必要徒增成本。内联时注意所有调用处，同理多依赖IDE分析。</p>
+<h2 id="6-5-改变函数声明（Change-Function-Declaration）">6.5 改变函数声明（Change Function Declaration）</h2>
+<p><img src="https://github.com/NxeedGoto/Refactoring2-zh/raw/master/docs/figures/image00292.jpeg" alt=""></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// 只改名</span><br><span class="line">function circum(radius) &#123;...&#125;</span><br><span class="line">function circumference(radius) &#123;...&#125;</span><br><span class="line"></span><br><span class="line">// 新增参数</span><br><span class="line">function addReservation(customer) &#123;...&#125;</span><br><span class="line">function addReservation(customer, isPriority) &#123;...&#125;</span><br><span class="line"></span><br><span class="line">// 修改已有参数类型</span><br><span class="line">function inNewEngland(aCustomer) &#123;...&#125;</span><br><span class="line">function inNewEngland(stateCode) &#123;...&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="何时去改变声明">何时去改变声明</h3>
+<ul>
+<li>函数名不合适，有可能上下文变了，也有可能就是一开始没想到合适的命名</li>
+<li>函数参数不合适，有可能新增新的参数，也有可能原先的参数局限性太高</li>
+</ul>
+<p>总之，没人能确保一开始的声明就是对的，随着需求以及我们越来越聪明的脑袋(x，正如著名人士说过，<strong>真相不止一个</strong>，当<strong>时机</strong>到了，我们就会希望去修改函数声明。</p>
+<h3 id="怎么去改变声明">怎么去改变声明</h3>
+<ul>
+<li>一步到位式修改，改函数声明-改所有调用处-自信提交，适合强类型语言</li>
+<li>迁移式做法，新增一个新函数，让旧函数去调用新函数，逐步替换已有调用处，最后删除旧函数
+<ul>
+<li>弱类型语言调用处过多时</li>
+<li>发布外部的sdk，管不了调用的地方，需要耐心等待其他用户改完（标记旧函数为废弃）</li>
+</ul>
+</li>
+</ul>
+<h2 id="6-6-封装变量（Encapsulate-Variable）">6.6 封装变量（Encapsulate Variable）</h2>
+<p><img src="https://github.com/NxeedGoto/Refactoring2-zh/raw/master/docs/figures/image00293.jpeg" alt=""></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">let defaultOwnerData = &#123; firstName: &quot;Martin&quot;, lastName: &quot;Fowler&quot; &#125;;</span><br><span class="line">export function defaultOwner() &#123;</span><br><span class="line">  return defaultOwnerData;</span><br><span class="line">&#125;</span><br><span class="line">export function setDefaultOwner(arg) &#123;</span><br><span class="line">  defaultOwnerData = arg;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 在C#中有属性语法糖</span><br></pre></td></tr></table></figure>
+<h3 id="何时去封装">何时去封装</h3>
+<p>原则上，<strong>使用范围越广</strong>的变量，越需要封装</p>
+<p>把数据搬走，就必须同时修改所有引用该数据的代码，否则程序就不能运行。如果数据的可访问范围很小，比如一个小函数内部的临时变量，那还不成问题。但如果可访问范围变大，重构的难度就会随之增大，这也是说全局数据是大麻烦的原因。</p>
+<p>所以将迁移变量转化成迁移函数，会使得迁移成本变低，即封装变量。封装变量还有个好处是可以清晰知道变量被使用和修改的时机。</p>
+<p><strong>封装数据很重要，不过，不可变数据更重要</strong>，可修改的数据会加大封装成本</p>
+<h3 id="怎么去封装">怎么去封装</h3>
+<p>创建变量的取值和设值函数-&gt;逐一修改使用变量的地方-&gt;设置私有（像lua没法设置，可以对命名进行约束）</p>
+<p>注意点：</p>
+<ul>
+<li>如果返回的是引用，怎么避免外部对引用内容进行修改（比如返回lua中的table）</li>
+<li>一种是只返回副本，避免外部修改实际的值。（小心有需要修改原值的需求</li>
+<li>另一种是对变量再封装，避免能直接修改变量的成员（但如果是lua table中层层嵌套，恐怕成本也挺高）</li>
+</ul>
+<p><em>设值函数返回一份副本的好处：可以防止因为源数据发生变化而造成的意外事故。很多时候可能没必要复制一份数据，不过多一次复制对性能的影响通常也都可以忽略不计。但是，如果不做复制，风险则是未来可能会陷入漫长而困难的调试排错过程。</em></p>
+<p><strong>数据被使用得越广，就越是值得花精力给它一个体面的封装</strong></p>
+<h2 id="6-7-变量改名（Rename-Variable）">6.7 变量改名（Rename Variable）</h2>
+<p><img src="https://github.com/NxeedGoto/Refactoring2-zh/raw/master/docs/figures/image00294.jpeg" alt=""></p>
+<p>使用范围越广，名字的好坏就越重要</p>
+<ul>
+<li>如果作用域很短，比如匿名函数，上下文已经很清晰，就不需要太讲究命名</li>
+<li>对于作用域超出一次函数调用的字段，则需要更用心命名</li>
+</ul>
+<p>怎么改：</p>
+<ul>
+<li>局部函数的变量，直接改直接用</li>
+<li>超过一次函数调用，且多处有取值和修改，请考虑封装变量，再进行改名</li>
+<li>如果是给常量等不可变数据改名，完全可以新增一个变量，让旧的常量去获取新常量的值，慢慢迁移已有调用处</li>
+</ul>
+<h2 id="6-8-引入参数对象（Introduce-Parameter-Object）">6.8 引入参数对象（Introduce Parameter Object）</h2>
+<p><img src="https://github.com/NxeedGoto/Refactoring2-zh/raw/master/docs/figures/image00296.jpeg" alt=""></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">function readingsOutsideRange(station, min, max) &#123;</span><br><span class="line"> return station.readings</span><br><span class="line">  .filter(r =&gt; r.temp &lt; min || r.temp &gt; max);</span><br><span class="line">&#125;</span><br><span class="line">alerts = readingsOutsideRange(</span><br><span class="line">  station,</span><br><span class="line">  operatingPlan.temperatureFloor,</span><br><span class="line">  operatingPlan.temperatureCeiling</span><br><span class="line">);</span><br><span class="line">//////////////////////////////////////////////////////</span><br><span class="line"></span><br><span class="line">function readingsOutsideRange(station, range) &#123;</span><br><span class="line"> return station.readings</span><br><span class="line">  .filter(r =&gt; !range.contains(r.temp));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">contains(arg) &#123;return (arg &gt;= this.min &amp;&amp; arg &lt;= this.max);&#125;</span><br><span class="line"></span><br><span class="line">const range = new NumberRange(</span><br><span class="line">  operatingPlan.temperatureFloor,</span><br><span class="line">  operatingPlan.temperatureCeiling</span><br><span class="line">);</span><br><span class="line">alerts = readingsOutsideRange(station, operatingPlan.temperatureFloor, range);</span><br></pre></td></tr></table></figure>
+<p>一组数据项总是结伴同行，出没于一个又一个函数。这样一组数据就是所谓的<strong>数据泥团</strong>，可代之以一个数据结构</p>
+<p>好处：</p>
+<ul>
+<li>数据项之间的关系变得明晰</li>
+<li>参数的参数列表也能缩短</li>
+<li><strong>把围绕这些数据的行为和数据封装一起成类，使其更内聚</strong>
+<ul>
+<li>比如范例中判断范围的方法本身围绕最大值和最小值，后续还能引入多态进行多种类型的最值判断</li>
+</ul>
+</li>
+</ul>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/NxeedGoto/Refactoring2-zh/blob/master/docs/ch6.md">https://github.com/NxeedGoto/Refactoring2-zh/blob/master/docs/ch6.md</a></li>
 </ul>
 
       </section>
@@ -177,28 +281,14 @@
       
         <nav class="article-nav">
           
-            <div class="article-nav-item layout-padding">
-  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
-    
-    <div class="card-text">
-      
-        <a href="/posts/6120c31e/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">C#本质论-章节06&amp;07 类与继承</h2>
-        </a>
-      
-      <div class="card-text--row">Newer</div>
-    </div>
-  </article>
-</div>
-          
           
             <div class="article-nav-item layout-padding">
   <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
     
     <div class="card-text">
       
-        <a href="/posts/b8c88b2b/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">C#本质论-章节04 操作符与控制流程</h2>
+        <a href="/posts/8b1c44fa/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">【Refactoring】构筑测试体系、介绍重构名录</h2>
         </a>
       
       <div class="card-text--row">Older</div>
