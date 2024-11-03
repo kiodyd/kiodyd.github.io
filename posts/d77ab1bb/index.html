@@ -107,6 +107,11 @@
             <time  class="article-date" datetime="2024-10-13T03:50:41.087Z" itemprop="datePublished">2024-10-13</time>
           </h2>
           
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-11-03T09:02:43.075Z" itemprop="dateUpdated">2024-11-03</time>
+            </h2>
+          
           
           <ul class="wrap-list dark">
   
@@ -269,6 +274,53 @@
 <li>比如范例中判断范围的方法本身围绕最大值和最小值，后续还能引入多态进行多种类型的最值判断</li>
 </ul>
 </li>
+</ul>
+<h2 id="6-9-函数组合成类（Combine-Functions-into-Class）">6.9 函数组合成类（Combine Functions into Class）</h2>
+<p><img src="https://github.com/NxeedGoto/Refactoring2-zh/raw/master/docs/figures/image00298.jpeg" alt=""></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">function base(aReading) &#123;...&#125;</span><br><span class="line">function taxableCharge(aReading) &#123;...&#125;</span><br><span class="line">function calculateBaseCharge(aReading) &#123;...&#125;</span><br><span class="line"></span><br><span class="line">class Reading &#123;</span><br><span class="line">  base() &#123;...&#125;</span><br><span class="line">  taxableCharge() &#123;...&#125;</span><br><span class="line">  calculateBaseCharge() &#123;...&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="何时去组合">何时去组合</h3>
+<ul>
+<li>一组函数形影不离地操作同一块数据（可能是将数据传入函数）</li>
+<li>类的力量是强大的，当开始组织类的时候，可能会发现其他的计算逻辑，将它们也重构到新的类当中，慢慢的原本分散的代码会清晰起来</li>
+<li>类的好处：客户端可以修改对象的核心数据，通过计算得出的派生数据则会自动与核心数据保持一致</li>
+</ul>
+<p>但也不能随意将数据和类组织在一起，比如项目中的一些碰撞类，理想情况下他应该是工具类，根据通用的数据去计算碰撞结果。但目前和技能数据一起组合成类，当其他地方也需要检查碰撞时或对碰撞计算新增额外参数时，会无从下手。</p>
+<p>可以尝试：</p>
+<ul>
+<li>将碰撞通用计算的部分抽离，比如传入两个矩形计算是否碰撞等</li>
+<li>将数据和部分非通用计算放在类似【技能结果类】之类和技能强相关，里面再调用通用的碰撞计算类</li>
+<li>但如果原先也没有多处传递数据到计算函数的代码，且数据和计算函数的使用足够集中的话，可以适当放任，并不需要组合成类</li>
+</ul>
+<p>关键点还是【一组】函数，操控同一块【数据】，且数据和函数强相关，毋庸置疑，我们该借助【类】的力量了。</p>
+<h2 id="6-10-函数组合成变换（Combine-Functions-into-Transform）">6.10 函数组合成变换（Combine Functions into Transform）</h2>
+<p><img src="https://github.com/NxeedGoto/Refactoring2-zh/raw/master/docs/figures/image00300.jpeg" alt=""></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">function base(aReading) &#123;...&#125;</span><br><span class="line">function taxableCharge(aReading) &#123;...&#125;</span><br><span class="line"></span><br><span class="line">function enrichReading(argReading) &#123;</span><br><span class="line">  const aReading = _.cloneDeep(argReading);</span><br><span class="line">  aReading.baseCharge = base(aReading);</span><br><span class="line">  aReading.taxableCharge = taxableCharge(aReading);</span><br><span class="line">  return aReading;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>解决什么问题：</strong></p>
+<ul>
+<li>需要通过某个数据结构（通常是类）里面的数据去计算新的中间数据，再拿这个中间数据在其他地方使用</li>
+<li>如果这个中间数据，很多地方都需要使用，散落在代码的多个角落都有计算中间数据的重复逻辑</li>
+<li><em>比如角色身上有多个词条属性会影响攻击的伤害加成，存在多个地方计算伤害时，这个伤害加成的计算也会分布到各处</em></li>
+</ul>
+<p><strong>怎么解决：</strong></p>
+<ul>
+<li>本节是用一个变换函数，将源数据-&gt;新数据，新数据带有中间数据，使用中间数据时从新数据的新变量去获取就行</li>
+<li>另一种方法是把这个中间计算的过程，直接放到类里面</li>
+<li>还有最基础的做法：将重复计算的过程抽离成单独的函数（不放类里）</li>
+</ul>
+<p>核心都是避免重复代码</p>
+<ul>
+<li>但是变换函数会导致返回的数据是新的数据，如果对数据进行修改时，会造成不能修改到源数据的困惑。而且每次使用变换函数会拷贝一个新实例，对于内存比较敏感的应用还是值得斟酌</li>
+<li>而只是抽离函数还是会造成对数据的操作不够集中</li>
+<li>所以还是建议放在类里面作为成员函数来计算</li>
+</ul>
+<h2 id="6-11-拆分阶段（Split-Phase）">6.11 拆分阶段（Split Phase）</h2>
+<p><img src="https://github.com/NxeedGoto/Refactoring2-zh/raw/master/docs/figures/image00302.jpeg" alt=""></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">const orderData = orderString.split(/\s+/);</span><br><span class="line">const productPrice = priceList[orderData[0].split(&quot;-&quot;)[1]];</span><br><span class="line">const orderPrice = parseInt(orderData[1]) * productPrice;</span><br><span class="line"></span><br><span class="line">/////////////////////////////////////////////</span><br><span class="line">const orderRecord = parseOrder(order);</span><br><span class="line">const orderPrice = price(orderRecord, priceList);</span><br><span class="line"></span><br><span class="line">function parseOrder(aString) &#123;</span><br><span class="line">  const values = aString.split(/\s+/);</span><br><span class="line">  return &#123;</span><br><span class="line">    productID: values[0].split(&quot;-&quot;)[1],</span><br><span class="line">    quantity: parseInt(values[1]),</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br><span class="line">function price(order, priceList) &#123;</span><br><span class="line">  return order.quantity * priceList[order.productID];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>解决什么问题：</strong></p>
+<ul>
+<li>一段代码里同时处理了多件事，让阅读者需要反复切换上下文，找不到头脑（写时一时爽，维护看不懂）</li>
+<li>后来者修改时需要谨慎避免破坏他们&quot;紧密巧妙&quot;的关系</li>
+<li>往往长代码就是处理了过多的事务</li>
 </ul>
 <h2 id="参考链接">参考链接</h2>
 <ul>
