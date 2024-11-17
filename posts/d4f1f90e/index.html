@@ -26,7 +26,7 @@
 
   
 
-  <title>分享一个大世界雾效实现 | 不特别周のBlog</title>
+  <title>【Refactoring】封装 | 不特别周のBlog</title>
 
   
 
@@ -100,17 +100,12 @@
     <div class="header-content">
       <div class="post-text layout-block">
         <div class="layout-margin">
-          <h1 class="title-wrap">分享一个大世界雾效实现</h1>
+          <h1 class="title-wrap">【Refactoring】封装</h1>
           <h2 class="title-sub-wrap">
             <strong>kio0o0</strong>
             <span>发布于</span>
-            <time  class="article-date" datetime="2023-01-06T02:50:00.000Z" itemprop="datePublished">2023-01-06</time>
+            <time  class="article-date" datetime="2024-11-17T06:30:34.414Z" itemprop="datePublished">2024-11-17</time>
           </h2>
-          
-            <h2 class="title-sub-wrap new-date">
-              <span>最后更新于</span>
-              <time  class="article-updated" datetime="2024-07-14T09:03:59.235Z" itemprop="dateUpdated">2024-07-14</time>
-            </h2>
           
           
           <ul class="wrap-list dark">
@@ -120,11 +115,9 @@
 </ul>
           <ul class="wrap-list dark">
   
-    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+    <li><a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/">🏷️ 代码设计</a></li>
   
-    <li><a href="/tags/shader/">🏷️ shader</a></li>
-  
-    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+    <li><a href="/tags/%E9%87%8D%E6%9E%84/">🏷️ 重构</a></li>
   
 </ul>
         </div>
@@ -148,21 +141,73 @@
       
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
-        <p>求知若饥，虚心若愚</p>
-<span id="more"></span>
-
-    <figure class="figure-image">
-      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230106105315.png" alt="深度雾+高度雾+灯光散射混合" loading="lazy" />
-      <figcaption>深度雾+高度雾+灯光散射混合</figcaption>
-    </figure>
-  
+        <span id="more"></span>
+<p>分解模块时最重要的标准，也许就是识别出那些模块应该对外界隐藏的小秘密了[Parnas]。</p>
+<h2 id="7-1-封装记录（Encapsulate-Record）">7.1  封装记录（Encapsulate Record）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">organization = &#123; name: &quot;Acme Gooseberries&quot;, country: &quot;GB&quot; &#125;;</span><br><span class="line"></span><br><span class="line">class Organization &#123;</span><br><span class="line">  constructor(data) &#123;</span><br><span class="line">    this._name = data.name;</span><br><span class="line">    this._country = data.country;</span><br><span class="line">  &#125;</span><br><span class="line">  get name() &#123;</span><br><span class="line">    return this._name;</span><br><span class="line">  &#125;</span><br><span class="line">  set name(arg) &#123;</span><br><span class="line">    this._name = arg;</span><br><span class="line">  &#125;</span><br><span class="line">  get country() &#123;</span><br><span class="line">    return this._country;</span><br><span class="line">  &#125;</span><br><span class="line">  set country(arg) &#123;</span><br><span class="line">    this._country = arg;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>对于可变数据，对象可以隐藏结构的细节，用户不必追究存储的细节和计算的过程（比如记录两个数据，且还有可能从数据计算第三个数据，又或者两个数据经常变换的情况）</li>
+<li>不希望用户去修改配置数据的时候，封装可以保护原始数据，避免意料之外的修改</li>
+<li>但如果是一些不可变的配置数据，就没有那么大必要去封装了，比如物理计算的一些静态变量</li>
+</ul>
+<p><em>比如移动类的当前角度和目标角度，用户传入目标角度，再根据某种算法去计算当前角度。使用者不需要关心内部的算法，且需要避免去直接设置当前角度（因为会绕过某些算法），这时候就要将取值和设值封装起来了。</em></p>
+<p>但在一些弱类型语言还是能强行拿到内部变量去使用，这时要通过一些命名规范去提醒使用者了。<br>
+一个好的习惯是先看看要使用的内部变量在类里面是否有取值设值函数，如果找不到可以问设计者是否可以在外部修改使用。</p>
+<h2 id="7-2-封装集合（Encapsulate-Collection）">7.2 封装集合（Encapsulate Collection）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">class Person &#123;</span><br><span class="line">  get courses() &#123;return this._courses;&#125;</span><br><span class="line">  set courses(aList) &#123;this._courses = aList;&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">class Person &#123;</span><br><span class="line">  get courses() &#123;return this._courses.slice();&#125;</span><br><span class="line">  addCourse(aCourse) &#123; ... &#125;</span><br><span class="line">  removeCourse(aCourse) &#123; ... &#125;</span><br></pre></td></tr></table></figure>
+<p>如果是一个序列化数据读取到内存结构，涉及的属性很多，且层次很深。（比如角色的各种属性）</p>
+<ul>
+<li>一种做法是将所有对外暴露修改的变量都封装起来，比如攻击值、防御值、速度等等，用到哪个封装哪个。好处是对于该数据结构能读取或修改的地方一目了然，坏处是会大大增加代码量。</li>
+<li>另一种是将完整的数据结构交出去，用户可以通过它拿到想拿的信息。但这样无法避免用户对数据造成修改，如果这个结构包含一些需要深拷贝的引用，将这个数据设为只读还不够，很有可能在外部不经意被修改。可以粗暴的深拷贝一份数据返回，但可能有性能问题。</li>
+<li>需要权衡两种做法，合理利用拷贝和取值函数，但负责的做法总是不要让用户能直接修改源数据，不然后续查bug很难受</li>
+</ul>
+<p><em>如果对于限制复杂结构的只读比较困难，也可以换个思路，及时检测谁修改了不应该修改的数据并提醒，比如项目之前出现的修改了VectorZero事件</em></p>
+<h2 id="7-3-以对象取代基本类型（Replace-Primitive-with-Object）">7.3 以对象取代基本类型（Replace Primitive with Object）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">orders.filter(o =&gt; &quot;high&quot; === o.priority</span><br><span class="line">               || &quot;rush&quot; === o.priority);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  orders.filter(o =&gt; o.priority.higherThan(new Priority(&quot;normal&quot;)))</span><br></pre></td></tr></table></figure>
 <blockquote>
-<p>来源仓库：<a target="_blank" rel="noopener" href="https://github.com/Reguluz/HeightExponentialFog">https://github.com/Reguluz/HeightExponentialFog</a><br>
-讲解PPT：<a target="_blank" rel="noopener" href="https://docs.qq.com/slide/DUWJ0dk55WndHTXhQ">https://docs.qq.com/slide/DUWJ0dk55WndHTXhQ</a></p>
+<p>开发初期，你往往决定以简单的数据项表示简单的情况，比如使用数字或字符串等。但随着开发的进行，你可能会发现，这些简单数据项不再那么简单了。比如说，一开始你可能会用一个字符串来表示“电话号码”的概念，但是随后它又需要“格式化”“抽取区号”之类的特殊行为。这类逻辑很快便会占领代码库，制造出许多重复代码，增加使用时的成本。</p>
 </blockquote>
-<h3 id="核心代码">核心代码</h3>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">// 思路：顶点+指数雾（考虑高度和深度，同时还有灯光的散射）</span><br><span class="line">half heightFallOff = _FogFallOff * 0.01;</span><br><span class="line">// 雾散强度 = 全局雾散系数 * 相机高度-目标位置高度-雾变化高度范围相对摄像机的高度差</span><br><span class="line">half falloff = heightFallOff * ( posWorld.y -  _WorldSpaceCameraPos.y- _FogHeight);</span><br><span class="line">// 雾密度 = 全局密度 * 2^相机高度-目标位置高度-雾变化高度范围相对摄像机的高度差</span><br><span class="line">half fogDensity = _FogGlobalDensity * exp2(-falloff);</span><br><span class="line">// 该拟合公式来自UE4</span><br><span class="line">// 指数雾强度 = (1 - 2^-雾散强度) / 雾散强度</span><br><span class="line">half fogFactor = (1 - exp2(-falloff))/falloff;</span><br><span class="line">half3 viewDir = _WorldSpaceCameraPos - posWorld;</span><br><span class="line">half rayLength = length(viewDir);</span><br><span class="line">// 距离强度 = （视线距离 - 起始距离）/ 距离变化系数</span><br><span class="line">half distanceFactor = max((rayLength - _FogStartDis)/ _FogGradientDis, 0);</span><br><span class="line">half fog = fogFactor * fogDensity * distanceFactor;</span><br><span class="line">// 散射强度 = （归一化视线向量的反方向 与 入射光方向 的夹角）^指数衰减系数</span><br><span class="line">half inscatterFactor = pow(saturate(dot(-normalize(viewDir), WorldSpaceLightDir(half4(posWorld,1)))), _FogInscatteringExp);</span><br><span class="line">// 散射同样受距离影响，需要衰减</span><br><span class="line">inscatterFactor *= 1-saturate(exp2(falloff));</span><br><span class="line">inscatterFactor *= distanceFactor;</span><br><span class="line">// 根据散射强度混合雾和灯光颜色</span><br><span class="line">half3 finalFogColor = lerp(_FogColor, _LightColor0, saturate(inscatterFactor));</span><br><span class="line">// 混合雾的颜色到输出颜色中</span><br><span class="line">return lerp(col, finalFogColor, saturate(fog));</span><br></pre></td></tr></table></figure>
-<p>值得一提的是仓库中将这段代码封装成头文件调用（由于顶点雾几乎要修改所有shader），而且还使用了一个脚本将雾效相关的参数全局统一传入。具体可以查阅仓库中<em>Fog.cs</em></p>
+<p>核心思想是围绕某个基本类型变量衍生了一系列计算逻辑，比如比较、设置是否合法等等，这时候就要考虑将这个基础类型变量和其相关的计算逻辑封装成对象了。<br>
+一旦开始了封装，以后围绕他的业务逻辑有了新地方可以放置。</p>
+<h2 id="7-4-以查询取代临时变量（Replace-Temp-with-Query）">7.4 以查询取代临时变量（Replace Temp with Query）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">const basePrice = this._quantity * this._itemPrice;</span><br><span class="line">if (basePrice &gt; 1000)</span><br><span class="line">  return basePrice * 0.95;</span><br><span class="line">else</span><br><span class="line">  return basePrice * 0.98;</span><br><span class="line"></span><br><span class="line">////////////////////////////////////////////////</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">get basePrice() &#123;this._quantity * this._itemPrice;&#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">if (this.basePrice &gt; 1000)</span><br><span class="line">  return this.basePrice * 0.95;</span><br><span class="line">else</span><br><span class="line">  return this.basePrice * 0.98;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>临时变量可以节省一些重复代码的计算，但如果是两块不同功能的逻辑使用了同一个临时变量，为了设立更清晰的边界还是有必要将其转换成用函数查询，长代码的危害性还是比一两次多余计算危害性更大</li>
+<li>适用的场景是那些每次计算都能获得相同值的临时变量，如果和调用时序有关、快照存储上一次的结果这种临时变量，是不适用的</li>
+<li>使用查询函数代替临时变量后，还可以加以内联变量，节省代码行数</li>
+</ul>
+<p><em>当有意去除大量长代码时，这个手法将会起到大作用</em></p>
+<h2 id="7-5-7-6-提炼类（Extract-Class）、内联类（Inline-Class）">7.5 &amp; 7.6 提炼类（Extract Class）、内联类（Inline Class）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">class Person &#123;</span><br><span class="line"> get officeAreaCode() &#123;return this._officeAreaCode;&#125;</span><br><span class="line"> get officeNumber()   &#123;return this._officeNumber;&#125;</span><br><span class="line"></span><br><span class="line">class Person &#123;</span><br><span class="line"> get officeAreaCode() &#123;return this._telephoneNumber.areaCode;&#125;</span><br><span class="line"> get officeNumber()   &#123;return this._telephoneNumber.number;&#125;</span><br><span class="line">&#125;</span><br><span class="line">class TelephoneNumber &#123;</span><br><span class="line"> get areaCode() &#123;return this._areaCode;&#125;</span><br><span class="line"> get number()   &#123;return this._number;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="何时该提炼">何时该提炼</h3>
+<p>当发现类内部有多个字段互相关联，且携带了一些围绕它们的计算函数时。（一个有用的判断规则是：移除某些变量和函数，查看另一些变量是否还有用处）</p>
+<p>还有一种时机是，发现其他类也需要这个相似的功能，这时候可以提取出来供两个地方使用。</p>
+<p><em>比如缓存一个Transform，递归找寻子节点是否包含XXX名字的Transform，以及围绕这个Transform的其他方法</em></p>
+<h3 id="何时该内联">何时该内联</h3>
+<ul>
+<li>当一个类存在的意义不是很明确，有种特意为了使用类而使用类的时候，又或者一开始设想它比较通用，但实际发现只有一个类引用它</li>
+<li>另一种是觉得类的划分不合理，这时候可以先内联成大类，再使用提炼类的手段再次拆分</li>
+</ul>
+<h2 id="7-7-7-8-隐藏委托关系（Hide-Delegate）、移除中间人（Remove-Middle-Man）">7.7 &amp; 7.8 隐藏委托关系（Hide Delegate）、移除中间人（Remove Middle Man）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">manager = aPerson.department.manager;</span><br><span class="line"></span><br><span class="line">manager = aPerson.manager;</span><br><span class="line"></span><br><span class="line">class Person &#123;</span><br><span class="line">  get manager() &#123;return this.department.manager;&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="何时该隐藏">何时该隐藏</h3>
+<ul>
+<li>“封装”意味着每个模块都应该尽可能少了解系统的其他部分</li>
+<li>将委托关系隐藏起来，从而去除这种依赖。这么一来，即使将来委托关系发生变化，变化也只会影响服务对象，而不会直接波及所有客户端</li>
+</ul>
+<p><em>主要是为了应对变化或者不希望外部知道某两个模块的互相引用关系</em></p>
+<h3 id="何时该移除">何时该移除</h3>
+<p>每当客户端要使用受托类的新特性时，你就必须在服务端添加一个简单委托函数。随着受托类的特性（功能）越来越多，更多的转发函数就会使人烦躁。服务类完全变成了一个中间人（81），此时就应该让客户直接调用受托类。</p>
+<p><em>比如目前的动画播放组件，需要拿动画播放器去播放，每当动画播放器新增接口时，动画播放组件都要新增一组相同接口</em></p>
+<h3 id="两者如何权衡">两者如何权衡</h3>
+<p>隐藏关系的出发点是好点，设计新模块时可以大胆隐藏，但当发现这种隐藏带来的成本太大，去掉即可，只要把出问题的地方修补好就行了。</p>
+<h2 id="7-9-替换算法（Substitute-Algorithm）">7.9 替换算法（Substitute Algorithm）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">function foundPerson(people) &#123;</span><br><span class="line"> for(let i = 0; i &lt; people.length; i++) &#123;</span><br><span class="line">  if (people[i] === &quot;Don&quot;) &#123;</span><br><span class="line">   return &quot;Don&quot;;</span><br><span class="line">  &#125;</span><br><span class="line">  if (people[i] === &quot;John&quot;) &#123;</span><br><span class="line">   return &quot;John&quot;;</span><br><span class="line">  &#125;</span><br><span class="line">  if (people[i] === &quot;Kent&quot;) &#123;</span><br><span class="line">   return &quot;Kent&quot;;</span><br><span class="line">  &#125;</span><br><span class="line"> &#125;</span><br><span class="line"> return &quot;&quot;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  function foundPerson(people) &#123;</span><br><span class="line"> const candidates = [&quot;Don&quot;, &quot;John&quot;, &quot;Kent&quot;];</span><br><span class="line"> return people.find(p =&gt; candidates.includes(p)) || &#x27;&#x27;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果有更简洁合理的算法能实现原有算法实现的功能，积极替换吧。比如游戏中一些物理计算可以调用比较成熟的引擎自带的计算，又或者一些编辑器代码可以用Linq来替代对数据的操作算法。</p>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/NxeedGoto/Refactoring2-zh/blob/master/docs/ch7.md">https://github.com/NxeedGoto/Refactoring2-zh/blob/master/docs/ch7.md</a></li>
+</ul>
 
       </section>
 
@@ -170,28 +215,14 @@
       
         <nav class="article-nav">
           
-            <div class="article-nav-item layout-padding">
-  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
-    
-    <div class="card-text">
-      
-        <a href="/posts/2c156965/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">百人计划-图形-1.1 渲染流水线</h2>
-        </a>
-      
-      <div class="card-text--row">Newer</div>
-    </div>
-  </article>
-</div>
-          
           
             <div class="article-nav-item layout-padding">
   <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
     
     <div class="card-text">
       
-        <a href="/posts/f8d9feb5/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">图形学相关资料</h2>
+        <a href="/posts/d77ab1bb/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">【Refactoring】第一组重构</h2>
         </a>
       
       <div class="card-text--row">Older</div>
