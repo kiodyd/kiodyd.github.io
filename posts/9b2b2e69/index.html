@@ -104,7 +104,7 @@
           <h2 class="title-sub-wrap">
             <strong>kio0o0</strong>
             <span>发布于</span>
-            <time  class="article-date" datetime="2024-12-01T09:01:02.008Z" itemprop="datePublished">2024-12-01</time>
+            <time  class="article-date" datetime="2024-12-15T04:40:43.724Z" itemprop="datePublished">2024-12-15</time>
           </h2>
           
           
@@ -143,7 +143,7 @@
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
         <span id="more"></span>
 <h2 id="8-1-搬移函数（Move-Function）">8.1 搬移函数（Move Function）</h2>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">class Account &#123;</span><br><span class="line">  get overdraftCharge() &#123;...&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">class AccountType &#123;</span><br><span class="line">  get overdraftCharge() &#123;...&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">class Account &#123;</span><br><span class="line">get overdraftCharge() &#123;...&#125;</span><br><span class="line"></span><br><span class="line">class AccountType &#123;</span><br><span class="line">get overdraftCharge() &#123;...&#125;</span><br></pre></td></tr></table></figure>
 <h3 id="何时该搬移">何时该搬移</h3>
 <ul>
 <li>频繁引用其他上下文中的元素，而对自身上下文中的元素却关心甚少</li>
@@ -158,7 +158,7 @@
 <li>迁移涉及传参到新函数时，可以先只传需要的部分，后面拓展起来传对象也行，没必要提前增加用不到的成本（随时可重构）</li>
 </ul>
 <h2 id="8-2-搬移字段（Move-Field）">8.2 搬移字段（Move Field）</h2>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">class Customer &#123;</span><br><span class="line">  get plan() &#123;return this._plan;&#125;</span><br><span class="line">  get discountRate() &#123;return this._discountRate;&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">class Customer &#123;</span><br><span class="line">  get plan() &#123;return this._plan;&#125;</span><br><span class="line">  get discountRate() &#123;return this.plan.discountRate;&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">class Customer &#123;</span><br><span class="line">  get plan() &#123;return this._plan;&#125;</span><br><span class="line">  get discountRate() &#123;return this._discountRate;&#125;</span><br><span class="line"></span><br><span class="line">class Customer &#123;</span><br><span class="line">  get plan() &#123;return this._plan;&#125;</span><br><span class="line">  get discountRate() &#123;return this.plan.discountRate;&#125;</span><br></pre></td></tr></table></figure>
 <blockquote>
 <p>一个适应于问题域的良好数据结构，可以让行为代码变得简单明了，而一个糟糕的数据结构则将招致许多无用代码，这些代码更多是在差劲的数据结构中间纠缠不清，而非为系统实现有用的行为。</p>
 </blockquote>
@@ -174,7 +174,7 @@
 <li>当有确认不到的数据修改处时，可以加入错误日志，跑一段时间，将错误暴露出来</li>
 </ul>
 <h2 id="8-3-8-4-搬移语句到函数（Move-Statements-into-Function）、搬移语句到调用者（Move-Statements-to-Callers）">8.3 &amp; 8.4 搬移语句到函数（Move Statements into Function）、搬移语句到调用者（Move Statements to Callers）</h2>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">result.push(`&amp;lt;p&amp;gt;title: $&#123;person.photo.title&#125;&amp;lt;/p&amp;gt;`);</span><br><span class="line">result.concat(photoData(person.photo));</span><br><span class="line"></span><br><span class="line">function photoData(aPhoto) &#123;</span><br><span class="line">  return [</span><br><span class="line">    `&amp;lt;p&amp;gt;location: $&#123;aPhoto.location&#125;&amp;lt;/p&amp;gt;`,</span><br><span class="line">    `&amp;lt;p&amp;gt;date: $&#123;aPhoto.date.toDateString()&#125;&amp;lt;/p&amp;gt;`,</span><br><span class="line">  ];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">result.concat(photoData(person.photo));</span><br><span class="line"></span><br><span class="line">function photoData(aPhoto) &#123;</span><br><span class="line">  return [</span><br><span class="line">    `&amp;lt;p&amp;gt;title: $&#123;aPhoto.title&#125;&amp;lt;/p&amp;gt;`,</span><br><span class="line">    `&amp;lt;p&amp;gt;location: $&#123;aPhoto.location&#125;&amp;lt;/p&amp;gt;`,</span><br><span class="line">    `&amp;lt;p&amp;gt;date: $&#123;aPhoto.date.toDateString()&#125;&amp;lt;/p&amp;gt;`,</span><br><span class="line">  ];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">result.push(`&lt;p&gt;title: $&#123;person.photo.title&#125;&lt;/p&gt;`);</span><br><span class="line">result.concat(photoData(person.photo));</span><br><span class="line"></span><br><span class="line">function photoData(aPhoto) &#123;</span><br><span class="line">  return [</span><br><span class="line">    `&lt;p&gt;location: $&#123;aPhoto.location&#125;&lt;/p&gt;`,</span><br><span class="line">    `&lt;p&gt;date: $&#123;aPhoto.date.toDateString()&#125;&lt;/p&gt;`,</span><br><span class="line">  ];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">result.concat(photoData(person.photo));</span><br><span class="line"></span><br><span class="line">function photoData(aPhoto) &#123;</span><br><span class="line">  return [</span><br><span class="line">    `&lt;p&gt;title: $&#123;aPhoto.title&#125;&lt;/p&gt;`,</span><br><span class="line">    `&lt;p&gt;location: $&#123;aPhoto.location&#125;&lt;/p&gt;`,</span><br><span class="line">    `&lt;p&gt;date: $&#123;aPhoto.date.toDateString()&#125;&lt;/p&gt;`,</span><br><span class="line">  ];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h3 id="何时该搬移到函数">何时该搬移到函数</h3>
 <ul>
 <li>消除重复</li>
@@ -215,7 +215,7 @@
 <li>关于性能问题：先让代码结构变得清晰，才能做进一步优化</li>
 </ul>
 <h2 id="8-8-以管道取代循环（Replace-Loop-with-Pipeline）">8.8 以管道取代循环（Replace Loop with Pipeline）</h2>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">const names = [];</span><br><span class="line">for (const i of input) &#123;</span><br><span class="line">  if (i.job === &quot;programmer&quot;)</span><br><span class="line">    names.push(i.name);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">const names = input</span><br><span class="line">  .filter(i =&gt; i.job === &quot;programmer&quot;)</span><br><span class="line">  .map(i =&gt; i.name)</span><br><span class="line">;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">const names = [];</span><br><span class="line">for (const i of input) &#123;</span><br><span class="line">  if (i.job === &quot;programmer&quot;)</span><br><span class="line">    names.push(i.name);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">const names = input</span><br><span class="line">  .filter(i =&gt; i.job === &quot;programmer&quot;)</span><br><span class="line">  .map(i =&gt; i.name);</span><br></pre></td></tr></table></figure>
 <ul>
 <li>更好的语言结构来处理迭代过程，这种结构就叫作集合管道（collection pipeline）</li>
 <li>一些逻辑如果采用集合管道来编写，代码的可读性会更强，更容易弄清对象在管道中间的变换过程</li>
@@ -237,6 +237,20 @@
       
       
         <nav class="article-nav">
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/4d72387e/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">【Refactoring】重新组织数据</h2>
+        </a>
+      
+      <div class="card-text--row">Newer</div>
+    </div>
+  </article>
+</div>
           
           
             <div class="article-nav-item layout-padding">
@@ -305,7 +319,7 @@
         <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
   <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
 </svg>
-        <span>101</span>
+        <span>102</span>
       </div>
       <div class="count-box--item">
         <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
@@ -375,7 +389,7 @@
       
         <li class="categorys-list-item">
           <a href="/categories/%E5%AD%A6%E4%B9%A0/">
-            学习 (94)
+            学习 (95)
           </a>
         </li>
       

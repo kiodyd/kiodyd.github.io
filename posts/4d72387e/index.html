@@ -26,7 +26,7 @@
 
   
 
-  <title>百人计划-图形-1.1 渲染流水线 | 不特别周のBlog</title>
+  <title>【Refactoring】重新组织数据 | 不特别周のBlog</title>
 
   
 
@@ -100,17 +100,12 @@
     <div class="header-content">
       <div class="post-text layout-block">
         <div class="layout-margin">
-          <h1 class="title-wrap">百人计划-图形-1.1 渲染流水线</h1>
+          <h1 class="title-wrap">【Refactoring】重新组织数据</h1>
           <h2 class="title-sub-wrap">
             <strong>kio0o0</strong>
             <span>发布于</span>
-            <time  class="article-date" datetime="2023-01-06T09:33:00.000Z" itemprop="datePublished">2023-01-06</time>
+            <time  class="article-date" datetime="2024-12-15T04:51:42.561Z" itemprop="datePublished">2024-12-15</time>
           </h2>
-          
-            <h2 class="title-sub-wrap new-date">
-              <span>最后更新于</span>
-              <time  class="article-updated" datetime="2024-07-14T09:03:59.228Z" itemprop="dateUpdated">2024-07-14</time>
-            </h2>
           
           
           <ul class="wrap-list dark">
@@ -120,9 +115,9 @@
 </ul>
           <ul class="wrap-list dark">
   
-    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+    <li><a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/">🏷️ 代码设计</a></li>
   
-    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+    <li><a href="/tags/%E9%87%8D%E6%9E%84/">🏷️ 重构</a></li>
   
 </ul>
         </div>
@@ -146,256 +141,77 @@
       
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
-        <p>求知若饥，虚心若愚</p>
-<span id="more"></span>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230106153026.png" alt="渲染流水线"></p>
-<h2 id="应用阶段">应用阶段</h2>
-<h5 id="准备基本场景数据">准备基本场景数据</h5>
+        <span id="more"></span>
+<h2 id="9-1-拆分变量（Split-Variable）">9.1 拆分变量（Split Variable）</h2>
+<p><strong>何时该拆分</strong></p>
 <ul>
-<li>场景物体数据
-<ul>
-<li>物体变换数据：位置、旋转、缩放等（在Unity中即Transform组件的数据）</li>
-<li>物体网格数据：顶点位置、UV贴图、法线、切线等</li>
+<li>查看某个变量在一段逻辑内被多次赋值的情况（累加收集结果这种不算）</li>
+<li>常见于某个复杂运算需要多个临时变量，图省事就让一个临时变量担起所有大任</li>
 </ul>
-</li>
-<li>摄像机数据
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">function distanceTravelled (scenario, time) &#123;</span><br><span class="line"> let result;</span><br><span class="line"> let acc = scenario.primaryForce / scenario.mass;</span><br><span class="line"> let primaryTime = Math.min(time, scenario.delay);</span><br><span class="line"> result = 0.5 * acc * primaryTime * primaryTime;</span><br><span class="line"></span><br><span class="line"> //上面这段还很正常，下面开始加料了</span><br><span class="line"> let secondaryTime = time - scenario.delay;</span><br><span class="line"> if (secondaryTime &gt; 0) &#123;</span><br><span class="line">  let primaryVelocity = acc * scenario.delay;</span><br><span class="line">  // 对acc重复使用并设置为其他用途</span><br><span class="line">  acc = (scenario.primaryForce + scenario.secondaryForce) / scenario.mass;</span><br><span class="line">  result += primaryVelocity * secondaryTime + 0.5 * acc * secondaryTime * secondaryTime;</span><br><span class="line"> &#125;</span><br><span class="line"> return result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">///////////////////////////////////////////</span><br><span class="line"></span><br><span class="line">function distanceTravelled (scenario, time) &#123;</span><br><span class="line"> let result;</span><br><span class="line"> const primaryAcceleration = scenario.primaryForce / scenario.mass;</span><br><span class="line"> let primaryTime = Math.min(time, scenario.delay);</span><br><span class="line"> result = 0.5 * primaryAcceleration * primaryTime * primaryTime;</span><br><span class="line"> let secondaryTime = time - scenario.delay;</span><br><span class="line"> if (secondaryTime &gt; 0) &#123;</span><br><span class="line">  let primaryVelocity = primaryAcceleration * scenario.delay;</span><br><span class="line">  const secondaryAcceleration = (scenario.primaryForce + scenario.secondaryForce) / scenario.mass;</span><br><span class="line">  result += primaryVelocity * secondaryTime +</span><br><span class="line">   0.5 * secondaryAcceleration * secondaryTime * secondaryTime;</span><br><span class="line"> &#125;</span><br><span class="line"> return result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>比如一些加速度运动公式、通过复杂公式拟合曲线结果等等，如果不把变量拆分（命名也很重要），后来阅读者在不了解公式的情况下，很难理解意图。</p>
+<p>如果语言支持的话，可以将这些拆分的变量设置为静态变量，保证职责单一的同时也避免后来者随意修改。</p>
+<h2 id="9-2-字段改名（Rename-Field）">9.2 字段改名（Rename Field）</h2>
+<p><strong>何时该改名</strong></p>
 <ul>
-<li>位置、方向</li>
-<li>远近裁剪平面</li>
-<li>正交、透视（FOV）</li>
-<li>视口比例、尺寸等</li>
+<li>数据结构是理解程序行为的关键，需要保持清晰、整洁</li>
+<li>对数据的理解就越深，所以很有必要把加深的理解融入程序中，其中改名是一个很常见的行为</li>
 </ul>
-</li>
-<li>光源及阴影数据
+<p><strong>注意要点</strong></p>
 <ul>
-<li>光源类型：方向光、点光、聚光、区域光等</li>
-<li>位置、方向、角度等其他数据</li>
-<li>是否需要阴影：判断该光源可见范围内是否有可投射阴影的物体（物体shader要能投射）</li>
-<li>阴影参数：对应光源序号、阴影强度、级联参数、深度偏移（Bias相关，涉及shadowmap精度）、近平面偏移等</li>
-<li>逐光源绘制阴影贴图：
+<li>如果要改名的字段作用域很小，直接一步到位全改了即可，ide也提供了方便的工具</li>
+<li>如果作用域很广，优先考虑使用【封装变量】先让字段处于可控的范围，再来进行改名操作</li>
+<li>封装虽然有很多额外成本，但却让改名这个操作不容易出错</li>
+</ul>
+<p>比如lua这种弱类型语言，如果一个类的变量没有合理封装，而是随意外部拿取使用，都不敢想象你全局搜索这个变量名出来一堆结果时的绝望，还得小心其他变量是否采用了一样的命名。</p>
+<h2 id="9-3-以查询取代派生变量（Replace-Derived-Variable-with-Query）">9.3 以查询取代派生变量（Replace Derived Variable with Query）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">get discountedTotal() &#123;return this._discountedTotal;&#125;</span><br><span class="line">set discount(aNumber) &#123;</span><br><span class="line"> const old = this._discount;</span><br><span class="line"> this._discount = aNumber;</span><br><span class="line"> this._discountedTotal += old - aNumber;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">get discountedTotal() &#123;return this._baseTotal - this._discount;&#125;</span><br><span class="line">set discount(aNumber) &#123;this._discount = aNumber;&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>为什么需要以查询取代</strong></p>
 <ul>
-<li>近平面偏移</li>
-<li>逐级联
-<ol>
-<li>计算当前光源+级联对应的观察矩阵、投影矩阵、以及对应到阴影贴图里的视口区域</li>
-<li>绘制到阴影贴图</li>
-</ol>
-</li>
+<li>可变数据是软件中最大的错误源头之一（总有在你意料之外的地方修改了数据）</li>
+<li>所以要尽量少使用可变数据（但不太现实）</li>
+<li>一些变量能通过计算出来，可以考虑不缓存，这样也变相减少了可变数据的使用</li>
+<li>同时尽量把可变数据的作用域限制在最小范围</li>
 </ul>
-</li>
-</ul>
-</li>
-<li>其他全局数据</li>
-</ul>
-<h5 id="加速算法、粗粒度剔除">加速算法、粗粒度剔除</h5>
+<p>在游戏还有一些常用情况，变量记录了一个有生命周期的对象，当对象被消耗时没有及时更新变量的引用。又或许使用了对象池技术，变量的记录指向已经不是预期的结果。</p>
+<p>这时候如果想避免更新不到位的情况，可以<strong>以查询取代</strong></p>
+<p><strong>注意要点</strong></p>
 <ul>
-<li>碰撞检测</li>
-<li>加速算法（加速场景物体的裁剪）
-<ul>
-<li>八叉树</li>
-<li>K-D树</li>
-<li>BVH</li>
+<li>需要确保计算出来的值和原有变量值一致</li>
+<li>可以保留两者，加一些断言机制跑一段时间</li>
 </ul>
-</li>
-<li>遮挡剔除
+<h2 id="9-4-将引用对象改为值对象（Change-Reference-to-Value）">9.4 将引用对象改为值对象（Change Reference to Value）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">class Product &#123;</span><br><span class="line">applyDiscount(arg) &#123;this._price.amount -= arg;&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">class Product &#123;</span><br><span class="line">applyDiscount(arg) &#123;</span><br><span class="line">  this._price = new Money(this._price.amount - arg, this._price.currency);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>引用对象和值对象的差异</strong></p>
 <ul>
-<li>可见光裁剪，灯光有衰减，以及范围</li>
-<li>可见场景物体裁剪，视锥体（平头截体）外、被遮挡的物体</li>
+<li>两者最明显的差异在于如何更新内部对象的属性</li>
+<li>引用对象在更新其属性时，保留原对象不动，更新内部对象的属性</li>
+<li>值对象替换整个内部对象，新换上的对象继承了原有属性值和修改的属性值</li>
 </ul>
-</li>
-<li>其他算法</li>
-</ul>
-<h5 id="设置渲染状态、准备渲染参数">设置渲染状态、准备渲染参数</h5>
+<p><strong>何时要使用值对象</strong></p>
 <ul>
-<li>绘制设置
-<ul>
-<li>合批方式：静态合批、动态合批、GPU Instancing</li>
+<li>数据是否可变，不可变的数据可以放心传给程序各个模块，不用担心源数据被修改</li>
+<li>程序各处复制值对象，而不必操心维护内存链接</li>
+<li>值对象在分布式系统和并发系统中尤为有用</li>
 </ul>
-</li>
-<li>绘制顺序（会影响Overdraw）
+<p><strong>注意要点</strong></p>
 <ul>
-<li>相对摄像机的距离排序</li>
-<li>材质RenderQueue排序</li>
-<li>UICanvas排序</li>
-<li>其他方式等</li>
+<li>值变量如果值相等时被认为是同一个变量</li>
+<li>值对象也需要同样的机制，意味着需要重写equal函数，不能去比较引用地址</li>
+<li>如果值对象里面有对象属性，也需要改成值对象</li>
 </ul>
-</li>
-<li>渲染目标
+<h2 id="9-5-将值对象改为引用对象（Change-Value-to-Reference）">9.5 将值对象改为引用对象（Change Value to Reference）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">let customer = new Customer(customerData);</span><br><span class="line"></span><br><span class="line">let customer = customerRepository.get(customerData.id);</span><br></pre></td></tr></table></figure>
+<p><strong>何时要使用引用对象</strong></p>
 <ul>
-<li>FrameBuffer</li>
-<li>RenderTexture</li>
+<li>从上节的讨论可知，如果数据不可变，使用值对象和引用对象都可以，值对象可以避免出错（但也有存在很多份实例的内存问题）</li>
+<li>但如果是数据可变，使用值对象需要考虑该对象属性被修改时需不需要同步所有的值对象</li>
 </ul>
-</li>
-<li>渲染模式
+<p>比如很多个系统缓存了玩家单位，玩家的属性发生变更时，所有系统需不需要拿到最新版本。引用对象可以很简单处理这种更新，但如果是值对象，则要逐一更新，很难避免遗漏。</p>
+<p>使用引用对象需要有个全局中心（管理器）去获取这个引用对象，保证获取的是同一个对象。常用做法是把这个全局中心设置为单例，但如果不想过渡使用全局对象，也可以在系统构造的时候传入这个全局中心。</p>
+<h2 id="参考链接">参考链接</h2>
 <ul>
-<li>前向渲染</li>
-<li>延迟渲染</li>
-<li>Tile Based？</li>
-</ul>
-</li>
-</ul>
-<h5 id="调用DrawCall、输出渲染图元到显存">调用DrawCall、输出渲染图元到显存</h5>
-<ul>
-<li>顶点数据
-<ul>
-<li>位置</li>
-<li>颜色</li>
-<li>法线</li>
-<li>纹理uv坐标</li>
-<li>其他顶点数据</li>
-</ul>
-</li>
-<li>其他数据
-<ul>
-<li>MVP变换矩阵</li>
-<li>纹理贴图</li>
-<li>其他数据</li>
-</ul>
-</li>
-</ul>
-<h2 id="几何阶段">几何阶段</h2>
-<h5 id="顶点着色器Vertex-Shading（可编程）">顶点着色器Vertex Shading（可编程）</h5>
-<ul>
-<li>视图变换（可以看下引用里的投影矩阵推导）
-<ul>
-<li>Model - View - Projection - Screen</li>
-<li>model space -&gt; world space -&gt; camera space -&gt; clip space -&gt; NDC -&gt; screen space</li>
-</ul>
-</li>
-<li>顶点着色
-<ul>
-<li>一般在这里计算传给下一阶段的数据</li>
-<li>也可在这一阶段进行着色，被称为Gouraud shading<br>
-<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230106161903.png" alt="image"></li>
-</ul>
-</li>
-</ul>
-<h5 id="可选项点处理（可编程）">可选项点处理（可编程）</h5>
-<ul>
-<li>曲面细分（可选）
-<ul>
-<li>将较少的面通过特定算法增加更多的顶点从而细分成更多的面</li>
-<li>GAMES101_Lecture_12有讲解相关的算法<br>
-<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301061620651.png" alt="image"></li>
-</ul>
-</li>
-<li>几何着色器（可选）
-<ul>
-<li>在图元外增加额外的Vertex，将原始图元转换成新图元，以构建一个不一样的模型</li>
-<li>（粒子系统）只用一个Vertex来表示每一个颗粒：只需要在GeometryShader阶段将每个Vertex拓展成两个三角形<br>
-<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301061620569.png" alt="image"></li>
-</ul>
-</li>
-</ul>
-<h5 id="投影Projection">投影Projection</h5>
-<ul>
-<li>正交</li>
-<li>透视</li>
-</ul>
-<h5 id="裁剪Clipping（可配置）">裁剪Clipping（可配置）</h5>
-<ul>
-<li>CVV（视锥体裁剪）</li>
-<li>正面或背面剔除（可配置）<br>
-<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301061622815.png" alt=""></li>
-</ul>
-<h5 id="屏幕映射ScreenMapping（GPU自动完成）">屏幕映射ScreenMapping（GPU自动完成）</h5>
-<ul>
-<li>从连续到离散</li>
-<li>坐标系差异（OpenGl、Direct3D）<br>
-<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301061623309.png" alt=""></li>
-</ul>
-<h2 id="光栅化阶段">光栅化阶段</h2>
-<h5 id="三角形设置-Triangle-（GPU自动完成）">三角形设置 Triangle （GPU自动完成）</h5>
-<p>将对应面的三个顶点组装成三角形，计算图元的边界信息<br>
-<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301061625197.png" alt=""></p>
-<h5 id="三角形遍历-Triangle-Traversal（GPU自动完成）">三角形遍历 Triangle Traversal（GPU自动完成）</h5>
-<ul>
-<li>三角形（图元）包含的片元，利用aabb加速计算，以及线性插值（一般是用重心坐标）对应像素的属性</li>
-<li>同个像素可能对应多个片元，丢弃和混合颜色后才成为像素<br>
-<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301061625175.png" alt=""></li>
-<li>补充：线代GPU会使用Quads（四个像素一组），为了方便计算mipmap、各向异性等ddx/ddy，所以一个三角形占用的像素可能会更多<br>
-<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202302171759446.png" alt=""></li>
-</ul>
-<h5 id="抗锯齿-anti-aliasing">抗锯齿(anti-aliasing)</h5>
-<ul>
-<li>SSAA(Super-Sampling Anti-Aliasing)
-<ul>
-<li>渲染到一个分辨率放大N倍的buffer</li>
-<li>对放大N倍的buffer进行下采样</li>
-</ul>
-</li>
-<li>MSAA(Multi-Sampling Anti-Aliasing)
-<ul>
-<li>在光栅化阶段</li>
-<li>计算多个覆盖样本，可以通过采样点的分配来降低采样频率以及不用像SSAA那样每个采样点计算一遍着色，所以性能比SSAA好</li>
-</ul>
-</li>
-<li>FXAA(Fast approximate anti-aliasing)/TXAA(Temporal anti-aliasing)
-<ul>
-<li>后处理技术，不在这个渲染阶段</li>
-</ul>
-</li>
-</ul>
-<h5 id="逐片元操作">逐片元操作</h5>
-<ul>
-<li>
-<p>像素着色 Fragment Shader（可编程）</p>
-<ul>
-<li>这个阶段着色的叫Phong Shading（和Phong光照模型区分开）</li>
-</ul>
-</li>
-<li>
-<p>颜色混合 ColorBlending（可配置）</p>
-<blockquote>
-<p><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/384124671/answer/1120478668">深度测试/模版测试/透明度测试先后顺序是什么样的？</a></p>
-</blockquote>
-<ul>
-<li>Alpha Test</li>
-<li>Depth Buffer Test</li>
-<li>Stencil Test（配置模板值的写入与对比，根据对比结果来舍弃还是覆盖）</li>
-<li>Blending<br>
-<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301061638260.png" alt=""><br>
-<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301061639381.png" alt=""></li>
-</ul>
-</li>
-<li>
-<p>目标缓冲区</p>
-<ul>
-<li>FrameBuffer</li>
-<li>RenderTexture</li>
-</ul>
-</li>
-</ul>
-<h2 id="后处理">后处理</h2>
-<p>前面的渲染流程完成后，再对最后输出的缓冲区/渲染贴图进行处理，可以看成是应用于一个矩形面片贴图的图像处理<br>
-<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301061642464.png" alt=""></p>
-<h2 id="回顾整体流程">回顾整体流程</h2>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/202301061641197.png" alt=""></p>
-<h2 id="引用">引用</h2>
-<ul>
-<li>RTR4 第二章 图形渲染管线 - 0110君的文章 - 知乎 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/208987296">https://zhuanlan.zhihu.com/p/208987296</a></li>
-<li>GPU Rendering Pipeline——GPU渲染流水线简介 - 拓荒犬的文章 - 知乎 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/61949898">https://zhuanlan.zhihu.com/p/61949898</a></li>
-<li>卡通渲染（上）：致从没看懂过着色器代码的你 - 羡辙的文章 - 知乎 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/25595069">https://zhuanlan.zhihu.com/p/25595069</a></li>
-<li>实时渲染中的坐标系变换（5）：投影变换-3 - IgorKakarote的文章 - 知乎 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/115395322">https://zhuanlan.zhihu.com/p/115395322</a></li>
-<li>实时渲染中的坐标系变换（3）：投影变换-1 - IgorKakarote的文章 - 知乎 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/113662566">https://zhuanlan.zhihu.com/p/113662566</a></li>
-<li>GLSL-几何着色器详解跟实例
-<ul>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/mazhenyu/p/3831986.html">https://www.cnblogs.com/mazhenyu/p/3831986.html</a></li>
-<li><a target="_blank" rel="noopener" href="https://docs.microsoft.com/zh-cn/windows-hardware/drivers/display/geometry-shader-stage">https://docs.microsoft.com/zh-cn/windows-hardware/drivers/display/geometry-shader-stage</a></li>
-</ul>
-</li>
-<li>渲染器 2 —— 三角形的光栅化 - 萧井陌的文章 - 知乎 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/20148016">https://zhuanlan.zhihu.com/p/20148016</a></li>
-<li>深度测试/模版测试/透明度测试先后顺序是什么样的？ - 林红旭 Leo的回答 - 知乎 <a target="_blank" rel="noopener" href="https://www.zhihu.com/question/384124671/answer/1121443495">https://www.zhihu.com/question/384124671/answer/1121443495</a></li>
-<li>渲染前CPU和渲染中GPU的裁剪和剔除 <a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_33744693/article/details/88704309">https://blog.csdn.net/qq_33744693/article/details/88704309</a></li>
-<li>投影矩阵推导
-<ul>
-<li>图形学投影矩阵推导 <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1ZY41157TR">https://www.bilibili.com/video/BV1ZY41157TR</a></li>
-<li>GAMES101第四讲 <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1X7411F744">https://www.bilibili.com/video/BV1X7411F744</a></li>
-</ul>
-</li>
-<li>learnopengl <a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/">https://learnopengl-cn.github.io/</a></li>
-<li>大佬的笔记 <a target="_blank" rel="noopener" href="https://www.bilibili.com/read/cv13282376">https://www.bilibili.com/read/cv13282376</a></li>
-<li>大佬的笔记 <a target="_blank" rel="noopener" href="https://www.yuque.com/xiaohen-ecwjj/vegbg9/mmmfg8">https://www.yuque.com/xiaohen-ecwjj/vegbg9/mmmfg8</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/NxeedGoto/Refactoring2-zh/blob/master/docs/ch9.md">https://github.com/NxeedGoto/Refactoring2-zh/blob/master/docs/ch9.md</a></li>
 </ul>
 
       </section>
@@ -404,28 +220,14 @@
       
         <nav class="article-nav">
           
-            <div class="article-nav-item layout-padding">
-  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
-    
-    <div class="card-text">
-      
-        <a href="/posts/79cbe0f9/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">百人计划-图形-1.2 数学基础</h2>
-        </a>
-      
-      <div class="card-text--row">Newer</div>
-    </div>
-  </article>
-</div>
-          
           
             <div class="article-nav-item layout-padding">
   <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
     
     <div class="card-text">
       
-        <a href="/posts/8905fa5c/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">分享一个大世界雾效实现</h2>
+        <a href="/posts/9b2b2e69/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">【Refactoring】搬移特性</h2>
         </a>
       
       <div class="card-text--row">Older</div>
