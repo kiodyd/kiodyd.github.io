@@ -26,7 +26,7 @@
 
   
 
-  <title>百人计划-美术-1.3 角色设计精要 | 不特别周のBlog</title>
+  <title>【Refactoring】简化条件逻辑 | 不特别周のBlog</title>
 
   
 
@@ -100,12 +100,17 @@
     <div class="header-content">
       <div class="post-text layout-block">
         <div class="layout-margin">
-          <h1 class="title-wrap">百人计划-美术-1.3 角色设计精要</h1>
+          <h1 class="title-wrap">【Refactoring】简化条件逻辑</h1>
           <h2 class="title-sub-wrap">
             <strong>kio0o0</strong>
             <span>发布于</span>
-            <time  class="article-date" datetime="2023-02-01T02:49:56.000Z" itemprop="datePublished">2023-02-01</time>
+            <time  class="article-date" datetime="2024-12-28T03:39:05.818Z" itemprop="datePublished">2024-12-28</time>
           </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2024-12-29T04:02:36.941Z" itemprop="dateUpdated">2024-12-29</time>
+            </h2>
           
           
           <ul class="wrap-list dark">
@@ -115,9 +120,9 @@
 </ul>
           <ul class="wrap-list dark">
   
-    <li><a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">🏷️ 图形学</a></li>
+    <li><a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/">🏷️ 代码设计</a></li>
   
-    <li><a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/">🏷️ 百人计划</a></li>
+    <li><a href="/tags/%E9%87%8D%E6%9E%84/">🏷️ 重构</a></li>
   
 </ul>
         </div>
@@ -142,141 +147,85 @@
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
         <span id="more"></span>
-<h2 id="角色设计流程">角色设计流程</h2>
-<h5 id="通用设计流程">通用设计流程</h5>
+<h2 id="10-1-10-2-分解条件表达式（Decompose-Conditional）、合并条件表达式（Consolidate-Conditional-Expression）">10.1 &amp; 10.2 分解条件表达式（Decompose Conditional）、合并条件表达式（Consolidate Conditional Expression）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">if (anEmployee.seniority &lt; 2) return 0;</span><br><span class="line">if (anEmployee.monthsDisabled &gt; 12) return 0;</span><br><span class="line">if (anEmployee.isPartTime) return 0;</span><br><span class="line"></span><br><span class="line">↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓</span><br><span class="line"></span><br><span class="line">if (isNotEligibleForDisability()) return 0;</span><br><span class="line"></span><br><span class="line">// 先合并条件表达式，然后提炼分解</span><br><span class="line">function isNotEligibleForDisability() &#123;</span><br><span class="line"> return ((anEmployee.seniority &lt; 2)</span><br><span class="line">     || (anEmployee.monthsDisabled &gt; 12)</span><br><span class="line">     || (anEmployee.isPartTime));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="分解条件表达式">分解条件表达式</h3>
+<p>本质是【提炼函数】的一个应用场景，为了解决：</p>
 <ul>
-<li>确定方向</li>
-<li>寻找参考 细化需求</li>
-<li>设计原型</li>
-<li>迭代</li>
+<li>避免大规模函数</li>
+<li>减少条件逻辑带来的可读性降低</li>
+<li>可以突出条件逻辑，更清楚地表明每个分支的作用，并且突出每个分支的原因</li>
 </ul>
-<h5 id="角色设计流程-2">角色设计流程</h5>
+<p><em>特别是多个条件嵌套的时候，使用函数+合理的命名，可以快速搞清楚这个分支的产生原因</em></p>
+<h3 id="合并条件表达式">合并条件表达式</h3>
+<p><strong>场景</strong>：检查条件各不相同，最终行为却一致</p>
+<p>是否合并取决于这些条件是否独立，如果不是独立应该只检查一次，只是检查条件有多项，更符合直观意识。<br>
+另一个好处是如果设计修改最终行为，不用修改多处，减少重复代码很关键。</p>
+<h2 id="10-3-以卫语句取代嵌套条件表达式（Replace-Nested-Conditional-with-Guard-Clauses）">10.3 以卫语句取代嵌套条件表达式（Replace Nested Conditional with Guard Clauses）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">function getPayAmount() &#123;</span><br><span class="line">  let result;</span><br><span class="line">  if (isDead) result = deadAmount();</span><br><span class="line">  else &#123;</span><br><span class="line">    if (isSeparated) result = separatedAmount();</span><br><span class="line">    else &#123;</span><br><span class="line">      if (isRetired) result = retiredAmount();</span><br><span class="line">      else result = normalPayAmount();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  return result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓</span><br><span class="line">// 用Guard Clauses让代码主分支更明显，上面代码让人搞不清主次</span><br><span class="line">function getPayAmount() &#123;</span><br><span class="line">  if (isDead) return deadAmount();</span><br><span class="line">  if (isSeparated) return separatedAmount();</span><br><span class="line">  if (isRetired) return retiredAmount();</span><br><span class="line">  return normalPayAmount();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>条件表达式风格：</strong></p>
 <ul>
-<li>确定角色关键词</li>
-<li>收集素材和灵感</li>
-<li>构图设计</li>
-<li>配色</li>
-<li>服装设计</li>
+<li>两个条件分支都属于正常行为（用if…else…表达同等关系）</li>
+<li>只有一个条件分支是正常行为，另一个分支则是异常的情况（异常应该及时退出清理）</li>
 </ul>
-<h2 id="确定角色关键词">确定角色关键词</h2>
+<p><strong>什么是卫语句：</strong></p>
 <ul>
-<li>了解角色并找到那些让角色<strong>独一无二</strong>的关键词</li>
-<li><strong>世界观、背景、能力、职业、性格、喜好</strong>都可以成为角色的重要标识</li>
-<li>角色的<strong>灵魂</strong>—角色的所有组成部分都服务于这些关键词</li>
+<li>如果某个条件极其罕见，就应该<strong>单独检查</strong>该条件，并在该条件为真时立刻从函数中返回</li>
+<li><strong>表达</strong>：这种情况不是本函数的核心逻辑所关心的，如果它真发生了，请做一些必要的整理工作，然后退出</li>
 </ul>
-<h5 id="案例">案例</h5>
+<h2 id="10-4-以多态取代条件表达式（Replace-Conditional-with-Polymorphism）">10.4 以多态取代条件表达式（Replace Conditional with Polymorphism）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">switch (bird.type) &#123;</span><br><span class="line"> case &#x27;EuropeanSwallow&#x27;:</span><br><span class="line">  return &quot;average&quot;;</span><br><span class="line"> case &#x27;AfricanSwallow&#x27;:</span><br><span class="line">  return (bird.numberOfCoconuts &gt; 2) ? &quot;tired&quot; : &quot;average&quot;;</span><br><span class="line"> case &#x27;NorwegianBlueParrot&#x27;:</span><br><span class="line">  return (bird.voltage &gt; 100) ? &quot;scorched&quot; : &quot;beautiful&quot;;</span><br><span class="line"> default:</span><br><span class="line">  return &quot;unknown&quot;;</span><br><span class="line"></span><br><span class="line">// 基于类型代码的 switch 语句，考虑用多态</span><br><span class="line"></span><br><span class="line">class EuropeanSwallow &#123;</span><br><span class="line"> get plumage() &#123;</span><br><span class="line">  return &quot;average&quot;;</span><br><span class="line"> &#125;</span><br><span class="line">class AfricanSwallow &#123;</span><br><span class="line"> get plumage() &#123;</span><br><span class="line">   return (this.numberOfCoconuts &gt; 2) ? &quot;tired&quot; : &quot;average&quot;;</span><br><span class="line"> &#125;</span><br><span class="line">class NorwegianBlueParrot &#123;</span><br><span class="line"> get plumage() &#123;</span><br><span class="line">   return (this.voltage &gt; 100) ? &quot;scorched&quot; : &quot;beautiful&quot;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>常见的使用多态拆分复杂条件逻辑场景：</strong></p>
 <ul>
-<li>角色：守望先锋小美</li>
-<li>关键词：中国、防守英雄、冰与雪、聪明的邻家大姐姐、探索与冒险、南极科考、航天科技<br>
-<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_1d5d10e7e0155592d8d3ee39bc611b3b.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_1d5d10e7e0155592d8d3ee39bc611b3b.png"><br>
-<br></li>
-<li>角色：守望先锋猎空</li>
-<li>关键词：英国、敏捷、飞行员、进攻英雄、年轻动感、活泼<br>
-<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_95c2e4acf9edc1de42620d05e131ba88.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_95c2e4acf9edc1de42620d05e131ba88.png"></li>
+<li>基于类型代码的 switch 语句，每种类型有自己的行为</li>
+<li>基础逻辑的变体（父类和子类），将非通用部分放到子类</li>
 </ul>
-<h2 id="收集素材和灵感">收集素材和灵感</h2>
-<p>设计平衡：</p>
+<p><em>书中提到都是分支的实现逻辑用多态，补充下条件本身也可以用多态，比如某个if语句写了一些只有某些类型才执行逻辑，比如xxx是宠物 或者 xxx是怪物，但如果需要判断的类型比较多的话，可以类型里面去实现【自己能否执行这段逻辑】的接口</em></p>
+<p>但也不是所有条件逻辑都应该用多态取代，还是得看复杂度，多态只是降低复杂度的有力工具。</p>
+<h2 id="10-5-引入特例（Introduce-Special-Case）">10.5 引入特例（Introduce Special Case）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">if (aCustomer === &quot;unknown&quot;) customerName = &quot;occupant&quot;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">class UnknownCustomer &#123;</span><br><span class="line">  get name() &#123;return &quot;occupant&quot;;&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>什么情况需要引入：</strong></p>
 <ul>
-<li>10%疯狂</li>
-<li>90%
+<li>一个数据结构的使用者都在检查某个特殊的值，并且当这个特殊值出现时所做的处理也都相同</li>
+<li>比如上面示例有很多地方检查是否是未知对象，然后未知对象有对应的分支处理</li>
+<li>造成的问题是所有对数据结构的使用接口都需要处理这个“异类”（且处理还类似），显然是重复代码的一种表现</li>
+</ul>
+<p><strong>引入特例解决了什么：</strong></p>
 <ul>
-<li>与人类有关</li>
-<li>文化参考</li>
-<li>日常经验</li>
-<li>有基础的设计</li>
-<li>真实世界的参考</li>
-<li>不要让观众感到糊涂</li>
+<li>将特殊值创建特例元素，表达对这种特例的共用行为的处理</li>
+<li>意思就是围绕特殊值的处理，使用接口通用的处理模式去处理，就不用每个接口去判断特殊值（比如获取对象的名字，为空则设为null，如果【空】是一个特例对象，本身空对象的名字就是null，就不需要特殊判断）</li>
+<li>Null 对象是特例的一种特例</li>
+</ul>
+<p><strong>怎么引入特例：</strong></p>
+<ul>
+<li>对象字面量：
+<ul>
+<li>特例不继承原对象，只是有一样的属性</li>
+<li>比如原对象需要通过.name拿取名字，特例字面量对象也有.name属性去返回（比如返回&quot;unknown&quot;）</li>
+<li>比较适用于弱类型语言</li>
+</ul>
+</li>
+<li>特殊对象
+<ul>
+<li>继承原对象，实现一个特例对象</li>
+<li>同理将特例值填充</li>
+<li>可以支持特例需要有行为时，而不是简单的字面数值（比如unknown对象需要执行什么逻辑）</li>
+</ul>
+</li>
+<li>通过变换插入一个数据结构
+<ul>
+<li>在原有数据结构深拷贝后，插入接口关心的数据，并处理了特例部分的数据</li>
+<li>这样在数据层面整理区分，接口层不需要去特殊判断</li>
+<li>类似游戏收到协议数据，对数据二次整理，正常值使用协议的，异常值用预设的数据</li>
 </ul>
 </li>
 </ul>
-<p>具体要点：</p>
-<ul>
-<li>收集素材，发散思维</li>
-<li>围绕中心设计点，展开更细微的设计</li>
-<li>让细节设计更加<strong>考究与真实</strong></li>
-<li>人们总在说“设计语言”，因为设计有时候真的也是一种语言。</li>
-<li>我们从来都不是创造元素，而是用<strong>已有的元素</strong>创造新奇的设计。</li>
-<li>“让角色动起来，让ta讲自己的故事”</li>
-</ul>
-<blockquote>
-<p>A 元素 + B 元素 = C 新生物体</p>
-</blockquote>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6a49241a58e1e3fb5d40cf0feb8429ce.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6a49241a58e1e3fb5d40cf0feb8429ce.png"></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_57362f7ee1e92b15fbfa31c929df2b43.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_57362f7ee1e92b15fbfa31c929df2b43.png"></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_435880a6fa514651a20e551d4767fba1.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_435880a6fa514651a20e551d4767fba1.png"></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_56143201bc9f51c40de62c122640b902.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_56143201bc9f51c40de62c122640b902.png"></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_665825c0114e2f7e062dd7f73497ec22.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_665825c0114e2f7e062dd7f73497ec22.png"></p>
-<h2 id="构图设计">构图设计</h2>
-<p>角色设计里所说的图形感 通常包括</p>
-<ul>
-<li>轮廓剪影</li>
-<li>内在构成</li>
-</ul>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f8ca7a23f298d4035c4a3cf75e4a483e.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f8ca7a23f298d4035c4a3cf75e4a483e.png"></p>
-<p>构图元素</p>
-<ul>
-<li>基础元素组成了各种构图</li>
-<li>不同元素带来不同感受</li>
-</ul>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_aeab00b0606066731a4ba603144ae084.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_aeab00b0606066731a4ba603144ae084.png"></p>
-<p>轮廓剪影</p>
-<ul>
-<li>剪影差异化，强化辨识度</li>
-<li>外轮廓越<strong>整体流畅</strong>辨识度越高</li>
-</ul>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ee87e65a424b27f6b8a3ae5ef96c90ed.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ee87e65a424b27f6b8a3ae5ef96c90ed.png"></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_248afe0ff3bb53edefb7760882a2b167.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_248afe0ff3bb53edefb7760882a2b167.png"></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ab0189779310c0d9e81cea7ef76410fe.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_ab0189779310c0d9e81cea7ef76410fe.png"></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f6c51081f83b1d796acb57a101e2fc1e.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_f6c51081f83b1d796acb57a101e2fc1e.png"></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_30af3ea917e037810dab29ba74984c6b.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_30af3ea917e037810dab29ba74984c6b.png"></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_daa7f4d56e77d2285d444dd978bd722e.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_daa7f4d56e77d2285d444dd978bd722e.png"></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_150ba7d18053f08b68e9c8aadd9ec4d9.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_150ba7d18053f08b68e9c8aadd9ec4d9.png"></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_c99fd7117fb17b4ad72f0cc166e38ee6.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_c99fd7117fb17b4ad72f0cc166e38ee6.png"></p>
-<h2 id="配色">配色</h2>
-<p>整体配色根据风格定调参考类似风格作品<strong>传达感受</strong></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6b7401853440d779cc7516201bcdeddd.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_6b7401853440d779cc7516201bcdeddd.png"></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_201a3058774f3bbbff26f4af6ab1c4ec.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_201a3058774f3bbbff26f4af6ab1c4ec.png"></p>
-<h2 id="服装设计">服装设计</h2>
-<p>烘托<strong>人物性格</strong>丰富<strong>细节信息</strong></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_881482721cd0c481bef1afbf5ac02e3f.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_881482721cd0c481bef1afbf5ac02e3f.png"></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_2ef05713d6839364a31d337c39f63c85.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_2ef05713d6839364a31d337c39f63c85.png"></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_c2371b3e3c240fc1ae48e7484eb9bd77.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_c2371b3e3c240fc1ae48e7484eb9bd77.png"></p>
-<p><img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_13e1d04f50a8f052893d473bb96af0ef.png" alt="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/2023/2/image_13e1d04f50a8f052893d473bb96af0ef.png"></p>
-<h2 id="参考资料">参考资料</h2>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://flv2.bn.netease.com/videolib3/1708/24/QBOvM1297/HD/QBOvM1297-mobile.mp4">https://flv2.bn.netease.com/videolib3/1708/24/QBOvM1297/HD/QBOvM1297-mobile.mp4</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/356444479/answer/900087893">https://www.zhihu.com/question/356444479/answer/900087893</a></li>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/140328124">https://zhuanlan.zhihu.com/p/140328124</a></li>
-<li><a target="_blank" rel="noopener" href="https://weibo.com/ttarticle/p/show?id=2309404214951676872731">https://weibo.com/ttarticle/p/show?id=2309404214951676872731</a></li>
-<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MjM5MjExMDAxNA==&amp;mid=2651886290&amp;idx=2&amp;sn=7f3e162dd1c731f8c21a2e4e480df1c4">https://mp.weixin.qq.com/s?__biz=MjM5MjExMDAxNA==&amp;mid=2651886290&amp;idx=2&amp;sn=7f3e162dd1c731f8c21a2e4e480df1c4</a></li>
-<li>课程：<a target="_blank" rel="noopener" href="http://bilibili.com/video/BV11f4y1a7o5">bilibili.com/video/BV11f4y1a7o5</a></li>
-<li>大佬笔记参考：
-<ul>
-<li><a target="_blank" rel="noopener" href="https://www.yuque.com/angelina007/mxfzvp/vzqa8w?#cDJKk">https://www.yuque.com/angelina007/mxfzvp/vzqa8w?#cDJKk</a></li>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43210334/article/details/116572662">https://blog.csdn.net/qq_43210334/article/details/116572662</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.yuque.com/yikejinyouzi/aau4tk/nkyqs1">https://www.yuque.com/yikejinyouzi/aau4tk/nkyqs1</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.yuque.com/log1024/pfgg4t/ha1sm7?#kW2OE">https://www.yuque.com/log1024/pfgg4t/ha1sm7?#kW2OE</a></li>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/544499435">https://zhuanlan.zhihu.com/p/544499435</a></li>
-<li><a target="_blank" rel="noopener" href="https://note.youdao.com/ynoteshare/index.html?id=9724e72ed7329e3d3bbea09f2f54fde3&amp;type=note&amp;_time=1675219490080">https://note.youdao.com/ynoteshare/index.html?id=9724e72ed7329e3d3bbea09f2f54fde3&amp;type=note&amp;_time=1675219490080</a></li>
-</ul>
-</li>
-</ul>
-<h2 id="作业">作业</h2>
-<p>找一张自己喜欢的角色图，说说都用了什么设计方法<br>
-<img src="https://cdn.trails-game.com/wp-content/webp-express/webp-images/doc-root/wp-content/uploads/2022/07/fie_hajimari.png.webp" alt=""></p>
-<ul>
-<li>出自：《闪之轨迹》菲·克劳赛尔</li>
-<li>关键词：猎兵（现为游击士）、西风妖精、身手矫健、怕麻烦、（无口）</li>
-<li>构图设计
-<ul>
-<li>轮廓剪影：使用多个三角形构图，使得角色充满力量感。同时该三角形呈倾斜状，表面菲机动性、敏捷性都很高。这个阶段的菲经历多个事件已经成长为能够独当一面的出色游击士。</li>
-<li>内在构成：大量斜线、重心在前方的设计以及小腿处的肌肉无一都在表现菲速度极快，实际游戏中定位也是SPD前几的角色。整体身体比例小巧辅上极快的速度，仿佛精灵在战场上翩翩起舞。</li>
-</ul>
-</li>
-<li>配色：最引人瞩目的是菲那银白色的头发，体现其干练、沉稳、独当一面，同时又有神秘、冷酷的一面。前期的菲凡事想自己独自解决，超高的能力以及独来独往的性格让玩家对其经历充满了好奇。眼睛、武器、飘带的颜色是绿色、青色，符合菲风属性以及速度的象征。</li>
-<li>服装：轻便（才不是为了省布料）、飘逸的衣服以及双枪刃作为武器，一切皆为速度，成为战场上最快的存在。头发飘扬一方面是速度感，另一方面又是怕麻烦，没有专门修整头发的表现。腰上的背包以及裤子上的吊带，方便携带小型武器，以备战场上的千变万化。眼神坚毅。</li>
-<li>菲还有可爱、无口的一面，有着像猫一般随地都可入睡的习惯。但该立绘主要是想表达速度、成长的那一面。</li>
-</ul>
+<p>核心都是函数不需要判断特殊值，而能通过一致的逻辑去处理</p>
+<h2 id="10-6-引入断言（Introduce-Assertion）">10.6 引入断言（Introduce Assertion）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">if (this.discountRate)</span><br><span class="line">  base = base - (this.discountRate * base);</span><br><span class="line"></span><br><span class="line">assert(this.discountRate &gt;= 0);</span><br><span class="line">if (this.discountRate)</span><br><span class="line">  base = base - (this.discountRate * base);</span><br></pre></td></tr></table></figure>
+<p>一些算法有一些隐形假设，比如平方根只对正值进行处理，单位坐标不能是空值等等，而这些假设在代码中并没有体现（<em>没事的，报错了就印象深刻了）：</em>）。使用断言可以去明确标明这些假设</p>
+<p>虽然可以对每个接口断言判断，但像坐标为空值更应该在设值函数那里断言，在源头的地方抓起。</p>
+<p>不应该滥用断言，否则会代码重复，应该在“必须为真”的地方加</p>
 
       </section>
 
@@ -284,28 +233,14 @@
       
         <nav class="article-nav">
           
-            <div class="article-nav-item layout-padding">
-  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
-    
-    <div class="card-text">
-      
-        <a href="/posts/e4d6aa4/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">百人计划-美术-1.4 场景设计精要</h2>
-        </a>
-      
-      <div class="card-text--row">Newer</div>
-    </div>
-  </article>
-</div>
-          
           
             <div class="article-nav-item layout-padding">
   <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
     
     <div class="card-text">
       
-        <a href="/posts/a592dd1a/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">百人计划-美术-1.1 美术理论基础</h2>
+        <a href="/posts/4d72387e/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">【Refactoring】重新组织数据</h2>
         </a>
       
       <div class="card-text--row">Older</div>
