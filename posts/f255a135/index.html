@@ -107,6 +107,11 @@
             <time  class="article-date" datetime="2025-01-12T07:26:15.032Z" itemprop="datePublished">2025-01-12</time>
           </h2>
           
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2025-02-15T10:08:45.940Z" itemprop="dateUpdated">2025-02-15</time>
+            </h2>
+          
           
           <ul class="wrap-list dark">
   
@@ -218,6 +223,37 @@
 <h2 id="11-8-以工厂函数取代构造函数（Replace-Constructor-with-Factory-Function）">11.8 以工厂函数取代构造函数（Replace Constructor with Factory Function）</h2>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">leadEngineer = new Employee(document.leadEngineer, &quot;E&quot;);</span><br><span class="line"></span><br><span class="line">leadEngineer = createEngineer(document.leadEngineer);</span><br></pre></td></tr></table></figure>
 <p>主要为了解决创建对应对象时，还要传入一个用户不关心的必要数据，避免构造函数的局限性（无法根据环境或参数信息返回子类实例）。</p>
+<h2 id="11-9-11-10-以命令取代函数（Replace-Function-with-Command）、以函数取代命令（Replace-Command-with-Function）">11.9 &amp; 11.10 以命令取代函数（Replace Function with Command）、以函数取代命令（Replace Command with Function）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">function score(candidate, medicalExam, scoringGuide) &#123;</span><br><span class="line">  let result = 0;</span><br><span class="line">  let healthLevel = 0;</span><br><span class="line">  // long body code</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">////// 使用对象封装</span><br><span class="line">class Scorer &#123;</span><br><span class="line">  constructor(candidate, medicalExam, scoringGuide) &#123;</span><br><span class="line">    this._candidate = candidate;</span><br><span class="line">    this._medicalExam = medicalExam;</span><br><span class="line">    this._scoringGuide = scoringGuide;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  execute() &#123;</span><br><span class="line">    this._result = 0;</span><br><span class="line">    this._healthLevel = 0;</span><br><span class="line">    // long body code</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>使用命令对象的优缺点：</strong><br>
+<em>优点：</em></p>
+<ul>
+<li>与普通的函数相比，命令对象提供了更大的控制灵活性和更强的表达能力（比如可以对操作进行记录和撤回等）</li>
+<li>参数绑定更加灵活，对象新增一系列set函数</li>
+</ul>
+<p><em>缺点：</em></p>
+<ul>
+<li>命令对象过多或者简单的操作不需要命令对象强大功能时造成系统的复杂度上升</li>
+</ul>
+<p><strong>与命令对象相关的设计思想</strong></p>
+<ul>
+<li>命令模式
+<ul>
+<li>一种数据驱动的设计模式，一般由接受者、请求者、命令组成</li>
+<li>用于解决请求者和执行者之间的紧耦合问题</li>
+<li>增加系统的扩展性，新命令可以很容易加入</li>
+<li>常用于交互界面的撤销、操作的同步等</li>
+</ul>
+</li>
+<li>命令查询职责分离模式CQRS
+<ul>
+<li>任何一个方法都可以拆分为命令和查询两部分</li>
+<li>分离了读写职责使得系统状态的改变变得清晰可查，能够提高系统的性能、可扩展性和安全性</li>
+<li>适用于业务逻辑层有很多操作需要相同的实体或者对象进行操作的时候，比如基于任务的用户交互系统，通常这类系统会引导用户通过一系列复杂的步骤和操作</li>
+<li><em>不过书中作者认为，更愿意将这里的命令称为“修改函数”（modifier）或者“改变函数”（mutator）。</em></li>
+</ul>
+</li>
+</ul>
 
       </section>
 
