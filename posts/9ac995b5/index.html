@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#3367D6"/>
+  <link rel="apple-touch-icon" href="/icons-192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+
+
+  <meta name="generator" content="Hexo 6.3.0">
+
+  
+
+  
+    <meta name="keywords" content="游戏开发">
+  
+
+  
+    <meta name="author" content="kio0o0">
+  
+
+  
+
+  
+
+  <title>【Refactoring】 处理继承关系 | 不特别周のBlog</title>
+
+  
+
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@1.1.3/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/monokai.css">
+  
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+  <div class="root-container">
+    
+<!-- header container -->
+<header class="header-container post">
+  
+    <div class="post-image" style="background-image: url(https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104211338.png)"></div>
+  
+
+  <!-- navbar -->
+<nav class="navbar">
+  <div class="navbar-content">
+    <!-- logo -->
+    <div class="navbar-logo">
+      <a href="/">
+        
+          不特别周のBlog
+        
+      </a>
+    </div>
+    <!-- link -->
+    <div class="navbar-link">
+      <div class="navbar-btn">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <ul class="navbar-list">
+        
+          <li class="navbar-list-item"><a href="/">首页</a></li>
+        
+          <li class="navbar-list-item"><a href="/talks">叨叨</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="header-content">
+      <div class="post-text layout-block">
+        <div class="layout-margin">
+          <h1 class="title-wrap">【Refactoring】 处理继承关系</h1>
+          <h2 class="title-sub-wrap">
+            <strong>kio0o0</strong>
+            <span>发布于</span>
+            <time  class="article-date" datetime="2025-02-15T11:26:14.583Z" itemprop="datePublished">2025-02-15</time>
+          </h2>
+          
+            <h2 class="title-sub-wrap new-date">
+              <span>最后更新于</span>
+              <time  class="article-updated" datetime="2025-02-23T03:18:53.874Z" itemprop="dateUpdated">2025-02-23</time>
+            </h2>
+          
+          
+          <ul class="wrap-list dark">
+  
+    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
+  
+</ul>
+          <ul class="wrap-list dark">
+  
+    <li><a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/">🏷️ 代码设计</a></li>
+  
+    <li><a href="/tags/%E9%87%8D%E6%9E%84/">🏷️ 重构</a></li>
+  
+</ul>
+        </div>
+      </div>
+    </div>
+  
+
+  
+  
+  
+</header>
+
+    <!-- 文章 -->
+
+<!-- 文章内容 -->
+<div class="body-container">
+  <article class="content-container layout-block post-container">
+    <div class="article-info">
+      
+      
+      
+      
+      <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
+        <span id="more"></span>
+<h1>处理继承关系</h1>
+<p>改进设计的一个重要方向就是<strong>消除重复代码</strong></p>
+<p><em>在一些弱类型语言，比如lua处理继承更要小心，由于覆盖函数很轻易，当继承自某个类时要时刻注意该函数实现是否父类已有定义，父类的实现是否需要调用。基于这点不太建议继承层次太深</em></p>
+<h2 id="12-1-12-2-函数上移（Pull-Up-Method）、字段上移（Pull-Up-Field）">12.1 &amp; 12.2 函数上移（Pull Up Method）、字段上移（Pull Up Field）</h2>
+<p>核心原则是避免代码或字段的重复（将重复部分挪到父类），重复代码假以时日只会成为滋生 bug 的温床</p>
+<p><strong>注意点：</strong></p>
+<ul>
+<li>当上移函数实现中调用了父类不需要实现的函数，建议留个能明确传达出“继承的子类需要提供该函数实现”这个信息的陷阱（trap）函数</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">protected virtual void XxxFunc() &#123;</span><br><span class="line">  throw new SubclassResponsibilityError();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="12-3-构造函数本体上移（Pull-Up-Constructor-Body）">12.3 构造函数本体上移（Pull Up Constructor Body）</h2>
+<p>与普通的函数上移有以下注意点：</p>
+<ul>
+<li>注意调用顺序，先执行基类构造</li>
+<li>当多个子类构造调用了同一段代码，且代码里依赖子类构造的成员时，此时就存在时序问题不能上移。但可以采用普通函数上移的方式去处理（子类构造调用）</li>
+</ul>
+<h2 id="12-4-12-5-函数下移（Push-Down-Method）、字段下移（Push-Down-Field）">12.4 &amp; 12.5 函数下移（Push Down Method）、字段下移（Push Down Field）</h2>
+<ul>
+<li>将只是某个子类关心的函数或字段迁移回真正关心它的子类</li>
+<li>如果不清楚有哪些子类关心，可以【多态取代条件表达式】只保留公有部分</li>
+</ul>
+<p><em>当有相同的行为却又依赖不同类型的子类数据时，多态是很好的助手，比如技能编辑器检测类，只保留通用的检测接口在父类，并不需要关心具体的数据，子类实现时才需要维护对应数据</em></p>
+<h2 id="12-6-12-7-以子类取代类型码（Replace-Type-Code-with-Subclasses）、移除子类（Remove-Subclass）">12.6  &amp; 12.7 以子类取代类型码（Replace Type Code with Subclasses）、移除子类（Remove Subclass）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">function createEmployee(name, type) &#123;</span><br><span class="line">  return new Employee(name, type);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//////////////////将Employee类中的type字段去掉，以子类取而代之</span><br><span class="line"></span><br><span class="line">function createEmployee(name, type) &#123;</span><br><span class="line">  switch (type) &#123;</span><br><span class="line">    case &quot;engineer&quot;: return new Engineer(name);</span><br><span class="line">    case &quot;salesman&quot;: return new Salesman(name);</span><br><span class="line">    case &quot;manager&quot;: return new Manager (name);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>处理什么问题：</strong></p>
+<ul>
+<li>“相似但又不同的东西”常用类型码去区分不同的部分
+<ul>
+<li><em>比如我手中的芒果，在认知里芒果就是芒果，但却又有很多细分品种，有种不同的甜度和颜色</em></li>
+</ul>
+</li>
+<li>当不同的部分需要额外去处理，类中难免会出现if分支语句（<em>视情况是芒果香味还是腐烂味</em>）</li>
+</ul>
+<p><strong>使用子类取代类型码的好处：</strong></p>
+<ul>
+<li>减少类方法臃肿，使用多态来将分支语句拆分给子类</li>
+<li>减少类变量臃肿，将不同的部分需要关心的成员拆分给子类</li>
+</ul>
+<p><strong>不使用子类取代的理由：</strong></p>
+<ul>
+<li>类型码并不会影响具体的行为时，此时拆分子类反而有理解成本</li>
+<li><em>比如给芒果区分性别，本身也没有太多意义</em></li>
+</ul>
+<p><em>是否需要取代，我觉得要看需要处理不同的位置数量是否多，以及该类后续是否需要频繁维护新增不同的部分。</em></p>
+<p><strong>一些注意的点</strong>：<br>
+是直接处理携带类型码的这个类，还是应该处理类型码本身呢</p>
+<ul>
+<li>看该类是否可以由多个类型码组合</li>
+<li>该类是否可以随意变更类型码</li>
+</ul>
+<h2 id="12-8-12-9-提炼超类（Extract-Superclass）、折叠继承体系（Collapse-Hierarchy）">12.8 &amp; 12.9 提炼超类（Extract Superclass）、折叠继承体系（Collapse Hierarchy）</h2>
+<ul>
+<li>将两个类的相似之处提取到超类（合理的继承关系是在程序演化的过程中才浮现出来的：发现共同元素，抽取到一处，产生继承关系）</li>
+<li>去除提取后与超类行为一致的子类来折叠继承关系，减少理解成本</li>
+</ul>
+<h2 id="12-10-以委托取代子类（Replace-Subclass-with-Delegate）">12.10 以委托取代子类（Replace Subclass with Delegate）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">class Order &#123;</span><br><span class="line">  get daysToShip() &#123;</span><br><span class="line">    return this._warehouse.daysToShip;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class PriorityOrder extends Order &#123;</span><br><span class="line">  get daysToShip() &#123;</span><br><span class="line">    return this._priorityPlan.daysToShip;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">/////就是常说的组合和继承协作</span><br><span class="line">class Order &#123;</span><br><span class="line">  get daysToShip() &#123;</span><br><span class="line">    return this._priorityDelegate</span><br><span class="line">      ? this._priorityDelegate.daysToShip</span><br><span class="line">      : this._warehouse.daysToShip;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class PriorityOrderDelegate &#123;</span><br><span class="line">  get daysToShip() &#123;</span><br><span class="line">    return this._priorityPlan.daysToShip;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>使用继承的一些短板</strong>：</p>
+<ul>
+<li>继承只能用于处理一个方向上的变化
+<ul>
+<li>比如说游戏内物体可以按怪物、宠物、角色去分类，但如果后续引入了新分类，比如飞行生物、陆地生物，如果只用继承很难去处理这种多种方向的变化（部分语言支持多重继承）</li>
+</ul>
+</li>
+<li>继承给类之间引入了非常紧密的关系，在超类上做任何修改，都很可能破坏子类</li>
+</ul>
+<p><strong>一些案例</strong>：</p>
+<ul>
+<li>游戏中常用的组件模式，将单位所拥有的能力拆分成一个个委托类，需要哪些能力可以自由组合，委托类也不需要过度去关心单位类的结构。包括上面短板中提到会按不同类型去分类，类型本身也可以拆成委托类，负责获取不同的数据和一些有差异的行为。</li>
+<li>编辑器等界面交互UI，只负责分区的组织和上层框架的绘制，具体的细节可以交给委托类去绘制。</li>
+</ul>
+<p><strong>对象组合优于类继承？</strong></p>
+<ul>
+<li>正确的解读是：审慎地组合使用对象组合与类继承，优于单独使用其中任何一种</li>
+</ul>
+<h2 id="12-11-以委托取代超类（Replace-Superclass-with-Delegate）">12.11 以委托取代超类（Replace Superclass with Delegate）</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">class List &#123;...&#125;</span><br><span class="line">class Stack extends List &#123;...&#125;</span><br><span class="line"></span><br><span class="line">class Stack &#123;</span><br><span class="line">  constructor() &#123;</span><br><span class="line">    this._storage = new List();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">class List &#123;...&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>避免为了让某个类使用另一个类的功能，从而强行继承
+<ul>
+<li>比如上面的例子中，列表的接口会出现在栈中，并且栈本身也不是一个列表</li>
+</ul>
+</li>
+<li>合理的做法是去持有另一个类作为委托类，将需要用到的功能通过转发函数转发</li>
+</ul>
+<h1>小结</h1>
+<p>再读重构还是有不少收获，回想第一次读时更多关心代码功能，并没有多少后续维护的概念，囫囵吞枣般没有太多共鸣。</p>
+<p><strong>为什么要重构？</strong><br>
+重构本身不会改变程序运行逻辑，还有不少成本引入。</p>
+<p>书中给了答案：减少重复代码，增加代码可读性，降低后续修改难度</p>
+<p>工作一段时间最大的感悟便是需求是时刻在变化的，程序设计也要跟着不断变化。好的代码设计能够很好面对变化，引入新的功能风险、成本都能够在可控范围。特别是一些很紧急的需求，如果原先底层不支持，就只能各种特判代码安排了。当然有些情况是不可避免的，关键是后续使用“重构”去让那些临时代码不再临时，即使是屎山也要不断铲屎，避免越堆越高。</p>
+<p><strong>改进日常写法</strong></p>
+<ul>
+<li>循环中避免做过多事情，以前总觉得一遍循环能处理这么多事很酷，还省性能。实际还是要看运行情况，如果本身就不会频繁调用，省下的性能导致增加的维护成本，实在得不偿失，该拆循环就得拆。</li>
+<li>避免在函数传入参数来决定不同的分支，特别是bool参数，会让调用方比较混乱，最好还是拆分多个函数。</li>
+<li>慎重对待可变数据，bug滋生的源头。</li>
+</ul>
+
+      </section>
+
+      
+      
+        <nav class="article-nav">
+          
+          
+            <div class="article-nav-item layout-padding">
+  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
+    
+    <div class="card-text">
+      
+        <a href="/posts/f255a135/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">【Refactoring】 重构 API</h2>
+        </a>
+      
+      <div class="card-text--row">Older</div>
+    </div>
+  </article>
+</div>
+          
+        </nav>
+      
+
+      <section class="page-message-container layout-padding">
+        
+
+
+  
+  
+    <div class="valine-container comments-container content-padding--primary soft-size--large soft-style--box">
+      <div id="valine_thread" class="valine-thread"></div>
+    </div>
+    <script type="text/javascript" src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script type="text/javascript" src='//unpkg.com/valine/dist/Valine.min.js'></script>
+    <script type="text/javascript">
+      new Valine({
+        el: "#valine_thread",
+        appId: "ha5sLVmWShqJe8avY2CWYZlD-gzGzoHsz",
+        appKey: "4p6G2ba4Q1lK0tPKyeZRmhUu",
+        avatar: "mm",
+        placeholder: "随便说点什么叭～",
+        notify: true,
+        visitor: true,
+        pageSize: 10,
+      });
+    </script>
+  
+
+  
+  
+
+
+      </section>
+    </div>
+    <div class="widget-info">
+      <section class="widget-author widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-body">
+    
+      <img src="https://raw.githubusercontent.com/kiodyd/image-host/main/PicGo/20230104205054.png" class="soft-size--round soft-style--box" alt="kio0o0">
+    
+    
+      <h2>kio0o0</h2>
+    
+    
+      <p>如果可以做到不懂就问，做不到的事情就拒绝，或许可以活得更轻松点</p>
+    
+
+    <div class="count-box">
+      <div class="count-box--item">
+        <svg class="icon icon-article" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M240.51564747 647.74217627h196.07203239c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806V165.10332731c0-33.18142087-30.16492806-60.32985613-60.32985612-60.32985611H245.04038668C225.43318342 104.7734712 210.35071939 119.85593522 210.35071939 139.46313845V617.57724821c0 16.59071043 13.57421762 30.16492806 30.16492808 30.16492806z m663.62841731-452.47392089v482.63884894c0 33.18142087-27.14843525 60.32985613-60.32985612 60.32985613H180.18579134c-33.18142087 0-60.32985613-27.14843525-60.32985612-60.32985613V195.26825538c-49.77213131 0-90.49478418 40.72265287-90.49478417 90.49478417v452.4739209c0 49.77213131 40.72265287 90.49478418 90.49478417 90.49478417h286.56681657c16.59071043 0 30.16492806 13.57421762 30.16492807 30.16492807s13.57421762 30.16492806 30.16492805 30.16492806h90.49478418c16.59071043 0 30.16492806-13.57421762 30.16492805-30.16492806s13.57421762-30.16492806 30.16492807-30.16492807h286.56681657c49.77213131 0 90.49478418-40.72265287 90.49478417-90.49478417V285.76303955c0-49.77213131-40.72265287-90.49478418-90.49478417-90.49478417zM587.41232014 647.74217627h191.54729318c19.60720323 0 34.68966726-15.08246403 34.68966729-34.68966727V134.93839925c0-16.59071043-13.57421762-30.16492806-30.16492808-30.16492805H617.57724821c-30.16492806 0-60.32985613 27.14843525-60.32985612 60.32985611v452.4739209c0 16.59071043 13.57421762 30.16492806 30.16492805 30.16492806z" fill="currentColor"></path>
+</svg>
+        <span>105</span>
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+        6
+      </div>
+      <div class="count-box--item">
+        <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+        26
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+
+      
+<section class="widet-notice widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-notice" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 945.02305225v28.15620663a24.27259221 24.27259221 0 0 1-24.27259221 24.27259335H394.0352a48.54518557 48.54518557 0 0 1-41.74885888-23.78714112l-110.68302222-184.47170332a132.04290333 132.04290333 0 0 1-17.47626667-48.54518557h118.4502511a200.97706667 200.97706667 0 0 1 76.21594113 14.56355556l20.38897777 133.49925888a48.54518557 48.54518557 0 0 0 36.40888888 27.67075555l16.01991111 2.91271112a24.27259221 24.27259221 0 0 1 20.38897778 25.72894889zM997.45185223 463.45481443a194.18074112 194.18074112 0 0 1-38.8361489 116.50844445 24.75804445 24.75804445 0 0 1-36.4088889 0l-34.95253333-34.95253333a24.27259221 24.27259221 0 0 1-2.91271111-30.58346667 97.09036999 97.09036999 0 0 0 0-106.79940665 24.27259221 24.27259221 0 0 1 2.91271111-30.58346666l34.95253333-34.95253334a24.75804445 24.75804445 0 0 1 18.93262223-7.28177777 26.2144 26.2144 0 0 1 17.47626667 9.70903665A194.18074112 194.18074112 0 0 1 997.45185223 463.45481443z m-194.18074112-388.36148111v776.72296335a48.54518557 48.54518557 0 0 1-48.54518556 48.54518443h-28.64165888a48.54518557 48.54518557 0 0 1-33.98163001-14.07810332l-145.63555556-143.20829668A291.27111111 291.27111111 0 0 0 342.57730333 657.63555556H172.18370333a145.63555556 145.63555556 0 0 1-145.63555556-145.63555556v-97.09036999a145.63555556 145.63555556 0 0 1 145.63555556-145.63555556h170.3936a291.27111111 291.27111111 0 0 0 206.31703779-85.43952668l145.63555555-143.20829554a48.54518557 48.54518557 0 0 1 33.98162888-14.07810446H754.72592555a48.54518557 48.54518557 0 0 1 48.54518556 48.54518555z" fill="currentColor"></path>
+</svg>
+    <span>NOTICE</span>
+  </div>
+  <div class="widget-body">
+    <p>正在努力学习图形学中！</p>
+  </div>
+</section>
+
+
+      <section class="widget-categorys widget-item layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-categories" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M900.3614811 257.09082106h-339.81629553l-67.96326003-101.9448889c-19.41807444-29.12711113-48.54518557-43.69066667-82.52681443-43.69066667H123.6385189c-53.39970333 0-97.09036999 43.69066667-97.09037113 97.09036999v582.54222222c0 53.39970333 43.69066667 97.09036999 97.09037113 97.09037002h776.7229622c53.39970333 0 97.09036999-43.69066667 97.09037113-97.09037002V354.18119104c0-53.39970333-43.69066667-97.09036999-97.09037113-97.09036998z m-97.09036999 242.72592554H220.72888889c-24.27259221 0-48.54518557-24.27259221-48.54518556-48.54518556s24.27259221-48.54518557 48.54518556-48.54518444h582.54222222c24.27259221 0 48.54518557 24.27259221 48.54518556 48.54518444s-24.27259221 48.54518557-48.54518556 48.54518556z" fill="currentColor"></path>
+</svg>
+    <span>CATEGORYS</span>
+  </div>
+  <div class="widget-body">
+    <ul class="categorys-list">
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/">
+            工作 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E8%BD%AF%E4%BB%B6/">
+            软件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E6%9D%82%E8%B0%88/">
+            杂谈 (1)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E7%A1%AC%E4%BB%B6/">
+            硬件 (2)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%AD%A6%E4%B9%A0/">
+            学习 (98)
+          </a>
+        </li>
+      
+        <li class="categorys-list-item">
+          <a href="/categories/%E5%8A%A8%E7%94%BB/">
+            动画 (1)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+</section>
+
+      <section class="widget-tags widget-item  layout-margin content-padding--primary soft-size--large soft-style--box">
+  <div class="widget-title">
+    <svg class="icon icon-tags" viewBox="0 0 1098 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M283.42180005 272q0-28.38857157-20.09142843-48.48000001t-48.47999998-20.09142842-48.48000002 20.09142842-20.09142846 48.48000001 20.09142846 48.48 48.48000002 20.09142843 48.47999998-20.09142843 20.09142843-48.48zM855.0332285 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.03999997 263.58857157q-20.9142853 19.81714313-48.75428534 19.81714312-28.38857157 0-48.20571468-19.81714312l-383.04-383.58857157q-20.36571468-19.81714313-34.55999999-54.10285688t-14.19428534-62.6742853l0-222.85714313q0-27.84000002 20.36571469-48.20571469t48.2057147-20.36571466l222.85714313 0q28.38857157 0 62.6742853 14.19428529t54.65142842 34.55999999l383.04000001 382.49142843q19.81714313 20.9142853 19.81714314 48.75428532zM1060.74751475 580.57142843q0 28.38857157-19.81714313 48.2057147l-263.04 263.58857157q-20.9142853 19.81714313-48.75428531 19.81714312-19.26857155 0-31.61142843-7.47428531t-28.38857159-24.13714314l251.79428534-251.7942853q19.81714313-19.81714313 19.81714308-48.20571469 0-27.84000002-19.81714308-48.75428531l-383.04000001-382.49142845q-20.36571468-20.36571468-54.65142842-34.55999999t-62.67428532-14.19428534l120 0q28.38857157 0 62.67428532 14.19428534t54.65142842 34.55999999l383.03999998 382.49142845q19.81714313 20.9142853 19.81714314 48.75428531z" fill="currentColor"></path>
+</svg>
+    <span>TAGS</span>
+  </div>
+  <div class="widget-body">
+    <div class="tags-cloud">
+      <a href="/tags/AMD-OS-X/" style="font-size: 10px;" class="tags-cloud-0">AMD OS X</a> <a href="/tags/C-%E7%AC%94%E8%AE%B0/" style="font-size: 16.67px;" class="tags-cloud-7">C#笔记</a> <a href="/tags/Github%E6%8A%80%E5%B7%A7/" style="font-size: 10px;" class="tags-cloud-0">Github技巧</a> <a href="/tags/Hackintosh/" style="font-size: 10px;" class="tags-cloud-0">Hackintosh</a> <a href="/tags/Lua%E7%AC%94%E8%AE%B0/" style="font-size: 10px;" class="tags-cloud-0">Lua笔记</a> <a href="/tags/Unity/" style="font-size: 15.56px;" class="tags-cloud-6">Unity</a> <a href="/tags/Unity-Shader%E5%85%A5%E9%97%A8%E7%B2%BE%E8%A6%81/" style="font-size: 17.78px;" class="tags-cloud-8">Unity Shader入门精要</a> <a href="/tags/c-%E7%AC%94%E8%AE%B0/" style="font-size: 12.22px;" class="tags-cloud-2">c++笔记</a> <a href="/tags/cocos/" style="font-size: 10px;" class="tags-cloud-0">cocos</a> <a href="/tags/c%E8%AF%AD%E8%A8%80%E7%AC%94%E8%AE%B0/" style="font-size: 11.11px;" class="tags-cloud-1">c语言笔记</a> <a href="/tags/drcom/" style="font-size: 10px;" class="tags-cloud-0">drcom</a> <a href="/tags/shader/" style="font-size: 10px;" class="tags-cloud-0">shader</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/" style="font-size: 14.44px;" class="tags-cloud-4">代码设计</a> <a href="/tags/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/" style="font-size: 10px;" class="tags-cloud-0">卡通渲染</a> <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" style="font-size: 20px;" class="tags-cloud-10">图形学</a> <a href="/tags/%E5%AD%A6%E4%B9%A0/" style="font-size: 10px;" class="tags-cloud-0">学习</a> <a href="/tags/%E5%B9%B3%E6%9D%BF/" style="font-size: 11.11px;" class="tags-cloud-1">平板</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 13.33px;" class="tags-cloud-3">性能优化</a> <a href="/tags/%E6%90%9E%E6%9C%BA/" style="font-size: 10px;" class="tags-cloud-0">搞机</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;" class="tags-cloud-0">数据结构</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" style="font-size: 10px;" class="tags-cloud-0">游戏开发</a> <a href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" style="font-size: 18.89px;" class="tags-cloud-9">百人计划</a> <a href="/tags/%E8%A7%A3%E9%A2%98/" style="font-size: 10px;" class="tags-cloud-0">解题</a> <a href="/tags/%E8%AE%A1%E5%88%92/" style="font-size: 10px;" class="tags-cloud-0">计划</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;" class="tags-cloud-0">路由器</a> <a href="/tags/%E9%87%8D%E6%9E%84/" style="font-size: 14.44px;" class="tags-cloud-4">重构</a>
+    </div>
+  </div>
+</section>
+    </div>
+  </article>
+</div>
+
+    <!-- footer container -->
+<footer id="footer" class="footer">
+  <div class="footer-container">
+    
+    <div class="social-icons">
+      
+        
+      
+        
+      
+        
+      
+        
+          <a href="https://github.com/kiodyd" class="soft-size--primary soft-style--box" target="_blank" rel="noopener noreferrer">
+            <svg class="icon icon-github" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64.6 512c0 195.6 125.4 361.9 300.1 422.9 23.5 5.9 19.9-10.8 19.9-22.2v-77.6c-135.8 15.9-141.3-74-150.5-89-18.5-31.5-61.9-39.5-49-54.5 31-15.9 62.5 4 98.9 58 26.4 39.1 77.9 32.5 104.1 26 5.7-23.5 17.9-44.5 34.7-60.9-140.7-25.2-199.4-111.1-199.4-213.3 0-49.5 16.4-95.1 48.4-131.8-20.4-60.6 1.9-112.4 4.9-120.1 58.2-5.2 118.5 41.6 123.3 45.3 33.1-8.9 70.8-13.7 112.9-13.7 42.4 0 80.3 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.4-43.9 2.9 7.7 24.7 58.3 5.5 118.1 32.5 36.8 49 82.8 49 132.4 0 102.3-59 188.3-200.2 213.2 23.5 23.3 38.1 55.5 38.1 91.1v112.7c0.8 9 0 17.9 15.1 17.9C832.7 877 960.4 709.4 960.4 512.1c0-247.5-200.6-447.9-447.9-447.9C265 64.1 64.6 264.5 64.6 512z"></path>
+</svg>
+          </a>
+        
+      
+        
+      
+    </div>
+     
+    <p>&copy; 2025 <a href="/" target="_blank">kio0o0</a></p>
+
+    
+
+    <p>Powered by <a href="https://hexo.io" target="_blank" rel="noopener noreferrer">Hexo</a> Theme - <a href="https://github.com/miiiku/flex-block" target="_blank" rel="noopener noreferrer author">flex-block</a></p>
+
+    <p>
+      <a href="javascript:;" id="theme-light">🌞 浅色</a>
+      <a href="javascript:;" id="theme-dark">🌛 深色</a>
+      <a href="javascript:;" id="theme-auto">🤖️ 自动</a>
+    </p>
+  </div>
+</footer>
+  </div>
+
+  <div class="back-to-top-fixed soft-size--round soft-style--box">
+    <svg class="icon icon-back-to-top" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M725.333333 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733333s42.666667-17.066667 59.733333 0l213.333333 213.333333c17.066667 17.066667 17.066667 42.666667 0 59.733333C746.666667 422.4 738.133333 426.666667 725.333333 426.666667z"></path>
+      <path d="M298.666667 426.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733333l213.333333-213.333333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733333l-213.333333 213.333333C320 422.4 311.466667 426.666667 298.666667 426.666667z"></path>
+      <path d="M512 896c-25.6 0-42.666667-17.066667-42.666667-42.666667L469.333333 170.666667c0-25.6 17.066667-42.666667 42.666667-42.666667s42.666667 17.066667 42.666667 42.666667l0 682.666667C554.666667 878.933333 537.6 896 512 896z"></path>
+    </svg>
+  </div>
+
+  
+  <!-- aplayer -->
+
+
+<!-- dplayer -->
+
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+  <!-- 尾部用户自定义相关内容 -->
+</body>
+</html>
