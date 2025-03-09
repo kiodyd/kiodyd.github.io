@@ -26,7 +26,7 @@
 
   
 
-  <title>《Unity性能优化》-- 1. 初探项目 | 不特别周のBlog</title>
+  <title>不特别周のBlog</title>
 
   
 
@@ -100,29 +100,18 @@
     <div class="header-content">
       <div class="post-text layout-block">
         <div class="layout-margin">
-          <h1 class="title-wrap">《Unity性能优化》-- 1. 初探项目</h1>
+          <h1 class="title-wrap"></h1>
           <h2 class="title-sub-wrap">
             <strong>kio0o0</strong>
             <span>发布于</span>
-            <time  class="article-date" datetime="2023-04-02T07:14:16.000Z" itemprop="datePublished">2023-04-02</time>
+            <time  class="article-date" datetime="2025-03-09T14:50:13.967Z" itemprop="datePublished">2025-03-09</time>
           </h2>
-          
-            <h2 class="title-sub-wrap new-date">
-              <span>最后更新于</span>
-              <time  class="article-updated" datetime="2024-07-14T09:03:59.236Z" itemprop="dateUpdated">2024-07-14</time>
-            </h2>
           
           
           <ul class="wrap-list dark">
-  
-    <li><a href="/categories/%E5%AD%A6%E4%B9%A0/">📒 学习</a></li>
   
 </ul>
           <ul class="wrap-list dark">
-  
-    <li><a href="/tags/Unity/">🏷️ Unity</a></li>
-  
-    <li><a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">🏷️ 性能优化</a></li>
   
 </ul>
         </div>
@@ -146,105 +135,21 @@
       
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
-        <span id="more"></span>
-<h2 id="初探项目">初探项目</h2>
-<h3 id="资源预览">资源预览</h3>
-<ul>
-<li>通过Project窗口中的Search By Tag功能，大致看一下资源分布情况，网格、音效、shader、脚本等数量</li>
-<li>关注场景中摄像机数量和灯光数量
-<ul>
-<li>摄像机数量影响渲染流程的复杂度</li>
-<li>灯光数量影响场景光照和阴影复杂度</li>
-</ul>
-</li>
-<li>有些资源会将用到的所有预制体放在一个场景中，可以看下用到哪些预制体</li>
-</ul>
-<h3 id="对应平台的设置">对应平台的设置</h3>
-<ul>
-<li>Quality目标平台的设置
-<ul>
-<li>查看目标平台与编辑器窗口设置的差异</li>
-</ul>
-</li>
-<li>渲染管线目标平台的设置
-<ul>
-<li>使用管线的类型（延迟渲染对移动端有带宽问题）</li>
-<li>使用哪些RendererFeature</li>
-<li>开启哪些管线中间纹理（像深度、法线图就需要额外Pass去获取）</li>
-<li>开启哪些管线内置功能</li>
-</ul>
-</li>
-</ul>
-<h3 id="运行时信息">运行时信息</h3>
-<ul>
-<li>查看编辑器和真机上画面和音效是否正常</li>
-<li>切换目标平台后在编辑器中查看Stats信息（渲染平均面数，峰值面数，渲染批次等信息）</li>
-<li>在真机构建中查看（需要勾选Development Build和Autoconnect Profiler）
-<ul>
-<li>需要真机也能显示性能数据（这里工程带了个DebugCanvas预制体），比如帧数信息</li>
-<li>关闭真机的垂直同步功能（urp设置中）</li>
-<li>使用Profiler查看真机运行时内存情况和性能耗时分布情况</li>
-<li>Apk生成文件大小</li>
-</ul>
-</li>
-</ul>
-<details>
-<summary>项目未优化时的一些参考指标数据</summary>
-<ul>
-    <li>生成的Android APK大小 550M</li>
-    <li>三角形平均面熟150-200万，峰值230万</li>
-    <li>渲染批次1500-1800次</li>
-    <li>SetPassCall 200次以上</li>
-    <li>小米11 ultra平均FPS 10FPS, iPhone XS Max 15FPS</li>
-    <li>内存 小米11 ultra 1.5GB, iPhone XS Max 1GB</li>
-    <li>纹理资源小米11 ultra 670M, iPhone XS Max 530M</li>
-    <li>Mesh资源小米11 ultra 423M, iPhone XS Max 423M</li>
-    <li>音效资源小米11 ultra 76M, iPhone XS Max 76M</li>
-</ul>
-</details>
-<h2 id="一些问答">一些问答</h2>
-<h3 id="移动端的经验数据">移动端的经验数据</h3>
-<ul>
-<li>cpu与gpu开销,cpu控制在18ms，gpu控制在10ms</li>
-<li>外包一定要高低模型都需要，这个定标准的人，需要主程与主美一起包括你和制作人一起拍板，美术愿意后期返工可以考虑采纳美术建议</li>
-<li>高往低调整好办一点，低往高调整更困难，还要考虑未来几年硬件发展，规格可以高一点，但如果你们有强烈的手机兼容性与适配性需求，比如项目出海或东南亚非洲，那么这个问题就要更多考虑</li>
-<li>你可以给出你的建议，这个板要制作人拍，一般按目前移动项目来说，我建议模型同屏控制在100W面以内，独立角色同屏不超过30个，骨骼数限制在80-100，甚至更少（包括动态骨骼）</li>
-<li>但游戏类型不同、光照复杂度、材质复杂度不同，需要多方权衡取舍。你最好参考主流游戏有个对照参考，才好定标准。</li>
-</ul>
-<h2 id="课程地址">课程地址</h2>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1tu41127LD">https://www.bilibili.com/video/BV1tu41127LD</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/lwwhb/Unity2022_SUNTAIL_Stylized_Fantasy_Village_Optimization">https://github.com/lwwhb/Unity2022_SUNTAIL_Stylized_Fantasy_Village_Optimization</a></li>
-</ul>
-
+        
       </section>
 
       
       
         <nav class="article-nav">
           
-            <div class="article-nav-item layout-padding">
-  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
-    
-    <div class="card-text">
-      
-        <a href="/posts/ccdb27b5/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">《Unity性能优化》-- 2. 资源导入优化</h2>
-        </a>
-      
-      <div class="card-text--row">Newer</div>
-    </div>
-  </article>
-</div>
-          
           
             <div class="article-nav-item layout-padding">
   <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
     
     <div class="card-text">
       
-        <a href="/posts/29a6e0de/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">卡渲入门の攻略</h2>
+        <a href="/posts/9ac995b5/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">【Refactoring】 处理继承关系</h2>
         </a>
       
       <div class="card-text--row">Older</div>
