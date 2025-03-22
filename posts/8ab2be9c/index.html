@@ -26,7 +26,7 @@
 
   
 
-  <title>C#本质论-章节10 合式类型 | 不特别周のBlog</title>
+  <title>【游戏设计模式】享元模式 | 不特别周のBlog</title>
 
   
 
@@ -100,16 +100,16 @@
     <div class="header-content">
       <div class="post-text layout-block">
         <div class="layout-margin">
-          <h1 class="title-wrap">C#本质论-章节10 合式类型</h1>
+          <h1 class="title-wrap">【游戏设计模式】享元模式</h1>
           <h2 class="title-sub-wrap">
             <strong>kio0o0</strong>
             <span>发布于</span>
-            <time  class="article-date" datetime="2022-09-17T14:33:00.000Z" itemprop="datePublished">2022-09-17</time>
+            <time  class="article-date" datetime="2025-03-21T14:22:01.445Z" itemprop="datePublished">2025-03-21</time>
           </h2>
           
             <h2 class="title-sub-wrap new-date">
               <span>最后更新于</span>
-              <time  class="article-updated" datetime="2024-07-14T09:03:59.240Z" itemprop="dateUpdated">2024-07-14</time>
+              <time  class="article-updated" datetime="2025-03-22T03:05:04.910Z" itemprop="dateUpdated">2025-03-22</time>
             </h2>
           
           
@@ -120,7 +120,7 @@
 </ul>
           <ul class="wrap-list dark">
   
-    <li><a href="/tags/C-%E7%AC%94%E8%AE%B0/">🏷️ C#笔记</a></li>
+    <li><a href="/tags/%E4%BB%A3%E7%A0%81%E8%AE%BE%E8%AE%A1/">🏷️ 代码设计</a></li>
   
 </ul>
         </div>
@@ -144,79 +144,73 @@
       
       
       <section class="article-entry markdown-body layout-margin content-padding--large soft-size--large soft-style--box">
-        <p>求知若饥，虚心若愚</p>
-<span id="more"></span>
-<h3 id="重写Object的成员">重写Object的成员</h3>
+        <span id="more"></span>
+<h2 id="享元模式是什么">享元模式是什么</h2>
+<p>英文版本是flyweight，意味着轻量级，听起来是个好东西。<br>
+<em>怎么做到<strong>轻量级</strong>，为什么翻译又叫<strong>享元</strong>？</em></p>
+<p>核心机制：</p>
 <ul>
-<li>ToString()，使其格式化更有意义，最好返回简短的字符串</li>
-<li>GetHashCode()，重写比较麻烦，但如果重写Equals就要重写GetHashCode，<a target="_blank" rel="noopener" href="https://blog.csdn.net/shenmegui_zyf/article/details/51668464">参考文章</a></li>
-<li>Equals()，注意判空，在使用ReferenceEquals来判断引用是否相等（只有引用类型才可能引用相等，值类型会装箱的），然后判断关键数据是否一致。默认实现只是判断了引用同一性。<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/348510655">C#7使用元组语法简化重写过程</a></li>
-<li>GetHashCode、Equals、==、!=要一起修改（后面两个一般简单判空下即可使用Equals来支持，注意避免重载时使用改操作符，否则会无限递归）</li>
+<li>将一个“巨无霸”对象的数据拆分成两份（理论上也可以是多份）</li>
+<li>分为变和不变的部分，不变部分也称固有状态、上下文无关状态</li>
+<li>不变的部分可以单独拆出去共享其他实例，实例只保存变的部分</li>
+<li><em>意味着大家都一样的部分就不用每个人都保存了，共享一份即可</em></li>
 </ul>
-<h3 id="操作符重载">操作符重载</h3>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">public static xx operator xx(xx, xx)//二元类型的话</span><br><span class="line"></span><br><span class="line">// 转型操作符的重载，分为显式和隐式。implicit\explicit</span><br><span class="line">public statuc implicit operator double(Latitude latitude)</span><br><span class="line">&#123;</span><br><span class="line">    //Latitude隐式转成double</span><br><span class="line">    return xxx;</span><br><span class="line">&#125;</span><br><span class="line">// 注意如果有损或者会可能引发异常要用显式转换</span><br></pre></td></tr></table></figure>
-<h3 id="引用其他程序集">引用其他程序集</h3>
+<h2 id="享元模式的一些使用场景">享元模式的一些使用场景</h2>
+<h3 id="森林的渲染">森林的渲染</h3>
+<p>森林由许多树组成，每棵树都有一系列与之相关的成员：</p>
 <ul>
-<li>可访问修饰符
-<table>
-<thead>
-<tr>
-<th>修饰符</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>public</td>
-<td>凡是能访问类型的地方，都能访问类型的成员。</td>
-</tr>
-<tr>
-<td>internal</td>
-<td>成员只能从当前程序集中访问</td>
-</tr>
-<tr>
-<td>private</td>
-<td>成员可从包容类型中访问，但其他任何地方都不能访问</td>
-</tr>
-<tr>
-<td>protected</td>
-<td>成员可从包容类型以及任何派生类型中访问，即使派生类型在不同程序集中</td>
-</tr>
-<tr>
-<td><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_20892335/article/details/78589509">protected internal</a></td>
-<td>成员可从包含程序集的任何地方访问，还可从包容类型的任何派生类中访问，即使派生类不在程序集中</td>
-</tr>
-<tr>
-<td>private protected</td>
-<td>成员可从同一程序集中包容类型的任何派生类中访问，c#7.2添加</td>
-</tr>
-</tbody>
-</table>
-</li>
+<li>定义树干，树枝和树叶形状的多边形网格</li>
+<li>树皮和树叶的纹理</li>
+<li>在森林中树的位置和朝向</li>
+<li>大小和色彩之类的调节参数，让每棵树都看起来与众不同</li>
 </ul>
-<h3 id="定义命名空间">定义命名空间</h3>
+<p>如果每棵树都这么与众不同，且有以上所有实例，先不管内存兄弟的感受，cpu可就有福了，cpu到gpu的交互将会产生很多drawcall，光准备阶段就能忙死它。</p>
 <blockquote>
-<p>CLR中没有“命名空间”这种东西，应该是通过拼接类型名</p>
+<p>Draw call其实是CPU与GPU的通信方式，他们通过CommandBuffer作为通信的“信道”，每一次GPU与CPU的通信的过程有很多步骤。如果一帧中间DrawCall数量太多，CPU就会在设置渲染状态-提交drawcall上花费大量时间，造成性能问题，这里的性能问题其实是GPU在等待CPU的处理。</p>
 </blockquote>
-<h3 id="XML注释">XML注释</h3>
+<p><img src="https://gpp.tkchu.me/images/flyweight-trees.png" alt=""></p>
+<p>实际上游戏中森林每棵树长得都差不太多，只是一些位置、朝向、缩放的不同，那么完全可以拆成变化状态和固有状态，这里树的网格等数据即固有的，相同的树共享一份网格数据。<br>
+<img src="https://gpp.tkchu.me/images/flyweight-tree-model.png" alt=""></p>
+<p>实际上图形api也是支持这种设计思想，“使用同一模型渲染每个实例”，传入每个实例不同的部分，调用一次渲染，绘制整个森林。（这个API是由显卡直接实现的，意味着享元模式也许是唯一的有硬件支持的GoF设计模式）</p>
+<h3 id="GPU-Instanceing">GPU Instanceing</h3>
+<p>在Unity中使用该模式的feature</p>
+<blockquote>
+<p>GPU Instancing 在同一个Draw call中渲染完全相同的网格。可以通过添加变量来减少重复的外观，每个实例可以具有不同的属性，例如颜色或缩放。在Frame Debugger中如有Draw calls显示多个实例时会显示“Darw Mesh(Instanced)”。</p>
+</blockquote>
+<p><img src="https://pica.zhimg.com/v2-f4a2d6b6fafc23ec789f9b53ceffc658_1440w.jpg" alt=""><br>
+<em>使用了多个GPU Instanceing组合，如果材质球属性要有变化，请用MaterialPropertyBlock</em></p>
+<p><strong>一些限制</strong>：</p>
 <ul>
-<li>一般和c#声明配合使用</li>
-<li>可用注释生成文档</li>
-<li>注释在代码提示方面很有用</li>
+<li>和SRP Batcher不兼容，需要测试哪种情况下效率更高<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/25/3/image_c47c9be4c64ccd4b524fd0ff41d6eb3e.png" alt=""></li>
+<li>SkinnedMeshRenderers不支持GPU Instancing技术，但可以通过GPU顶点动画的方式去支持，官方提供了<a target="_blank" rel="noopener" href="https://github.com/Unity-Technologies/Animation-Instancing">Animation-Instancing</a></li>
+<li>支持全局光照系统，但有一些限制<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/25/3/image_0b219b68439cde5f28095b99673d1017.png" alt=""></li>
+<li>GPU Instancing每个批次的Instance数量是有上限的，但好像最新的文档没有提及，虽然测试还是有上限<br>
+<img src="https://raw.githubusercontent.com/kiodyd/image-host/main/Qexo/25/3/image_413546afa1d2fde9b12f4ad215e45f3a.png" alt=""></li>
 </ul>
-<h3 id="垃圾回收">垃圾回收</h3>
+<h3 id="地形数据">地形数据</h3>
+<p>游戏里常见地形有草，泥土，丘陵，湖泊，河流。基于区块建立地表：世界的表面被划分为由微小区块组成的巨大网格</p>
+<p>每种地形类型都有一系列特性会影响游戏玩法：</p>
 <ul>
-<li>回收的是不被引用的对象占用的内存（而不是资源），目的在于提高内存使用率</li>
-<li>分代，mark-and-compact算法，将还在用的内存紧挨着放并分成三代</li>
-<li>建议多看几篇文章</li>
-<li>弱引用，可重复利用还未被垃圾回收的对象，适用于那些生成费时费力的对象  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">private WeakReference Data;</span><br><span class="line">public FileStream GetData()</span><br><span class="line">&#123;</span><br><span class="line">    FileData data = (FileData)Data.target;</span><br><span class="line">    if(data != null)</span><br><span class="line">    &#123;</span><br><span class="line">        return data;</span><br><span class="line">    &#125;else</span><br><span class="line">    &#123;</span><br><span class="line">        // 创建data</span><br><span class="line">        Data.target = data;</span><br><span class="line">        return data;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
+<li>决定了玩家能够多快地穿过它的移动开销</li>
+<li>表明能否用船穿过的水域标识</li>
+<li>用来渲染它的纹理</li>
 </ul>
-<h3 id="资源清理">资源清理</h3>
+<p>基于数据的设计，可能会将地形抽象成枚举，然后每个区块保存一份枚举</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">enum</span><br><span class="line">&#123;</span><br><span class="line">    TERRAIN_GRASS,</span><br><span class="line">    TERRAIN_HILL,</span><br><span class="line">    TERRAIN_RIVER</span><br><span class="line">    // 其他地形</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">class World</span><br><span class="line">&#123;</span><br><span class="line">private:</span><br><span class="line">    Terrain tiles_[WIDTH][HEIGHT];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>然后具体使用的时候在每个方法里判断枚举去switch得到不同的特性，比如如果是草，移动开销则为*</p>
+<p>听起来运行效率很高，但是地形数据太分散了，没有OOP的优雅</p>
+<p>地形完全可以用一个类来描述，将它的数据和功能聚合在一起</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">class Terrain</span><br><span class="line">&#123;</span><br><span class="line">public:</span><br><span class="line">  Terrain(int movementCost,</span><br><span class="line">          bool isWater,</span><br><span class="line">          Texture texture)</span><br><span class="line">  : movementCost_(movementCost),</span><br><span class="line">    isWater_(isWater),</span><br><span class="line">    texture_(texture)</span><br><span class="line">  &#123;&#125;</span><br><span class="line"></span><br><span class="line">  int getMovementCost() const &#123; return movementCost_; &#125;</span><br><span class="line">  bool isWater() const &#123; return isWater_; &#125;</span><br><span class="line">  const Texture&amp; getTexture() const &#123; return texture_; &#125;</span><br><span class="line"></span><br><span class="line">private:</span><br><span class="line">  int movementCost_;</span><br><span class="line">  bool isWater_;</span><br><span class="line">  Texture texture_;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>和森林的例子一样，每个区块并不需要实例化一份地形数据，因为位置1的草和位置7的草并没有什么不同</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">class World</span><br><span class="line">&#123;</span><br><span class="line">private:</span><br><span class="line">  Terrain* tiles_[WIDTH][HEIGHT];</span><br><span class="line"></span><br><span class="line">  // 其他代码……</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><img src="https://gpp.tkchu.me/images/flyweight-tiles.png" alt=""></p>
+<p>性能方面几乎没有额外的开销，如果要较真的话，跟踪这样的指针会导致缓存不命中，降低运行速度。</p>
+<p>早期的马里奥的卷轴地图和如今的tilemap的实现思路想必都有使用该模式</p>
+<h2 id="引用">引用</h2>
 <ul>
-<li>终结器，不能手动调用，只能等对象被回收器终结时自动调用，语法与c++一致，“~”，用于清理类的资源（文件句柄，数据库连接等等），一定要避免异常，不然出了bug都不明不白（时机不确定，如果没有调用堆栈的话）</li>
-<li>由于终结器执行的不确定性，c#还提供了IDisposable接口，来显示调用，最好还需要在终结器中调用这个接口，避免疏漏</li>
-<li>虽然可以手动调用Dispose接口，但如果没有写异常处理函数的话还是可能没有调用到，所以可以使用using语句，只要实现了IDisposable接口，离开作用范围后会自动调用，即使发生了异常，其实原理是自动生成了try-finally语句。</li>
+<li><a target="_blank" rel="noopener" href="https://gpp.tkchu.me/flyweight.html">https://gpp.tkchu.me/flyweight.html</a></li>
 </ul>
 
       </section>
@@ -225,28 +219,14 @@
       
         <nav class="article-nav">
           
-            <div class="article-nav-item layout-padding">
-  <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
-    
-    <div class="card-text">
-      
-        <a href="/posts/e72db841/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">C#本质论-章节11 异常处理</h2>
-        </a>
-      
-      <div class="card-text--row">Newer</div>
-    </div>
-  </article>
-</div>
-          
           
             <div class="article-nav-item layout-padding">
   <article class="card-container article-nav-card content-padding--primary soft-size--large soft-style--box">
     
     <div class="card-text">
       
-        <a href="/posts/d3d38f09/" itemprop="url">
-          <h2 class="card-text--title text-ellipsis">C#本质论-章节09 值类型</h2>
+        <a href="/posts/133c59d1/" itemprop="url">
+          <h2 class="card-text--title text-ellipsis">【游戏设计模式】命令模式</h2>
         </a>
       
       <div class="card-text--row">Older</div>
